@@ -1,0 +1,58 @@
+-- Documentation: https://postgrespro.com/docs/postgresql/16/app-psql?lang=en#APP-PSQL-FILES-PSQLRC
+
+-- Colors: https://misc.flogisoft.com/bash/tip_colors_and_formatting
+-- Colors: https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
+\set lred    '%[%033[1;31m%]%'
+\set green   '%[%033[32m%]'
+\set yellow  '%[%033[33m%]'
+\set cyan    '%[%033[36m%]'
+\set white   '%[%033[37m%]'
+\set magenta '%[%033[35m%]'
+\set reset   '%[%033[0m%]'
+
+select pg_backend_pid(),    -- If we're connecting through pgbouncer, then prompt's %p is not real, so get real PID
+       pg_is_in_recovery(), -- primary or standby
+       current_setting('server_version') as server_version \gset
+
+\if :pg_is_in_recovery
+    \set server_type :white'standby'
+\else
+    \set server_type :magenta'primary'
+\endif
+
+/* psql escape codes:
+%M - full host + domain for db server, or [local] (if over Unix socket), or [local:/dir/name]
+%m - host name of the db server, truncated at the first dot, or [local] (if over Unix socket)
+%> - port where db server is listening
+%n - database session user name (changes based on SET SESSION AUTHORIZATION)
+%/ - current database name
+%~ - like %/ but the output is ~ if the database is the default
+%# - # if user is superuser, else > (changes based on SET SESSION AUTHORIZATION)
+%R - in prompt 1: = (normal), ^ (single-line mode), ! (disconnected)
+%R - in prompt 2: - (more input expected), * (in a comment), ' or " or $ (inside a string)
+%x - Transaction status: an empty string when not in a transaction block, or * when in a transaction block, or ! when in a failed transaction block, or ? when the transaction state is indeterminate (for example, because there is no connection).
+*/
+
+\set PROMPT1 :cyan'\n[%`date --rfc-3339=seconds`] ':server_type' ':white'':server_version' ':yellow'psql://':green'%n':cyan'@':green'%`hostname`':cyan':':green'%>':yellow'/%/ ':white'(pid=':pg_backend_pid') \n%x':lred'#':reset' '
+\set PROMPT2 ''
+
+\set ON_ERROR_ROLLBACK interactive
+
+\set HISTSIZE 9000
+
+-- If a command is run more than once in a row, only store it once in the history.
+\set HISTCONTROL ignoredups
+
+-- It's 21st century, let's use unicode for borders
+\pset linestyle unicode
+
+\pset pager always
+
+\pset null '¤'
+
+\timing
+
+-- Use table format (with headers across the top) by default, but switch to expanded table format when there's a lot of data, which makes it much easier to read
+\x auto
+
+\setenv PAGER 'less -iMFXSx4R'
