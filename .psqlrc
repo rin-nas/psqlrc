@@ -205,3 +205,4 @@ WHERE datname = current_database()
 
 -- включаем отображение информационных сообщений
 \set QUIET off
+
