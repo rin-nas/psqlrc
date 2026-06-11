@@ -90,7 +90,7 @@ SELECT
                                        when r.replay_lag <  '1d'::interval then to_char(r.replay_lag, 'FMHH24"h" FMMI"m" FMSS"s"')
                                        else to_char(r.replay_lag, 'FMDD"d" FMHH24"h" FMMI"m" FMSS"s"')
                                   end) AS a (total_lag_time_pretty)
-              CROSS JOIN pg_size_pretty(pg_current_wal_lsn() - r.replay_lsn) AS b (total_lag_size_pretty)
+              CROSS JOIN pg_size_pretty(pg_current_wal_flush_lsn() - r.replay_lsn) AS b (total_lag_size_pretty)
              ), '') as wal_send_to,
     (SELECT COUNT(*) FROM pg_stat_replication) as wal_send_count,
 
