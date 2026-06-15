@@ -16,6 +16,9 @@
 -- не добавляем в историю строки, которые в ней уже есть
 \set HISTCONTROL ignoredups
 
+-- редактор для команды \e
+\setenv PSQL_EDITOR 'nano'
+
 -- пейджер (если результат запроса не помещается на экране, он пропускается через эту программу)
 \setenv PSQL_PAGER 'less -iMFXSx4R'
 \if `command -v pspg > /dev/null && echo 1 || echo 0`
@@ -30,7 +33,7 @@
 -- отображаем значения NULL
 \pset null '¤'
 
-SELECT
+select
     pg_backend_pid(),
     pg_is_in_recovery(),
     (select nullif(setting, '') from pg_settings where name = 'data_directory' limit 1) as data_directory,
@@ -42,8 +45,9 @@ SELECT
     (select nullif(setting, '') from pg_settings where name = 'archive_timeout' limit 1) as archive_timeout,
     (select nullif(setting, '') from pg_settings where name = 'archive_command' limit 1) as archive_command,
     (select nullif(setting, '') from pg_settings where name = 'restore_command' limit 1) as restore_command,
-    -- shared_preload_libraries
-    -- walsender_plugin_libraries
+    (select nullif(setting, '') from pg_settings where name = 'shared_preload_libraries') as shared_preload_libraries,
+    (select nullif(setting, '') from pg_settings where name = 'walsender_plugin_libraries') as walsender_plugin_libraries,
+    s1.synchronous_commit,
 
     db.datname as db_name,
     pg_size_pretty(pg_database_size(db.datname)) as db_size,
@@ -145,8 +149,11 @@ SELECT
         order by backend_type, datname, state, usename, wait_event_type, wait_event;
     $sql$ as "A"
 
-FROM pg_stat_database AS db
-WHERE datname = current_database()
+from
+    pg_stat_database as db,
+    (select nullif(setting, '') from pg_settings where name = 'synchronous_commit') as s1(synchronous_commit)
+
+where datname = current_database()
 \gset
 
 -- настраиваем приглашения командной строки
@@ -174,30 +181,41 @@ WHERE datname = current_database()
 \endif
 
 -- выводим информационные сообщения
-\echo 'Started at:        ':started_at' (':start_uptime' ago)'
-\echo 'Config loaded at:  ':loaded_at' (':load_uptime' ago)'
-\echo 'Data directory:    ':data_directory
+\echo 'Started at:            ':started_at' (':start_uptime' ago)'
+\echo 'Config loaded at:      ':loaded_at' (':load_uptime' ago)'
+\echo 'Data directory:        ':data_directory
 
 \if :is_primary
-    \echo 'Server role:       primary'
+    \echo 'Server role:           primary'
 \else
-    \echo 'Server role:       replica'
-    \echo 'WAL receive (':wal_receive_count'):   ':wal_receive_from
+    \echo 'Server role:           replica'
+    \echo 'WAL receive (':wal_receive_count'):       ':wal_receive_from
 \endif
 
 \echo 'WAL send (':wal_send_count'):      ':wal_send_to
 
-\if :is_archive_active
-    \echo 'Archive mode:      ':archive_mode' (timeout: ':archive_timeout')'
-    \echo 'Archive command:   ':archive_command
-    \echo 'Restore command:   ':restore_command
-\else
-    \echo 'Archive mode:      ':archive_mode
+\echo 'Synchronous commit:    ':synchronous_commit
+
+\if :{?shared_preload_libraries}
+    \echo 'Shared preload libs:   ':shared_preload_libraries
 \endif
 
-\echo 'Current database:  ':db_name' (size: ':db_size')'
-\echo 'Installed extens:  ':installed_extensions
-\echo 'Short SQL:         :W - who am i, :A - stat activity groups counts'
+\if :{?walsender_plugin_libraries}
+    \echo 'Walsender plugin libs: ':walsender_plugin_libraries
+\endif
+
+\if :is_archive_active
+    \echo 'Archive mode:          ':archive_mode' (timeout: ':archive_timeout')'
+    \echo 'Archive command:       ':archive_command
+    \echo 'Restore command:       ':restore_command
+\else
+    \echo 'Archive mode:          ':archive_mode
+\endif
+
+\echo 'Current database:      ':db_name' (size: ':db_size')'
+\echo 'Installed extens:      ':installed_extensions
+
+\echo 'Short SQL:             :W - who am i, :A - stat activity groups counts'
 \echo
 
 -- включаем отображение длительности выполнения запроса
@@ -205,4 +223,3 @@ WHERE datname = current_database()
 
 -- включаем отображение информационных сообщений
 \set QUIET off
-

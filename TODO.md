@@ -21,3 +21,6 @@ COALESCE(
     END 
 ) AS lag_time
 ```
+
+https://postgrespro.ru/docs/postgrespro/10/functions-admin
+pg_is_in_backup(), pg_backup_start_time()
