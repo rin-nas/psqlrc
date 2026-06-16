@@ -41,8 +41,11 @@
 select
     pg_backend_pid(),
     pg_is_in_recovery(),
-    (select nullif(setting, '') from pg_settings where name = 'data_directory' limit 1) as data_directory,
-    (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension) as installed_extensions,
+    (select nullif(setting, '') from pg_settings where name = 'data_directory'             limit 1) as data_directory,
+    (select nullif(setting, '') from pg_settings where name = 'shared_preload_libraries'   limit 1) as shared_preload_libraries,
+    (select nullif(setting, '') from pg_settings where name = 'walsender_plugin_libraries' limit 1) as walsender_plugin_libraries,
+    (select nullif(setting, '') from pg_settings where name = 'synchronous_commit'         limit 1) as synchronous_commit, -- off / local / remote_write / on / remote_apply
+    (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension)  as installed_extensions,
 
     -- архивация WAL файлов
     exists(select from pg_settings where name = 'archive_mode' and setting != 'off') as is_archive_active,
@@ -50,9 +53,6 @@ select
     (select nullif(setting, '') from pg_settings where name = 'archive_timeout' limit 1) as archive_timeout,
     (select nullif(setting, '') from pg_settings where name = 'archive_command' limit 1) as archive_command,
     (select nullif(setting, '') from pg_settings where name = 'restore_command' limit 1) as restore_command,
-    (select nullif(setting, '') from pg_settings where name = 'shared_preload_libraries') as shared_preload_libraries,
-    (select nullif(setting, '') from pg_settings where name = 'walsender_plugin_libraries') as walsender_plugin_libraries,
-    s1.synchronous_commit,
 
     db.datname as db_name,
     pg_size_pretty(pg_database_size(db.datname)) as db_size,
@@ -155,10 +155,7 @@ select
         order by backend_type, datname, state, usename, wait_event_type, wait_event;
     $sql$ as "A"
 
-from
-    pg_stat_database as db,
-    (select nullif(setting, '') from pg_settings where name = 'synchronous_commit') as s1(synchronous_commit)
-
+from pg_stat_database as db
 where datname = current_database()
 \gset
 
