@@ -86,6 +86,7 @@ select
                                 e'\n                  ' order by r.backend_start)
               FROM pg_stat_replication AS r
               LEFT JOIN pg_replication_slots AS s ON r.pid = s.active_pid
+              CROSS JOIN COALESCE(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_flush_lsn() end) AS t(last_lsn)
               CROSS JOIN COALESCE(case when r.replay_lag =   '0'::interval then '0ms'
                                        when r.replay_lag <  '1s'::interval then regexp_replace(to_char(r.replay_lag, 'FMMS"ms"'), '^0+(?=\d+ms$)', '')
                                        when r.replay_lag < '10s'::interval then regexp_replace(to_char(r.replay_lag, 'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
@@ -94,7 +95,7 @@ select
                                        when r.replay_lag <  '1d'::interval then to_char(r.replay_lag, 'FMHH24"h" FMMI"m" FMSS"s"')
                                        else to_char(r.replay_lag, 'FMDD"d" FMHH24"h" FMMI"m" FMSS"s"')
                                   end) AS a (total_lag_time_pretty)
-              CROSS JOIN pg_size_pretty(pg_current_wal_flush_lsn() - r.replay_lsn) AS b (total_lag_size_pretty)
+              CROSS JOIN pg_size_pretty(t.last_lsn - r.replay_lsn) AS b (total_lag_size_pretty)
              ), '') as wal_send_to,
     (SELECT COUNT(*) FROM pg_stat_replication) as wal_send_count,
 
@@ -192,7 +193,7 @@ where datname = current_database()
     \echo 'WAL receive (':wal_receive_count'):       ':wal_receive_from
 \endif
 
-\echo 'WAL send (':wal_send_count'):      ':wal_send_to
+\echo 'WAL send (':wal_send_count'):          ':wal_send_to
 
 \echo 'Synchronous commit:    ':synchronous_commit
 
@@ -206,14 +207,20 @@ where datname = current_database()
 
 \if :is_archive_active
     \echo 'Archive mode:          ':archive_mode' (timeout: ':archive_timeout')'
-    \echo 'Archive command:       ':archive_command
-    \echo 'Restore command:       ':restore_command
+    \if :{?archive_command}
+        \echo 'Archive command:       ':archive_command
+    \endif
+    \if :{?restore_command}
+        \echo 'Restore command:       ':restore_command
+    \endif
 \else
     \echo 'Archive mode:          ':archive_mode
 \endif
 
 \echo 'Current database:      ':db_name' (size: ':db_size')'
-\echo 'Installed extens:      ':installed_extensions
+\if :{?installed_extensions}
+    \echo 'Installed extensions:  ':installed_extensions
+\endif
 
 \echo 'Short SQL:             :W - who am i, :A - stat activity groups counts'
 \echo
