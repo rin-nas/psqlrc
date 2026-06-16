@@ -1,4 +1,9 @@
--- отключаем отображение информационных сообщений
+-- документация https://postgrespro.ru/docs/postgresql/current/app-psql
+
+-- запоминаем флаг отображения информационных сообщений
+\set QUIET_ORIGINAL :QUIET
+
+-- отключаем отображение информационных сообщений (установка значения on эквивалента параметру командной строки -q)
 \set QUIET on
 
 -- прекращаем обработку команд после возникновения ошибки, в интерактивном режиме psql вернётся в командную строку
@@ -181,52 +186,58 @@ where datname = current_database()
     \set is_primary `test :pg_is_in_recovery = f && echo 1 || echo 0`
 \endif
 
--- выводим информационные сообщения
-\echo 'Started at:            ':started_at' (':start_uptime' ago)'
-\echo 'Config loaded at:      ':loaded_at' (':load_uptime' ago)'
-\echo 'Data directory:        ':data_directory
-
-\if :is_primary
-    \echo 'Server role:           primary'
+\if :QUIET_ORIGINAL
+  -- psql запущен с флагом -q
 \else
-    \echo 'Server role:           replica'
-    \echo 'WAL receive (':wal_receive_count'):       ':wal_receive_from
-\endif
 
-\echo 'WAL send (':wal_send_count'):          ':wal_send_to
+    -- выводим информационные сообщения
+    \echo 'Started at:            ':started_at' (':start_uptime' ago)'
+    \echo 'Config loaded at:      ':loaded_at' (':load_uptime' ago)'
+    \echo 'Data directory:        ':data_directory
 
-\echo 'Synchronous commit:    ':synchronous_commit
-
-\if :{?shared_preload_libraries}
-    \echo 'Shared preload libs:   ':shared_preload_libraries
-\endif
-
-\if :{?walsender_plugin_libraries}
-    \echo 'Walsender plugin libs: ':walsender_plugin_libraries
-\endif
-
-\if :is_archive_active
-    \echo 'Archive mode:          ':archive_mode' (timeout: ':archive_timeout')'
-    \if :{?archive_command}
-        \echo 'Archive command:       ':archive_command
+    \if :is_primary
+        \echo 'Server role:           primary'
+    \else
+        \echo 'Server role:           replica'
+        \echo 'WAL receive (':wal_receive_count'):       ':wal_receive_from
     \endif
-    \if :{?restore_command}
-        \echo 'Restore command:       ':restore_command
+
+    \echo 'WAL send (':wal_send_count'):          ':wal_send_to
+
+    \echo 'Synchronous commit:    ':synchronous_commit
+
+    \if :{?shared_preload_libraries}
+        \echo 'Shared preload libs:   ':shared_preload_libraries
     \endif
-\else
-    \echo 'Archive mode:          ':archive_mode
-\endif
 
-\echo 'Current database:      ':db_name' (size: ':db_size')'
-\if :{?installed_extensions}
-    \echo 'Installed extensions:  ':installed_extensions
-\endif
+    \if :{?walsender_plugin_libraries}
+        \echo 'Walsender plugin libs: ':walsender_plugin_libraries
+    \endif
 
-\echo 'Short SQL:             :W - who am i, :A - stat activity groups counts'
-\echo
+    \if :is_archive_active
+        \echo 'Archive mode:          ':archive_mode' (timeout: ':archive_timeout')'
+        \if :{?archive_command}
+            \echo 'Archive command:       ':archive_command
+        \endif
+        \if :{?restore_command}
+            \echo 'Restore command:       ':restore_command
+        \endif
+    \else
+        \echo 'Archive mode:          ':archive_mode
+    \endif
+
+    \echo 'Current database:      ':db_name' (size: ':db_size')'
+    \if :{?installed_extensions}
+        \echo 'Installed extensions:  ':installed_extensions
+    \endif
+
+    \echo 'Short SQL:             :W - who am i, :A - stat activity groups counts'
+    \echo
+
+\endif
 
 -- включаем отображение длительности выполнения запроса
 \timing on
 
--- включаем отображение информационных сообщений
-\set QUIET off
+-- восстанавливаем флаг отображения информационных сообщений
+\set QUIET :QUIET_ORIGINAL
