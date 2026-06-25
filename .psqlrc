@@ -93,7 +93,8 @@ select
               FROM pg_stat_replication AS r
               LEFT JOIN pg_replication_slots AS s ON r.pid = s.active_pid
               CROSS JOIN COALESCE(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_flush_lsn() end) AS t(last_lsn)
-              CROSS JOIN COALESCE(case when r.replay_lag =   '0'::interval then '0ms'
+              CROSS JOIN COALESCE(-- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
+                                  case when r.replay_lag =   '0'::interval then '0ms'
                                        when r.replay_lag <  '1s'::interval then regexp_replace(to_char(r.replay_lag, 'FMMS"ms"'), '^0+(?=\d+ms$)', '')
                                        when r.replay_lag < '10s'::interval then regexp_replace(to_char(r.replay_lag, 'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
                                        when r.replay_lag <  '1m'::interval then to_char(r.replay_lag, 'FMSS"s"')
@@ -122,7 +123,8 @@ select
                    coalesce(case when status != 'streaming' then null
                                  else latest_end_lsn - pg_last_wal_replay_lsn()
                             end) AS b (total_lag_size),
-                   coalesce(case when total_lag_time =   '0'::interval then '0ms'
+                   coalesce(-- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
+                            case when total_lag_time =   '0'::interval then '0ms'
                                  when total_lag_time <  '1s'::interval then regexp_replace(to_char(total_lag_time, 'FMMS"ms"'), '^0+(?=\d+ms$)', '')
                                  when total_lag_time < '10s'::interval then regexp_replace(to_char(total_lag_time, 'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
                                  when total_lag_time <  '1m'::interval then to_char(total_lag_time, 'FMSS"s"')
