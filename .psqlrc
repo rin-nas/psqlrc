@@ -42,10 +42,12 @@
 select
     pg_backend_pid(),
     pg_is_in_recovery(),
-    (select nullif(trim(setting), '') from pg_settings where name = 'data_directory'             limit 1) as data_directory,
-    (select nullif(trim(setting), '') from pg_settings where name = 'shared_preload_libraries'   limit 1) as shared_preload_libraries,
-    (select nullif(trim(setting), '') from pg_settings where name = 'walsender_plugin_libraries' limit 1) as walsender_plugin_libraries,
-    (select nullif(trim(setting), '') from pg_settings where name = 'synchronous_commit'         limit 1) as synchronous_commit, -- off / local / remote_write / on / remote_apply
+    (select nullif(trim(setting), '') from pg_settings where name = 'data_directory' limit 1) as data_directory,
+    (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g')
+       from pg_settings where name = 'shared_preload_libraries'   limit 1) as shared_preload_libraries,
+    (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g')
+       from pg_settings where name = 'walsender_plugin_libraries' limit 1) as walsender_plugin_libraries,
+    (select nullif(trim(setting), '') from pg_settings where name = 'synchronous_commit' limit 1) as synchronous_commit, -- off / local / remote_write / on / remote_apply
     (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension)  as installed_extensions,
 
     -- архивация WAL файлов
