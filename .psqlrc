@@ -27,7 +27,7 @@
 
 -- пейджер (если результат запроса не помещается на экране, он пропускается через эту программу)
 \setenv PSQL_PAGER 'less -iMFXSx4R'
-\if `command -v pspg > /dev/null && echo 1 || echo 0`
+\if `command -v pspg &> /dev/null && echo 1 || echo 0`
     \pset expanded off
     \setenv PSQL_PAGER 'pspg --reprint-on-exit --blackwhite'
     \setenv PSQL_WATCH_PAGER 'pspg --reprint-on-exit --blackwhite --stream'
@@ -191,6 +191,7 @@ where datname = current_database()
 
         \set wal_directory :data_directory/pg_wal
         \set wal_real_directory `readlink -f :wal_directory`
+        \set is_wal_directory_symlink `test :wal_directory != :wal_real_directory &> /dev/null && echo 1 || echo 0`
 
         \set data_directory_size `du -sh :data_directory | cut -d $'\t' -f1`
         \set wal_directory_size `du -sh :wal_directory | cut -d $'\t' -f1`
@@ -203,12 +204,12 @@ where datname = current_database()
         \set is_primary `test :pg_is_in_recovery = f && echo 1 || echo 0`
     \endif
 
+
     -- выводим информационные сообщения
     \echo 'Started at:            ':started_at' (':start_uptime' ago)'
     \echo 'Config loaded at:      ':loaded_at' (':load_uptime' ago)'
 
     \if :{?data_directory}
-        \set is_wal_directory_symlink `test :wal_directory != :wal_real_directory &> /dev/null && echo 1 || echo 0`
         \if :{?data_directory_size}
             \echo 'Data directory:        ':data_directory' (size: ':data_directory_size')'
             \if :is_wal_directory_symlink
