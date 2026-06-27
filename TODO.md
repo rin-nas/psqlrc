@@ -1,5 +1,14 @@
 # TODO
 
+## Приоритет 1
+* если pg_is_in_backup(), то вывести pg_backup_start_time() и сколько времени прошло
+* для флага `psql -q` не выполнять лишних действий к ФС и запросов к СУБД
+
+## Приоритет 2
+* для data_directory вывести Size Used Avail Use%
+* https://postgrespro.ru/docs/postgrespro/current/functions-admin
+
+
 ```sql
 SELECT *
 FROM pg_stat_replication,
@@ -21,6 +30,3 @@ COALESCE(
     END 
 ) AS lag_time
 ```
-
-https://postgrespro.ru/docs/postgrespro/10/functions-admin
-pg_is_in_backup(), pg_backup_start_time()
