@@ -40,33 +40,6 @@
 \pset null '¤'
 
 select
-    pg_backend_pid(),
-    pg_is_in_recovery(),
-    (SELECT client_addr IS NULL /*socket*/ OR client_addr IN ('::1', '127.0.0.1') FROM pg_stat_activity WHERE pid = pg_backend_pid()) as is_local_connection,
-
-    (select nullif(trim(setting), '') from pg_settings where name = 'data_directory' limit 1) as data_directory,
-    (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g')
-       from pg_settings where name = 'shared_preload_libraries'   limit 1) as shared_preload_libraries,
-    (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g')
-       from pg_settings where name = 'walsender_plugin_libraries' limit 1) as walsender_plugin_libraries,
-    (select nullif(trim(setting), '') from pg_settings where name = 'synchronous_commit' limit 1) as synchronous_commit, -- off / local / remote_write / on / remote_apply
-    (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension)  as installed_extensions,
-
-    -- архивация WAL файлов
-    exists(select from pg_settings where name = 'archive_mode' and setting != 'off') as is_archive_active,
-    (select nullif(trim(setting), '') from pg_settings where name = 'archive_mode'    limit 1) as archive_mode, -- off/on/always
-    (select nullif(trim(setting), '') from pg_settings where name = 'archive_timeout' limit 1) as archive_timeout,
-    (select nullif(trim(setting), '') from pg_settings where name = 'archive_command' limit 1) as archive_command,
-    (select nullif(trim(setting), '') from pg_settings where name = 'restore_command' limit 1) as restore_command,
-
-    db.datname as db_name,
-    pg_size_pretty(pg_database_size(db.datname)) as db_size,
-
-    pg_postmaster_start_time()::timestamptz(0) as started_at,
-    pg_conf_load_time()::timestamptz(0)        as loaded_at,
-    now()::timestamptz(0) - pg_postmaster_start_time()::timestamptz(0) as start_uptime,
-    now()::timestamptz(0) - pg_conf_load_time()::timestamptz(0)        as load_uptime,
-
     trim((regexp_match(coalesce(
       -- example: Postgres Pro (shardman) 18.3.2 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 13.3.1 20250418 (RED SOFT 13.3.1-3), 64-bit
       (select nullif(trim(setting), '') from pg_settings where name = 'pgpro_version' limit 1),
@@ -75,71 +48,6 @@ select
       -- example: PostgreSQL 16.11 (Ubuntu 16.11-1.pgdg24.04+1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0, 64-bit
       version()
     ), '^.+? \d+(?:\.\d+)*[^ ]* '))[1]) as pg_version,
-
-    coalesce((SELECT string_agg(concat(coalesce(s.slot_name, r.application_name, '¤'),
-                                       '  ', r.usename,
-                                             '@',
-                                             coalesce(r.client_hostname,
-                                                      host(r.client_addr),
-                                                      (select nullif(trim(setting), '') from pg_settings where name = 'unix_socket_directories' limit 1),
-                                                      '[socket]'),
-                                             ':',
-                                             r.client_port,
-                                             concat_ws('/', '', s.database),
-                                       '  ', coalesce(s.slot_type, '¤'), -- physical/logical
-                                       ' ', case when s.temporary is null then 'unknown' when s.temporary then 'temporary' else 'persistent' end,
-                                       '  ', r.sync_state, -- async/potential/sync/quorum
-                                       ' ', r.state,       -- startup/catchup/streaming/backup/stopping
-                                       '  (lag: ', coalesce(a.total_lag_time_pretty, '¤'),
-                                             ', ', coalesce(b.total_lag_size_pretty, '¤'), ')'
-                                      ),
-                                e'\n                  ' order by r.backend_start)
-              FROM pg_stat_replication AS r
-              LEFT JOIN pg_replication_slots AS s ON r.pid = s.active_pid
-              CROSS JOIN COALESCE(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_flush_lsn() end) AS t(last_lsn)
-              CROSS JOIN COALESCE(-- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
-                                  case when r.replay_lag =   '0'::interval then '0ms'
-                                       when r.replay_lag <  '1s'::interval then regexp_replace(to_char(r.replay_lag, 'FMMS"ms"'), '^0+(?=\d+ms$)', '')
-                                       when r.replay_lag < '10s'::interval then regexp_replace(to_char(r.replay_lag, 'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
-                                       when r.replay_lag <  '1m'::interval then to_char(r.replay_lag, 'FMSS"s"')
-                                       when r.replay_lag <  '1h'::interval then to_char(r.replay_lag, 'FMMI"m" FMSS"s"')
-                                       when r.replay_lag <  '1d'::interval then to_char(r.replay_lag, 'FMHH24"h" FMMI"m" FMSS"s"')
-                                       else to_char(r.replay_lag, 'FMDD"d" FMHH24"h" FMMI"m" FMSS"s"')
-                                  end) AS a (total_lag_time_pretty)
-              CROSS JOIN pg_size_pretty(t.last_lsn - r.replay_lsn) AS b (total_lag_size_pretty)
-             ), '') as wal_send_to,
-    (SELECT COUNT(*) FROM pg_stat_replication) as wal_send_count,
-
-    coalesce((SELECT concat(coalesce(slot_name, application_name, '¤'),
-                           '  ', sender_user, '@', sender_host, ':', sender_port,
-                           '  ', status, -- starting/stopped/stopping/streaming
-                           '  ', case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end, -- not paused / pause requested / paused
-                           '  (lag: ', coalesce(total_lag_time_pretty, '¤'),
-                                 ', ', coalesce(total_lag_size_pretty, '¤'), ')'
-                           )
-              FROM pg_stat_wal_receiver,
-                   coalesce((regexp_match(conninfo, '\muser=([^ ]+)'))[1]) AS s (sender_user),
-                   coalesce((regexp_match(conninfo, '\mfallback_application_name=([^ ]+)'))[1]) AS f (application_name),
-                   coalesce(case when status != 'streaming' then null
-                                 when latest_end_lsn = pg_last_wal_replay_lsn() then '0'::interval
-                                 else now() - latest_end_time
-                            end) AS a (total_lag_time),
-                   coalesce(case when status != 'streaming' then null
-                                 else latest_end_lsn - pg_last_wal_replay_lsn()
-                            end) AS b (total_lag_size),
-                   coalesce(-- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
-                            case when total_lag_time =   '0'::interval then '0ms'
-                                 when total_lag_time <  '1s'::interval then regexp_replace(to_char(total_lag_time, 'FMMS"ms"'), '^0+(?=\d+ms$)', '')
-                                 when total_lag_time < '10s'::interval then regexp_replace(to_char(total_lag_time, 'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
-                                 when total_lag_time <  '1m'::interval then to_char(total_lag_time, 'FMSS"s"')
-                                 when total_lag_time <  '1h'::interval then to_char(total_lag_time, 'FMMI"m" FMSS"s"')
-                                 when total_lag_time <  '1d'::interval then to_char(total_lag_time, 'FMHH24"h" FMMI"m" FMSS"s"')
-                                 else to_char(total_lag_time, 'FMDD"d" FMHH24"h" FMMI"m" FMSS"s"')
-                            end) AS c (total_lag_time_pretty),
-                   pg_size_pretty(total_lag_size) AS d (total_lag_size_pretty)
-              LIMIT 1
-             ), '') as wal_receive_from,
-    (SELECT COUNT(*) FROM pg_stat_wal_receiver) as wal_receive_count,
 
     -- именованные SQL запросы для быстрого доступа:
     'SELECT current_user, session_user, current_schemas(true) \gx' as "W",
@@ -162,8 +70,6 @@ select
         order by backend_type, datname, state, usename, wait_event_type, wait_event;
     $sql$ as "A"
 
-from pg_stat_database as db
-where datname = current_database()
 \gset
 
 -- настраиваем приглашения командной строки
@@ -171,10 +77,108 @@ where datname = current_database()
 -- YYYY-MM-DD HH:MM:SS+HH:MM  pg_version  user@host:port/database
 \set PROMPT1 '\n%`date --rfc-3339=seconds`  ':pg_version'  %n@%M:%>/%/\n':PROMPT2
 
+------------------------------------------------------------------------------------------------------------------------
 
 \if :QUIET_ORIGINAL
   -- psql запущен с флагом -q
 \else
+
+    select
+        pg_backend_pid(),
+        pg_is_in_recovery(),
+        (SELECT client_addr IS NULL /*socket*/ OR client_addr IN ('::1', '127.0.0.1') FROM pg_stat_activity WHERE pid = pg_backend_pid()) as is_local_connection,
+
+        (select nullif(trim(setting), '') from pg_settings where name = 'data_directory' limit 1) as data_directory,
+        (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g')
+           from pg_settings where name = 'shared_preload_libraries'   limit 1) as shared_preload_libraries,
+        (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g')
+           from pg_settings where name = 'walsender_plugin_libraries' limit 1) as walsender_plugin_libraries,
+        (select nullif(trim(setting), '') from pg_settings where name = 'synchronous_commit' limit 1) as synchronous_commit, -- off / local / remote_write / on / remote_apply
+        (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension)  as installed_extensions,
+
+        -- архивация WAL файлов
+        exists(select from pg_settings where name = 'archive_mode' and setting != 'off') as is_archive_active,
+        (select nullif(trim(setting), '') from pg_settings where name = 'archive_mode'    limit 1) as archive_mode, -- off/on/always
+        (select nullif(trim(setting), '') from pg_settings where name = 'archive_timeout' limit 1) as archive_timeout,
+        (select nullif(trim(setting), '') from pg_settings where name = 'archive_command' limit 1) as archive_command,
+        (select nullif(trim(setting), '') from pg_settings where name = 'restore_command' limit 1) as restore_command,
+
+        db.datname as db_name,
+        pg_size_pretty(pg_database_size(db.datname)) as db_size,
+
+        pg_postmaster_start_time()::timestamptz(0) as started_at,
+        pg_conf_load_time()::timestamptz(0)        as loaded_at,
+        now()::timestamptz(0) - pg_postmaster_start_time()::timestamptz(0) as start_uptime,
+        now()::timestamptz(0) - pg_conf_load_time()::timestamptz(0)        as load_uptime,
+
+        coalesce((SELECT string_agg(concat(coalesce(s.slot_name, r.application_name, '¤'),
+                                           '  ', r.usename,
+                                                 '@',
+                                                 coalesce(r.client_hostname,
+                                                          host(r.client_addr),
+                                                          (select nullif(trim(setting), '') from pg_settings where name = 'unix_socket_directories' limit 1),
+                                                          '[socket]'),
+                                                 ':',
+                                                 r.client_port,
+                                                 concat_ws('/', '', s.database),
+                                           '  ', coalesce(s.slot_type, '¤'), -- physical/logical
+                                           ' ', case when s.temporary is null then 'unknown' when s.temporary then 'temporary' else 'persistent' end,
+                                           '  ', r.sync_state, -- async/potential/sync/quorum
+                                           ' ', r.state,       -- startup/catchup/streaming/backup/stopping
+                                           '  (lag: ', coalesce(a.total_lag_time_pretty, '¤'),
+                                                 ', ', coalesce(b.total_lag_size_pretty, '¤'), ')'
+                                          ),
+                                    e'\n                  ' order by r.backend_start)
+                  FROM pg_stat_replication AS r
+                  LEFT JOIN pg_replication_slots AS s ON r.pid = s.active_pid
+                  CROSS JOIN COALESCE(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_flush_lsn() end) AS t(last_lsn)
+                  CROSS JOIN COALESCE(-- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
+                                      case when r.replay_lag =   '0'::interval then '0ms'
+                                           when r.replay_lag <  '1s'::interval then regexp_replace(to_char(r.replay_lag, 'FMMS"ms"'), '^0+(?=\d+ms$)', '')
+                                           when r.replay_lag < '10s'::interval then regexp_replace(to_char(r.replay_lag, 'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
+                                           when r.replay_lag <  '1m'::interval then to_char(r.replay_lag, 'FMSS"s"')
+                                           when r.replay_lag <  '1h'::interval then to_char(r.replay_lag, 'FMMI"m" FMSS"s"')
+                                           when r.replay_lag <  '1d'::interval then to_char(r.replay_lag, 'FMHH24"h" FMMI"m" FMSS"s"')
+                                           else to_char(r.replay_lag, 'FMDD"d" FMHH24"h" FMMI"m" FMSS"s"')
+                                      end) AS a (total_lag_time_pretty)
+                  CROSS JOIN pg_size_pretty(t.last_lsn - r.replay_lsn) AS b (total_lag_size_pretty)
+                 ), '') as wal_send_to,
+        (SELECT COUNT(*) FROM pg_stat_replication) as wal_send_count,
+
+        coalesce((SELECT concat(coalesce(slot_name, application_name, '¤'),
+                               '  ', sender_user, '@', sender_host, ':', sender_port,
+                               '  ', status, -- starting/stopped/stopping/streaming
+                               '  ', case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end, -- not paused / pause requested / paused
+                               '  (lag: ', coalesce(total_lag_time_pretty, '¤'),
+                                     ', ', coalesce(total_lag_size_pretty, '¤'), ')'
+                               )
+                  FROM pg_stat_wal_receiver,
+                       coalesce((regexp_match(conninfo, '\muser=([^ ]+)'))[1]) AS s (sender_user),
+                       coalesce((regexp_match(conninfo, '\mfallback_application_name=([^ ]+)'))[1]) AS f (application_name),
+                       coalesce(case when status != 'streaming' then null
+                                     when latest_end_lsn = pg_last_wal_replay_lsn() then '0'::interval
+                                     else now() - latest_end_time
+                                end) AS a (total_lag_time),
+                       coalesce(case when status != 'streaming' then null
+                                     else latest_end_lsn - pg_last_wal_replay_lsn()
+                                end) AS b (total_lag_size),
+                       coalesce(-- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
+                                case when total_lag_time =   '0'::interval then '0ms'
+                                     when total_lag_time <  '1s'::interval then regexp_replace(to_char(total_lag_time, 'FMMS"ms"'), '^0+(?=\d+ms$)', '')
+                                     when total_lag_time < '10s'::interval then regexp_replace(to_char(total_lag_time, 'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
+                                     when total_lag_time <  '1m'::interval then to_char(total_lag_time, 'FMSS"s"')
+                                     when total_lag_time <  '1h'::interval then to_char(total_lag_time, 'FMMI"m" FMSS"s"')
+                                     when total_lag_time <  '1d'::interval then to_char(total_lag_time, 'FMHH24"h" FMMI"m" FMSS"s"')
+                                     else to_char(total_lag_time, 'FMDD"d" FMHH24"h" FMMI"m" FMSS"s"')
+                                end) AS c (total_lag_time_pretty),
+                       pg_size_pretty(total_lag_size) AS d (total_lag_size_pretty)
+                  LIMIT 1
+                 ), '') as wal_receive_from,
+        (SELECT COUNT(*) FROM pg_stat_wal_receiver) as wal_receive_count
+
+    from pg_stat_database as db
+    where datname = current_database()
+    \gset
 
     \if :is_local_connection
         \if :{?data_directory}

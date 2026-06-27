@@ -1,9 +1,5 @@
 # TODO
 
-## Приоритет 1
-* для флага `psql -q` не выполнять лишних действий к ФС и запросов к СУБД
-
-## Приоритет 2
 * для data_directory вывести Size Used Avail Use%
 * https://postgrespro.ru/docs/postgrespro/current/functions-admin
 
