@@ -210,21 +210,22 @@ where datname = current_database()
     \echo 'Config loaded at:      ':loaded_at' (':load_uptime' ago)'
 
     \if :{?data_directory}
+        \set str 'Data directory:        ':data_directory
         \if :{?data_directory_size}
-            \echo 'Data directory:        ':data_directory' (size: ':data_directory_size')'
-            \if :is_wal_directory_symlink
-                \echo 'WAL directory:         ':wal_directory' -> ':wal_real_directory' (size: ':wal_directory_size')'
-            \else
-                \echo 'WAL directory:         ':wal_directory' (size: ':wal_directory_size')'
-            \endif
-        \else
-            \echo 'Data directory:        ':data_directory
-            \if :is_wal_directory_symlink
-                \echo 'WAL directory:         ':wal_directory' -> ':wal_real_directory
-            \else
-                \echo 'WAL directory:         ':wal_directory
-            \endif
+            \set str :str' (size: ':data_directory_size')'
         \endif
+        \echo :str
+    \endif
+
+    \if :{?wal_directory}
+        \set str 'WAL directory:         ':wal_directory
+        \if :is_wal_directory_symlink
+            \set str :str' -> ':wal_real_directory
+        \endif
+        \if :{?wal_directory_size}
+            \set str :str' (size: ':wal_directory_size')'
+        \endif
+        \echo :str
     \endif
 
     \if :is_primary
