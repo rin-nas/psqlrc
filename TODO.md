@@ -1,6 +1,7 @@
 # TODO
 
-* для data_directory вывести Size Used Avail Use%
+* добавить `log_directory`
+* для `data_directory` вывести Size Used Avail Use%
 * https://postgrespro.ru/docs/postgrespro/current/functions-admin
 
 
