@@ -80,8 +80,9 @@ select
 
 -- настраиваем приглашения командной строки
 \set PROMPT2 '%R%x%# '
--- YYYY-MM-DD HH:MM:SS+HH:MM  pg_version  user@host:port/database
-\set PROMPT1 '\n%`date --rfc-3339=seconds`  ':pg_version'':pg_build'  %n@%M:%>/%/\n':PROMPT2
+-- YYYY-MM-DD HH:MM:SS+HH:MM  user@host[IP]:/current_path/
+-- pg_version  user@host:port/database
+\set PROMPT1 '\n%`date --rfc-3339=seconds`  %`whoami`@%`hostname`[%`hostname -I | xargs`]:%`pwd`\n':pg_version'':pg_build'  %n@%M:%>/%/\n':PROMPT2
 
 ------------------------------------------------------------------------------------------------------------------------
 
