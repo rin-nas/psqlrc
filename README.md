@@ -2,44 +2,55 @@
 
 ## Введение
 
-Функциональность предназначена для администраторов СУБД PostgreSQL и его форков.
+Функциональность предназначена для администраторов СУБД PostgreSQL и Postgres Pro.
 
 ## Что отображается при запуске `psql`
 
 1. дата и время, когда был запущен сервер (и сколько времени прошло)
 1. дата и время, когда в последний раз сервер загружал файлы конфигурации (и сколько времени прошло)
-1. директория с данными (`PGDATA`)
+1. директория с данными (`data_directory`) и её размер для локального подключения
+1. директория с протоколами (`log_directory`) и её размер для локального подключения 
+1. директория с WAL и её размер для локального подключения; 
+   для символической ссылки дополнительно отображается настоящая директория
 1. роль сервера: основной (мастер) `primary` или резервный (реплика) `replica`
 1. откуда принимаются WAL файлы (мастер или реплика - всегда одна):
     * название слота или подключения
-    * DSN подключения (user@host:port/database)
-    * статус (starting/stopped/stopping/streaming)
-    * пауза (not paused/pause requested/paused)
+    * DSN подключения: `user@host:port/database`
+    * статус: `starting/stopped/stopping/streaming`
+    * пауза: `not paused/pause requested/paused`
     * отставание во времени и байтах (форматированное)
 1. куда передаются WAL файлы (в скобках указано количество реплик):
    * название слота или подключения
-   * DSN подключения (user@host:port/database)
-   * тип репликации (physical/logical)
-   * тип слота (temporary/persistent/unknown)
-   * тип синхронизации (async/potential/sync/quorum)
-   * состояние репликации (startup/catchup/streaming/backup/stopping)
+   * DSN подключения: `user@host:port/database`
+   * тип репликации: `physical/logical`
+   * тип слота: `temporary/persistent/unknown`
+   * тип синхронизации: `async/potential/sync/quorum`
+   * состояние репликации: `startup/catchup/streaming/backup/stopping`
    * отставание во времени и байтах (форматированное) 
 1. архивация:
-   * режим (off/on/always)
-   * ограничение времени существования неархивированных данных (archive_timeout)
+   * режим: `off/on/always`
+   * ограничение времени существования неархивированных данных (`archive_timeout`)
    * команда для архивации
    * команда для восстановления
 1. текущая база и её размер
 1. установленные расширения для текущей базы
 1. короткие SQL команды:
-   * `:W` - who am i (current_user, session_user, current_schemas)
-   * `:A` - агрегированная информация из `pg_stat_activity` (backend_type, datname, state, usename, wait_event_type, wait_event, count total, count state changed > 1m/1h ago) 
+   * `:W` - who am i,
+     колонки: `current_user, session_user, current_schemas`
+   * `:A` - агрегированная информация из `pg_stat_activity`, 
+     колонки: `backend_type, datname, state, usename, wait_event_type, wait_event, count_total, count_state_changed > 1s/5s/1m/1h ago` 
 
 ## Что отображается в командной строке `psql`
 
-1. дата и время с часовой зоной
-1. название и версия сервера
-1. пользователь@хост:порт/база_данных
+В первой строке — информация, относящаяся к ОС:
+1. дата и время с часовой зоной (в формате [RFC 3339](https://ijmacd.github.io/rfc3339-iso8601/))
+1. `user@host[IP_addresses] current_directory`
+
+Во второй строке — информация, относящаяся к СУБД:
+1. название сервера, версия и хеш сборки сервера
+1. DSN подключения: `user@host:port/database`
+
+Во третьей строке — приглашение для ввода команд и SQL запросов к СУБД
 
 ## Поддержка внешнего ПО
 
@@ -57,6 +68,8 @@ nano ~/.psqlrc
 ```
 
 ## Примеры
+
+Примеры могут быть не полностью актуальными, т.к. функциональность развивается быстрее, чем создаются примеры. 
 
 ### Автономная СУБД
 
