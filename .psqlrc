@@ -81,11 +81,13 @@ select
 
 \gset
 
--- настраиваем приглашения командной строки
+-- настраиваем приглашения командной строки PROMPT1 и PROMPT2
 \set PROMPT2 '%R%x%# '
 -- YYYY-MM-DD HH:MM:SS+HH:MM  user@host[IP]:/current_path/
+\set PROMPT_OS '%`date --rfc-3339=seconds`  %`whoami`@%`hostname`[%`hostname -I | xargs`]:%`pwd`'
 -- pg_version  user@host:port/database
-\set PROMPT1 '\n%`date --rfc-3339=seconds`  %`whoami`@%`hostname`[%`hostname -I | xargs`]:%`pwd`\n':pg_version'':pg_build'  %n@%M:%>/%/\n':PROMPT2
+\set PROMPT_PG :pg_version'':pg_build'  %n@%M:%>/%/'
+\set PROMPT1 '\n':PROMPT_OS'\n':PROMPT_PG'\n':PROMPT2
 
 ------------------------------------------------------------------------------------------------------------------------
 
