@@ -96,9 +96,9 @@ select
 \else
 
     with s as (
-        select *, round((current_connections * 100.0) / max_connections) as used_connections
+        select *, round((used_connections * 100.0) / max_connections) as used_connections_percent
         from (select (nullif(trim(setting), ''))::int from pg_settings where name = 'max_connections' limit 1) as s1(max_connections),
-             (select count(*) as current_connections from pg_stat_activity) as t1(current_connections)
+             (select count(*) as used_connections from pg_stat_activity) as t1(used_connections)
     )
     select
         s.*,
@@ -108,6 +108,7 @@ select
 
         (select nullif(trim(setting), '') from pg_settings where name = 'data_directory' limit 1) as data_directory,
         (select nullif(trim(setting), '') from pg_settings where name = 'log_directory' limit 1) as log_directory,
+        (select pg_size_pretty(nullif(trim(setting), '')::numeric * 8192) from pg_settings where name = 'shared_buffers' limit 1) as shared_buffers,
 
         (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g')
            from pg_settings where name = 'shared_preload_libraries'   limit 1) as shared_preload_libraries,
@@ -195,6 +196,8 @@ select
                  ), '') as wal_receive_from,
         (SELECT COUNT(*) FROM pg_stat_wal_receiver) as wal_receive_count,
 
+        exists(select from pg_extension where extname = 'pg_buffercache') as pg_buffercache_installed,
+
         -- database specific only
         db.datname as db_name,
         pg_size_pretty(pg_database_size(db.datname)) as db_size,
@@ -203,6 +206,15 @@ select
     from pg_stat_database as db, s
     where datname = current_database()
     \gset
+
+    \if :pg_buffercache_installed
+        SELECT
+            pg_size_pretty(COUNT(*) * 8192) AS total_shared_buffers,
+            pg_size_pretty(COUNT(*) FILTER (WHERE usagecount IS NOT NULL) * 8192) AS used_shared_buffers,
+            ROUND(100.0 * COUNT(*) FILTER (WHERE usagecount IS NOT NULL) / COUNT(*)) AS used_shared_buffers_percent
+        FROM pg_buffercache
+        \gset
+    \endif
 
     \if :is_local_connection
         \if :{?data_directory}
@@ -269,15 +281,21 @@ select
         \echo :str
     \endif
 
+    \if :{?max_connections}
+        \echo 'Connections:           ':used_connections' of ':max_connections' (used ':used_connections_percent'%)'
+    \endif
+
+    \if :{?used_shared_buffers}
+        \echo 'Shared buffers /cache: ':used_shared_buffers' of ':total_shared_buffers' (used ':used_shared_buffers_percent'%)'
+    \elif :{?shared_buffers}
+        \echo 'Shared buffers /cache: ':shared_buffers
+    \endif
+
     \if :is_primary
         \echo 'Server role:           primary'
     \else
         \echo 'Server role:           replica'
         \echo 'WAL receive (':wal_receive_count'):       ':wal_receive_from
-    \endif
-
-    \if :{?max_connections}
-        \echo 'Connections:           ':current_connections' of ':max_connections' (':used_connections'%)'
     \endif
 
     \echo 'WAL send (':wal_send_count'):          ':wal_send_to
