@@ -95,7 +95,13 @@ select
   -- psql запущен с флагом -q
 \else
 
+    with s as (
+        select *, round((current_connections * 100.0) / max_connections) as used_connections
+        from (select (nullif(trim(setting), ''))::int from pg_settings where name = 'max_connections' limit 1) as s1(max_connections),
+             (select count(*) as current_connections from pg_stat_activity) as t1(current_connections)
+    )
     select
+        s.*,
         pg_backend_pid(),
         pg_is_in_recovery(),
         (SELECT client_addr IS NULL /*socket*/ OR client_addr IN ('::1', '127.0.0.1') FROM pg_stat_activity WHERE pid = pg_backend_pid()) as is_local_connection,
@@ -118,9 +124,6 @@ select
         (select nullif(trim(setting), '') from pg_settings where name = 'archive_timeout' limit 1) as archive_timeout,
         (select nullif(trim(setting), '') from pg_settings where name = 'archive_command' limit 1) as archive_command,
         (select nullif(trim(setting), '') from pg_settings where name = 'restore_command' limit 1) as restore_command,
-
-        db.datname as db_name,
-        pg_size_pretty(pg_database_size(db.datname)) as db_size,
 
         pg_postmaster_start_time()::timestamptz(0) as started_at,
         pg_conf_load_time()::timestamptz(0)        as loaded_at,
@@ -190,9 +193,14 @@ select
                        pg_size_pretty(total_lag_size) AS d (total_lag_size_pretty)
                   LIMIT 1
                  ), '') as wal_receive_from,
-        (SELECT COUNT(*) FROM pg_stat_wal_receiver) as wal_receive_count
+        (SELECT COUNT(*) FROM pg_stat_wal_receiver) as wal_receive_count,
 
-    from pg_stat_database as db
+        -- database specific only
+        db.datname as db_name,
+        pg_size_pretty(pg_database_size(db.datname)) as db_size,
+        db.blks_hit / nullif(db.blks_hit + db.blks_read, 0) as db_cache_hit_ratio
+
+    from pg_stat_database as db, s
     where datname = current_database()
     \gset
 
@@ -268,6 +276,10 @@ select
         \echo 'WAL receive (':wal_receive_count'):       ':wal_receive_from
     \endif
 
+    \if :{?max_connections}
+        \echo 'Connections:           ':current_connections' of ':max_connections' (':used_connections'%)'
+    \endif
+
     \echo 'WAL send (':wal_send_count'):          ':wal_send_to
 
     \echo 'Synchronous commit:    ':synchronous_commit
@@ -292,10 +304,16 @@ select
         \echo 'Archive mode:          ':archive_mode
     \endif
 
+    \echo
+
     \echo 'Current database:      ':db_name' (size: ':db_size')'
+    \echo 'Cache hit ratio:       ':db_cache_hit_ratio'%'
+
     \if :{?installed_extensions}
         \echo 'Installed extensions:  ':installed_extensions
     \endif
+
+    \echo
 
     \echo 'Short SQL:             :W - who am i, :A - stat activity groups counts'
     \echo
