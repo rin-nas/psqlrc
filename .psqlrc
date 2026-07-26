@@ -266,14 +266,6 @@ select
         \echo :str
     \endif
 
-    \if :{?log_directory}
-        \set str 'Log directory:         ':log_directory
-        \if :{?log_directory_size}
-            \set str :str' (size: ':log_directory_size')'
-        \endif
-        \echo :str
-    \endif
-
     \if :{?wal_directory}
         \set str 'WAL directory:         ':wal_directory
         \if :is_wal_directory_symlink
@@ -281,6 +273,14 @@ select
         \endif
         \if :{?wal_directory_size}
             \set str :str' (size: ':wal_directory_size')'
+        \endif
+        \echo :str
+    \endif
+
+    \if :{?log_directory}
+        \set str 'Log directory:         ':log_directory
+        \if :{?log_directory_size}
+            \set str :str' (size: ':log_directory_size')'
         \endif
         \echo :str
     \endif
