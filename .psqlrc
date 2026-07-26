@@ -1,7 +1,28 @@
 /*
 Последняя версия этого файла: https://github.com/rin-nas/psqlrc
 Документация psql:            https://postgrespro.ru/docs/postgresql/current/app-psql
+
+Цвета:
+  https://misc.flogisoft.com/bash/tip_colors_and_formatting (see 256-colors.sh)
+  https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
+  https://postgres.ai/docs/postgres-howtos/development-tools/psql/how-to-format-text-output-in-psql-scripts
 */
+
+-- цвета (из палитры 256 цветов) для \echo
+\set red       '\033[38;5;160m'
+\set green     '\033[38;5;34m'
+\set yellow    '\033[38;5;220m'
+\set blue      '\033[38;5;39m'
+\set orange    '\033[38;5;214m'
+\set magenta   '\033[38;5;129m'
+\set cyan      '\033[38;5;33m'
+\set gray      '\033[38;5;243m'
+\set white     '\033[38;5;255m'
+\set bold      '\033[1m'
+\set italic    '\033[3m'
+\set underline '\033[4m'
+\set blink     '\033[5m'
+\set reset     '\033[0m'
 
 -- запоминаем флаг отображения информационных сообщений
 \set QUIET_ORIGINAL :QUIET
@@ -107,6 +128,7 @@ select
         s.*,
         pg_backend_pid(),
         pg_is_in_recovery(),
+        (SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER) as is_superuser,
         (SELECT client_addr IS NULL /*socket*/ OR client_addr IN ('::1', '127.0.0.1') FROM pg_stat_activity WHERE pid = pg_backend_pid()) as is_local_connection,
 
         (select nullif(trim(setting), '') from pg_settings where name = 'data_directory' limit 1) as data_directory,
@@ -339,6 +361,55 @@ select
     \echo ':W - who am i'
     \echo ':A - stat activity groups counts'
     \echo
+
+    \if :is_superuser
+
+        -- проверяем наличие ошибок в конфигурационных файлах
+        with fs as (
+            select distinct on (name) *
+            from pg_file_settings -- non commented rows of config files
+            order by name, seqno desc
+        )
+        select
+            current_setting('config_file') as config_file,
+            current_setting('hba_file') as hba_file,
+            exists(
+                select
+                from fs
+                join pg_settings as s on lower(fs.name) = lower(s.name)
+                where not fs.applied and not s.pending_restart
+            ) as is_config_file_error,
+            exists(select from pg_hba_file_rules where error is not null) as is_hba_file_error
+        \gset
+
+        \if :is_config_file_error
+            \echo :red'Errors found in config file "':config_file'"':reset
+
+            with fs as (
+                select distinct on (name) *
+                from pg_file_settings
+                order by name, seqno desc
+            )
+            select fs.sourcefile, fs.sourceline, fs.name, fs.setting, fs.applied, fs.error,
+                   s.vartype, s.min_val, s.max_val, s.enumvals, s.extra_desc
+            from fs
+            join pg_settings as s on lower(fs.name) = lower(s.name)
+            where not fs.applied and not s.pending_restart
+            order by fs.sourcefile, fs.sourceline
+            \gx
+        \endif
+
+        \if :is_hba_file_error
+            \echo :red'Errors found in hba file "':hba_file'"':reset
+
+            select *
+            from pg_hba_file_rules
+            where error is not null
+            order by line_number
+            \gx
+        \endif
+
+    \endif
 
 \endif
 
