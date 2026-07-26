@@ -251,6 +251,7 @@ select
 
 
     -- выводим информационные сообщения
+    \echo '# SERVER'
     \echo 'Started at:            ':started_at' (':start_uptime' ago)'
     \echo 'Config loaded at:      ':loaded_at' (':load_uptime' ago)'
 
@@ -286,9 +287,9 @@ select
     \endif
 
     \if :{?used_shared_buffers}
-        \echo 'Shared buffers /cache: ':used_shared_buffers' of ':total_shared_buffers' (used ':used_shared_buffers_percent'%)'
+        \echo 'Shared buffers/cache:  ':used_shared_buffers' of ':total_shared_buffers' (used ':used_shared_buffers_percent'%)'
     \elif :{?shared_buffers}
-        \echo 'Shared buffers /cache: ':shared_buffers
+        \echo 'Shared buffers/cache:  ':shared_buffers'  HINT: install extension pg_buffercache to show used/free cache size'
     \endif
 
     \if :is_primary
@@ -322,7 +323,7 @@ select
         \echo 'Archive mode:          ':archive_mode
     \endif
 
-    \echo
+    \echo '\n# DATABASE'
 
     \echo 'Current database:      ':db_name' (size: ':db_size')'
     \echo 'Cache hit ratio:       ':db_cache_hit_ratio'%'
@@ -331,9 +332,9 @@ select
         \echo 'Installed extensions:  ':installed_extensions
     \endif
 
-    \echo
-
-    \echo 'Short SQL:             :W - who am i, :A - stat activity groups counts'
+    \echo '\n# SHORT SQL'
+    \echo ':W - who am i'
+    \echo ':A - stat activity groups counts'
     \echo
 
 \endif
