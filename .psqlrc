@@ -1,4 +1,7 @@
--- документация https://postgrespro.ru/docs/postgresql/current/app-psql
+/*
+Последняя версия этого файла: https://github.com/rin-nas/psqlrc
+Документация psql:            https://postgrespro.ru/docs/postgresql/current/app-psql
+*/
 
 -- запоминаем флаг отображения информационных сообщений
 \set QUIET_ORIGINAL :QUIET
