@@ -85,7 +85,7 @@ nano ~/.psqlrc
 #### Без применения `.psqlrc` 
 
 ```
-[postgres@rmukhtarov-redos1 root]$ psql demo --no-psqlrc
+[postgres@rmukhtarov-redos1 ~]$ psql demo --no-psqlrc
 psql (18.3, server 17.9)
 Type "help" for help.
 
@@ -100,23 +100,39 @@ demo=#
 ```
 
 #### С применением `.psqlrc`
+
 ```
 [postgres@rmukhtarov-redos1 ~]$ psql demo
-Started at:        2026-06-03 16:57:18+03 (1 day 21:45:52 ago)
-Config loaded at:  2026-06-05 00:01:06+03 (14:42:04 ago)
-Data directory:    /var/lib/pgpro/ent-17/data
-Server role:       primary
-WAL send (0):
-Archive mode:      off
-Current database:  demo (size: 8700 kB)
-Installed extens:  pgpro_axe 1.1.0.1, pgpro_metastore 1.1, plpgsql 1.0.1
-Short SQL:         :W - who am i, :A - stat activity groups counts
+# SERVER
+Started at:            2026-06-03 16:57:18+03 (1 day 21:45:52 ago)
+Config loaded at:      2026-06-05 00:01:06+03 (14:42:04 ago)
+Data directory:        /var/lib/pgpro/ent-18/data (size: 2.9G)
+WAL directory:         /var/lib/pgpro/ent-18/data/pg_wal (size: 993M)
+Log directory:         /var/lib/pgpro/ent-18/data/log (size: 2.1M)
+Connections:           12 of 61 (used 20%)
+Shared buffers/cache:  7608 kB of 492 MB (used 2%)
+Server role:           primary
+WAL send (0):          
+Synchronous commit:    on
+Shared preload libs:   pgpro_bindump, ptrack
+Walsender plugin libs: pgpro_bindump
+Archive mode:          off
+
+# DATABASE
+Current database:      demo (size: 1379 MB)
+Cache hit ratio:       0%
+Installed extensions:  btree_gist 1.8.1, cube 1.5, earthdistance 1.2, pg_buffercache 1.6, plpgsql 1.0.1, ptrack 2.5
+
+# SHORT SQL
+:W - who am i
+:A - stat activity groups counts
 
 psql (18.3, server 17.9)
 Type "help" for help.
 
 
-2026-06-05 14:43:10+03:00  Postgres Pro (enterprise) 17.9.2  postgres@[local]:5432/demo
+2026-06-05 14:43:10+03:00  postgres@rmukhtarov-redos1[192.168.23.239] /var/lib/pgsql
+Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 =# \d+
                                     List of relations
  Schema │   Name   │ Type  │  Owner   │ Persistence │ Access method │ Size  │ Description 
@@ -125,7 +141,8 @@ Type "help" for help.
 (1 row)
 
 
-2026-06-05 14:48:59+03:00  Postgres Pro (enterprise) 17.9.2  postgres@[local]:5432/demo
+2026-06-05 14:48:59+03:00  postgres@rmukhtarov-redos1[192.168.23.239] /var/lib/pgsql
+Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 =# 
 ```
 
@@ -135,23 +152,37 @@ Type "help" for help.
 
 ```
 postgres@sdm18-1:~$ psql
-Started at:        2026-05-06 10:36:04+00 (30 days 01:10:49 ago)
-Config loaded at:  2026-05-06 10:36:17+00 (30 days 01:10:36 ago)
-Data directory:    /pgdata/keeper-sdm18-test-shard-1-1/postgres
-Server role:       primary
-WAL send (1):      biha_node_2  biha_replication_user@192.168.22.141:57560  physical persistent  quorum streaming  (lag: 1ms, 128 bytes)
-Archive mode:      on (timeout: 1800)
-Archive command:   /usr/bin/pg_probackup3 archive-push -B /backups/sdm  --instance shard-1 --wal-file-path=%p --wal-file-name=%f --log-level-console=debug -j 1 --compress-algorithm none --compress-level 1
-Restore command:
-Current database:  postgres (size: 125 MB)
-Installed extens:  pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
-Short SQL:         :W - who am i, :A - stat activity groups counts
+# SERVER
+Started at:            2026-05-06 10:36:04+00 (30 days 01:10:49 ago)
+Config loaded at:      2026-05-06 10:36:17+00 (30 days 01:10:36 ago)
+Data directory:        /pgdata/keeper-sdm18-test-shard-1-1/postgres (size: 15G)
+WAL directory:         /pgdata/keeper-sdm18-test-shard-1-1/postgres/pg_wal (size: 13G)
+Log directory:         /pgdata (size: 20G)
+Connections:           40 of 1000 (used 4%)
+Shared buffers/cache:  13 MB of 2600 MB (used 0%)
+Server role:           primary
+WAL send (1):          biha_node_2  biha_replication_user@192.168.22.141:57560  physical persistent  quorum streaming  (lag: 1ms, 128 bytes)
+Synchronous commit:    on
+Shared preload libs:   shardman, biha, pgpro_bindump, pg_stat_statements
+Walsender plugin libs: pgpro_bindump
+Archive mode:          on (timeout: 1800)
+Archive command:       /usr/bin/pg_probackup3 archive-push -B /backups/sdm --instance shard-1 --wal-file-path=%p --wal-file-name=%f --log-level-console=debug -j 1 --compress-algorithm zstd --compress-level 3
+
+# DATABASE
+Current database:      postgres (size: 125 MB)
+Cache hit ratio:       0%
+Installed extensions:  pg_buffercache 1.6, pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
+
+# SHORT SQL
+:W - who am i
+:A - stat activity groups counts
 
 psql (18.3)
 Type "help" for help.
 
 
-2026-06-05 14:46:52+03:00  Postgres Pro (shardman) 18.3.3  postgres@[local]:5432/postgres
+2026-06-05 14:46:52+03:00  postgres@sdm18-1[192.168.22.146] /home/postgres
+Postgres Pro (shardman) 18.3.3 fbc0896965c  postgres@[local]:5432/postgres
 =# 
 ```
 
@@ -159,24 +190,38 @@ Type "help" for help.
 
 ```
 postgres@sdm18-4:~$ psql
-Started at:        2026-05-06 10:36:16+00 (30 days 01:10:07 ago)
-Config loaded at:  2026-05-06 10:36:23+00 (30 days 01:10:00 ago)
-Data directory:    /pgdata/keeper-sdm18-test-shard-1-2/postgres
-Server role:       replica
-WAL receive (1):   biha_node_2  biha_replication_user@sdm18-1:5432  streaming  not paused  (lag: 1s 158ms, 296 bytes)
+# SERVER
+Started at:            2026-05-06 10:36:16+00 (30 days 01:10:07 ago)
+Config loaded at:      2026-05-06 10:36:23+00 (30 days 01:10:00 ago)
+Data directory:        /pgdata/keeper-sdm18-test-shard-1-2/postgres (size: 1.1G)
+WAL directory:         /pgdata/keeper-sdm18-test-shard-1-2/postgres/pg_wal (size: 17M)
+Log directory:         /pgdata (size: 3.7G)
+Connections:           32 of 1000 (used 3%)
+Shared buffers/cache:  2600 MB  HINT: install extension pg_buffercache to show used/free cache size
+Server role:           replica
+WAL receive (1):       biha_node_2  biha_replication_user@sdm18-1:5432  streaming  not paused  (lag: 1s 158ms, 296 bytes)
 WAL send (0):
-Archive mode:      on (timeout: 1800)
-Archive command:   /usr/bin/pg_probackup3 archive-push -B /backups/sdm  --instance shard-1 --wal-file-path=%p --wal-file-name=%f --log-level-console=debug -j 1 --compress-algorithm none --compress-level 1
-Restore command:
-Current database:  postgres (size: 125 MB)
-Installed extens:  pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
-Short SQL:         :W - who am i, :A - stat activity groups counts
+Synchronous commit:    on
+Shared preload libs:   shardman, biha, pgpro_bindump, pg_stat_statements, pgpro_activity_collector
+Walsender plugin libs: pgpro_bindump
+Archive mode:          on (timeout: 1800)
+Archive command:       /usr/bin/pg_probackup3 archive-push -B /backups/sdm --instance shard-1 --wal-file-path=%p --wal-file-name=%f --log-level-console=debug -j 1 --compress-algorithm zstd --compress-level 3
+
+# DATABASE
+Current database:      postgres (size: 118 MB)
+Cache hit ratio:       0%
+Installed extensions:  pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
+
+# SHORT SQL
+:W - who am i
+:A - stat activity groups counts
 
 psql (18.3)
 Type "help" for help.
 
 
-2026-06-05 14:46:23+03:00  Postgres Pro (shardman) 18.3.3  postgres@[local]:5432/postgres
+2026-06-05 14:46:23+03:00  postgres@sdm18-4[192.168.22.141] /home/postgres
+Postgres Pro (shardman) 18.3.3 fbc0896965c  postgres@[local]:5432/postgres
 =# 
 ```
 
