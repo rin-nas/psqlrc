@@ -10,13 +10,13 @@
 
 -- цвета (из палитры 256 цветов) для \echo
 \set red       '\033[38;5;160m'
-\set green     '\033[38;5;34m'
-\set yellow    '\033[38;5;220m'
+\set green     '\033[38;5;2m'
 \set blue      '\033[38;5;39m'
+\set yellow    '\033[38;5;220m'
 \set orange    '\033[38;5;214m'
 \set magenta   '\033[38;5;129m'
-\set cyan      '\033[38;5;33m'
-\set gray      '\033[38;5;243m'
+\set cyan      '\033[38;5;6m'
+\set gray      '\033[38;5;242m'
 \set white     '\033[38;5;255m'
 \set bold      '\033[1m'
 \set italic    '\033[3m'
@@ -63,6 +63,8 @@
 -- отображаем значения NULL
 \pset null '¤'
 
+------------------------------------------------------------------------------------------------------------------------
+
 select
     trim((regexp_match(coalesce(
       -- example: Postgres Pro (shardman) 18.3.2 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 13.3.1 20250418 (RED SOFT 13.3.1-3), 64-bit
@@ -105,12 +107,19 @@ select
 
 \gset
 
+------------------------------------------------------------------------------------------------------------------------
+
 -- настраиваем приглашения командной строки PROMPT1 и PROMPT2
 \set PROMPT2 '%R%x%# '
+
 -- YYYY-MM-DD HH:MM:SS+HH:MM  user@host[IP]:/current_path/
 \set PROMPT_OS '%`date --rfc-3339=seconds`  %`whoami`@%`hostname`[%`hostname -I | xargs`] %`pwd`'
--- pg_version  user@host:port/database
+
+-- pg_version pg_build  user@host:port/database
 \set PROMPT_PG :pg_version'':pg_build'  %n@%M:%>/%/'
+-- WARNING! Extremely long prompt strings may cause layout issues, line-wrapping bugs, or terminal rendering glitches depending on your shell window width
+--\set PROMPT_PG :pg_version'':gray'':pg_build' ':yellow'%n':cyan'@':orange'%M':cyan':':green'%>':blue'/%/':reset
+
 \set PROMPT1 '\n':PROMPT_OS'\n':PROMPT_PG'\n':PROMPT2
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -318,9 +327,9 @@ select
     \endif
 
     \if :is_primary
-        \echo 'Server role:           primary'
+        \echo 'Server role:           ':red'primary':reset
     \else
-        \echo 'Server role:           replica'
+        \echo 'Server role:           ':magenta'replica':reset
         \echo 'WAL receive (':wal_receive_count'):       ':wal_receive_from
     \endif
 
