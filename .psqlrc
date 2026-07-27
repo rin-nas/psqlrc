@@ -1,14 +1,9 @@
 /*
 Последняя версия этого файла: https://github.com/rin-nas/psqlrc
 Документация psql:            https://postgrespro.ru/docs/postgresql/current/app-psql
-
-Цвета:
-  https://misc.flogisoft.com/bash/tip_colors_and_formatting (see 256-colors.sh)
-  https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
-  https://postgres.ai/docs/postgres-howtos/development-tools/psql/how-to-format-text-output-in-psql-scripts
 */
 
--- цвета (из палитры 256 цветов) для \echo
+-- цвета для \echo
 \set red       '\033[38;5;160m'
 \set green     '\033[38;5;2m'
 \set blue      '\033[38;5;39m'
@@ -64,6 +59,7 @@
 \pset null '¤'
 
 ------------------------------------------------------------------------------------------------------------------------
+-- получаем значения параметров СУБД для PROMPT1 и короткие SQL запросы
 
 select
     trim((regexp_match(coalesce(
@@ -108,8 +104,8 @@ select
 \gset
 
 ------------------------------------------------------------------------------------------------------------------------
-
 -- настраиваем приглашения командной строки PROMPT1 и PROMPT2
+
 \set PROMPT2 '%R%x%# '
 
 -- YYYY-MM-DD HH:MM:SS+HH:MM  user@host[IP]:/current_path/
@@ -117,8 +113,8 @@ select
 
 -- pg_version pg_build  user@host:port/database
 \set PROMPT_PG :pg_version'':pg_build'  %n@%M:%>/%/'
--- WARNING! Extremely long prompt strings may cause layout issues, line-wrapping bugs, or terminal rendering glitches depending on your shell window width
---\set PROMPT_PG :pg_version'':gray'':pg_build' ':yellow'%n':cyan'@':orange'%M':cyan':':green'%>':blue'/%/':reset
+-- в Ubuntu 26.04 LTS в терминале v3.58.0 для GNOME 49 цветная строка отображается, но слишком длинная обрезается, поэтому закомментировано
+-- \set PROMPT_PG :pg_version'':gray'':pg_build' ':yellow'%n':cyan'@':orange'%M':cyan':':green'%>':blue'/%/':reset
 
 \set PROMPT1 '\n':PROMPT_OS'\n':PROMPT_PG'\n':PROMPT2
 
@@ -128,6 +124,7 @@ select
   -- psql запущен с флагом -q
 \else
 
+    -- получаем значения параметров СУБД для вывода информационных сообщений
     with s as (
         select *, round((used_connections * 100.0) / max_connections) as used_connections_percent
         from (select (nullif(trim(setting), ''))::int from pg_settings where name = 'max_connections' limit 1) as s1(max_connections),
@@ -137,19 +134,15 @@ select
         s.*,
         pg_backend_pid(),
         pg_is_in_recovery(),
-        (SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER) as is_superuser,
-        (SELECT client_addr IS NULL /*socket*/ OR client_addr IN ('::1', '127.0.0.1') FROM pg_stat_activity WHERE pid = pg_backend_pid()) as is_local_connection,
+        coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
+        coalesce((SELECT client_addr IS NULL /*socket*/ OR client_addr IN ('::1', '127.0.0.1') FROM pg_stat_activity WHERE pid = pg_backend_pid()), false) as is_local_connection,
+        exists(select from pg_extension where extname = 'pg_buffercache') as pg_buffercache_installed,
 
         (select nullif(trim(setting), '') from pg_settings where name = 'data_directory' limit 1) as data_directory,
         (select nullif(trim(setting), '') from pg_settings where name = 'log_directory' limit 1) as log_directory,
         (select pg_size_pretty(nullif(trim(setting), '')::numeric * 8192) from pg_settings where name = 'shared_buffers' limit 1) as shared_buffers,
-
-        (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g')
-           from pg_settings where name = 'shared_preload_libraries'   limit 1) as shared_preload_libraries,
-
-        (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g')
-           from pg_settings where name = 'walsender_plugin_libraries' limit 1) as walsender_plugin_libraries,
-
+        (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g') from pg_settings where name = 'shared_preload_libraries'   limit 1) as shared_preload_libraries,
+        (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g') from pg_settings where name = 'walsender_plugin_libraries' limit 1) as walsender_plugin_libraries,
         (select nullif(trim(setting), '') from pg_settings where name = 'synchronous_commit' limit 1) as synchronous_commit, -- off / local / remote_write / on / remote_apply
         (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension)  as installed_extensions,
 
@@ -230,8 +223,6 @@ select
                  ), '') as wal_receive_from,
         (SELECT COUNT(*) FROM pg_stat_wal_receiver) as wal_receive_count,
 
-        exists(select from pg_extension where extname = 'pg_buffercache') as pg_buffercache_installed,
-
         -- database specific only
         db.datname as db_name,
         pg_size_pretty(pg_database_size(db.datname)) as db_size,
@@ -283,8 +274,27 @@ select
         \set is_primary `test :pg_is_in_recovery = f && echo 1 || echo 0`
     \endif
 
+    --------------------------------------------------------------------------------------------------------------------
+    -- выводим подсказки
 
+    \if :is_superuser
+    \else
+        \echo :yellow'HINT: use to connect a user with the superuser attribute to show more information and validate configuration files':reset
+    \endif
+
+    \if :is_local_connection
+    \else
+        \echo :yellow'HINT: use local connection to show more details (directories size and etc.)':reset
+    \endif
+
+    \if :{?used_shared_buffers}
+    \else
+        \echo :yellow'HINT: run "create extension pg_buffercache" to show used/free cache size':reset
+    \endif
+
+    --------------------------------------------------------------------------------------------------------------------
     -- выводим информационные сообщения
+
     \echo :bold'# SERVER':reset
     \echo 'Started at:            ':started_at' (':start_uptime' ago)'
     \echo 'Config loaded at:      ':loaded_at' (':load_uptime' ago)'
@@ -323,7 +333,7 @@ select
     \if :{?used_shared_buffers}
         \echo 'Shared buffers/cache:  ':used_shared_buffers' of ':total_shared_buffers' (used ':used_shared_buffers_percent'%)'
     \elif :{?shared_buffers}
-        \echo 'Shared buffers/cache:  ':shared_buffers'  HINT: install extension pg_buffercache to show used/free cache size'
+        \echo 'Shared buffers/cache:  ':shared_buffers
     \endif
 
     \if :is_primary
