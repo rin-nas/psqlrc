@@ -115,9 +115,9 @@ demo=#
 # SERVER
 Started at:            2026-06-03 16:57:18+03 (1 day 21:45:52 ago)
 Config loaded at:      2026-06-05 00:01:06+03 (14:42:04 ago)
-Data directory:        /var/lib/pgpro/ent-18/data (size: 2.9G)
-WAL directory:         /var/lib/pgpro/ent-18/data/pg_wal (size: 993M)
-Log directory:         /var/lib/pgpro/ent-18/data/log (size: 2.1M)
+Data directory:        /var/lib/pgpro/ent-18/data (size: 2.9G total)
+WAL directory:         /var/lib/pgpro/ent-18/data/pg_wal (size: 993M total)
+Log directory:         /var/lib/pgpro/ent-18/data/log (size: 2.1M files)
 Connections:           12 of 61 (used 20%)
 Shared buffers/cache:  7608 kB of 492 MB (used 2%)
 Server role:           primary
@@ -128,7 +128,7 @@ Walsender plugin libs: pgpro_bindump
 Archive mode:          off
 
 # DATABASE
-Current database:      demo (size: 1379 MB)
+Current database:      demo (size: 1379 MB total)
 Cache hit ratio:       0%
 Installed extensions:  btree_gist 1.8.1, cube 1.5, earthdistance 1.2, pg_buffercache 1.6, plpgsql 1.0.1, ptrack 2.5
 
@@ -164,9 +164,9 @@ postgres@sdm18-1:~$ psql
 # SERVER
 Started at:            2026-05-06 10:36:04+00 (30 days 01:10:49 ago)
 Config loaded at:      2026-05-06 10:36:17+00 (30 days 01:10:36 ago)
-Data directory:        /pgdata/keeper-sdm18-test-shard-1-1/postgres (size: 15G)
-WAL directory:         /pgdata/keeper-sdm18-test-shard-1-1/postgres/pg_wal (size: 13G)
-Log directory:         /pgdata (size: 20G)
+Data directory:        /pgdata/keeper-sdm18-test-shard-1-1/postgres (size: 15G total)
+WAL directory:         /pgdata/keeper-sdm18-test-shard-1-1/postgres/pg_wal (size: 13G total)
+Log directory:         /pgdata (size: 348M files)
 Connections:           40 of 1000 (used 4%)
 Shared buffers/cache:  13 MB of 2600 MB (used 0%)
 Server role:           primary
@@ -178,7 +178,7 @@ Archive mode:          on (timeout: 1800)
 Archive command:       /usr/bin/pg_probackup3 archive-push -B /backups/sdm --instance shard-1 --wal-file-path=%p --wal-file-name=%f --log-level-console=debug -j 1 --compress-algorithm zstd --compress-level 3
 
 # DATABASE
-Current database:      postgres (size: 125 MB)
+Current database:      postgres (size: 125 MB total)
 Cache hit ratio:       0%
 Installed extensions:  pg_buffercache 1.6, pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
 
@@ -202,9 +202,9 @@ postgres@sdm18-4:~$ psql
 # SERVER
 Started at:            2026-05-06 10:36:16+00 (30 days 01:10:07 ago)
 Config loaded at:      2026-05-06 10:36:23+00 (30 days 01:10:00 ago)
-Data directory:        /pgdata/keeper-sdm18-test-shard-1-2/postgres (size: 1.1G)
-WAL directory:         /pgdata/keeper-sdm18-test-shard-1-2/postgres/pg_wal (size: 17M)
-Log directory:         /pgdata (size: 3.7G)
+Data directory:        /pgdata/keeper-sdm18-test-shard-1-2/postgres (size: 1.1G total)
+WAL directory:         /pgdata/keeper-sdm18-test-shard-1-2/postgres/pg_wal (size: 17M total)
+Log directory:         /pgdata (size: 348M files)
 Connections:           32 of 1000 (used 3%)
 Shared buffers/cache:  2600 MB  HINT: install extension pg_buffercache to show used/free cache size
 Server role:           replica
@@ -217,7 +217,7 @@ Archive mode:          on (timeout: 1800)
 Archive command:       /usr/bin/pg_probackup3 archive-push -B /backups/sdm --instance shard-1 --wal-file-path=%p --wal-file-name=%f --log-level-console=debug -j 1 --compress-algorithm zstd --compress-level 3
 
 # DATABASE
-Current database:      postgres (size: 118 MB)
+Current database:      postgres (size: 118 MB total)
 Cache hit ratio:       0%
 Installed extensions:  pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
 
