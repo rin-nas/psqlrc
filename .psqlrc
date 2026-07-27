@@ -78,7 +78,13 @@ select
     ) as pg_build,
 
     -- именованные SQL запросы для быстрого доступа:
-    'SELECT current_user, session_user, current_schemas(true) \gx' as "W",
+    $sql$
+        SELECT coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
+               CURRENT_USER,
+               SESSION_USER,
+               current_schemas(true)
+        \gx
+    $sql$ as "W",
 
     $sql$
         select
