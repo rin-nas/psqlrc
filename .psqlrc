@@ -9,7 +9,7 @@
 \set blue      '\033[38;5;39m'
 \set yellow    '\033[38;5;220m'
 \set orange    '\033[38;5;214m'
-\set magenta   '\033[38;5;129m'
+\set magenta   '\033[38;5;165m'
 \set cyan      '\033[38;5;6m'
 \set gray      '\033[38;5;242m'
 \set white     '\033[38;5;255m'
@@ -264,7 +264,7 @@ select
 
         \set data_directory_size `du -sh ':data_directory' | cut -d $'\t' -f1`
         \set wal_directory_size `du -sh ':wal_directory' | cut -d $'\t' -f1`
-        \set log_directory_size `du -sh ':log_directory' | cut -d $'\t' -f1`
+        \set log_files_size `find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | cut -d $'\t' -f1`
     \endif
 
     \if :{?is_primary}
@@ -302,7 +302,7 @@ select
     \if :{?data_directory}
         \set str 'Data directory:        ':data_directory
         \if :{?data_directory_size}
-            \set str :str' (size: ':data_directory_size')'
+            \set str :str' (size: ':data_directory_size' total)'
         \endif
         \echo :str
     \endif
@@ -313,15 +313,15 @@ select
             \set str :str' -> ':wal_real_directory
         \endif
         \if :{?wal_directory_size}
-            \set str :str' (size: ':wal_directory_size')'
+            \set str :str' (size: ':wal_directory_size' total)'
         \endif
         \echo :str
     \endif
 
     \if :{?log_directory}
         \set str 'Log directory:         ':log_directory
-        \if :{?log_directory_size}
-            \set str :str' (size: ':log_directory_size')'
+        \if :{?log_files_size}
+            \set str :str' (size: ':log_files_size' files)'
         \endif
         \echo :str
     \endif
@@ -369,7 +369,7 @@ select
 
     \echo :bold'\n# DATABASE':reset
 
-    \echo 'Current database:      ':db_name' (size: ':db_size')'
+    \echo 'Current database:      ':db_name' (size: ':db_size' total)'
     \echo 'Cache hit ratio:       ':db_cache_hit_ratio'%'
 
     \if :{?installed_extensions}
