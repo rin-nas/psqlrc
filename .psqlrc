@@ -346,8 +346,15 @@ select
         \echo :str
     \endif
 
-    \if :{?max_connections}
-        \echo 'Connections:           ':used_connections' of ':max_connections' (used ':used_connections_percent'%)'
+    \if :{?used_connections_percent}
+        \if `test :used_connections_percent -gt 80 && echo 1 || echo 0`
+            \set color :red
+        \elif `test :used_connections_percent -gt 60 && echo 1 || echo 0`
+            \set color :orange
+        \else
+            \set color :reset
+        \endif
+        \echo 'Connections:           ':used_connections' of ':max_connections' ':color'(used ':used_connections_percent'%)':reset
     \endif
 
     \if :{?used_shared_buffers}
