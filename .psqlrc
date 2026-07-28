@@ -7,6 +7,7 @@
 \set red       '\033[38;5;1m'
 \set green     '\033[38;5;10m'
 \set blue      '\033[38;5;12m'
+\set lightblue '\033[38;5;81m'
 \set yellow    '\033[38;5;11m'
 \set orange    '\033[38;5;9m'
 \set cyan      '\033[38;5;6m'
@@ -23,15 +24,15 @@
 
 -- типы сообщений
 \set error :red
-\set warn :orange
-\set hint :yellow
-\set succ :green
-\set head :bold
+\set warn  :orange
+\set hint  :yellow
+\set succ  :green
+\set head  :bold
 
--- мастер и реплика
-\set primary          '\033[48;5;88m'
-\set replica_active   '\033[48;5;166m'
-\set replica_inactive '\033[48;5;8m'
+-- стили для некоторых слов
+\set primary_style          '\033[48;5;88m'
+\set replica_active_style   '\033[48;5;130m'
+\set replica_inactive_style '\033[48;5;8m'
 
 -- запоминаем флаг отображения информационных сообщений
 \set QUIET_ORIGINAL :QUIET
@@ -364,13 +365,13 @@ select
     \endif
 
     \if :is_primary
-        \echo 'Server role:           ':primary'primary':reset' (read-write)'
+        \echo 'Server role:           ':primary_style'primary':reset' (read-write)'
     \else
        \if :wal_receive_count
-           \echo 'Server role:           ':replica_active'replica':reset' (read only)'
+           \echo 'Server role:           ':replica_active_style'replica':reset' (read only)'
            \echo 'WAL receive (1):       ':wal_receive_from
        \else
-           \echo 'Server role:           ':replica_inactive'replica':reset' (read only)'
+           \echo 'Server role:           ':replica_inactive_style'replica':reset' (read only)'
            \echo 'WAL receive (0):       ':warn'connection to primary is not established or lost':reset
        \endif
     \endif
@@ -399,6 +400,7 @@ select
         \echo 'Archive mode:          ':archive_mode
     \endif
 
+    --------------------------------------------------------------------------------------------------------------------
     \echo :head'\n# DATABASE':reset
 
     \echo 'Current database:      ':db_name' (size: ':db_size' total)'
@@ -408,11 +410,13 @@ select
         \echo 'Installed extensions:  ':installed_extensions
     \endif
 
+    --------------------------------------------------------------------------------------------------------------------
     \echo :head'\n# SHORT SQL':reset
     \echo ':W - who am i'
     \echo ':A - stat activity groups counts'
     \echo
 
+    --------------------------------------------------------------------------------------------------------------------
     \if :is_superuser
 
         -- проверяем наличие ошибок в конфигурационных файлах
