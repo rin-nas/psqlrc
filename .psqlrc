@@ -3,21 +3,35 @@
 Документация psql:            https://postgrespro.ru/docs/postgresql/current/app-psql
 */
 
--- цвета для \echo
-\set red       '\033[38;5;160m'
-\set green     '\033[38;5;2m'
-\set blue      '\033[38;5;39m'
-\set yellow    '\033[38;5;220m'
-\set orange    '\033[38;5;214m'
-\set magenta   '\033[38;5;165m'
+-- цвета
+\set red       '\033[38;5;1m'
+\set green     '\033[38;5;10m'
+\set blue      '\033[38;5;12m'
+\set yellow    '\033[38;5;11m'
+\set orange    '\033[38;5;9m'
 \set cyan      '\033[38;5;6m'
-\set gray      '\033[38;5;242m'
-\set white     '\033[38;5;255m'
+\set magenta   '\033[38;5;13m'
+\set gray      '\033[38;5;7m'
+\set white     '\033[38;5;15m'
+
+-- стили
 \set bold      '\033[1m'
 \set italic    '\033[3m'
 \set underline '\033[4m'
 \set blink     '\033[5m'
 \set reset     '\033[0m'
+
+-- типы сообщений
+\set error :red
+\set warn :orange
+\set hint :yellow
+\set succ :green
+\set head :bold
+
+-- мастер и реплика
+\set primary          '\033[48;5;88m'
+\set replica_active   '\033[48;5;166m'
+\set replica_inactive '\033[48;5;8m'
 
 -- запоминаем флаг отображения информационных сообщений
 \set QUIET_ORIGINAL :QUIET
@@ -285,23 +299,23 @@ select
 
     \if :is_superuser
     \else
-        \echo :yellow'HINT: use to connect a user with the superuser attribute to show more information and validate configuration files':reset
+        \echo :hint'HINT: use to connect a user with the superuser attribute to show more information and validate configuration files':reset
     \endif
 
     \if :is_local_connection
     \else
-        \echo :yellow'HINT: use local connection to show more details (directories size and etc.)':reset
+        \echo :hint'HINT: use local connection to show more details (directories size and etc.)':reset
     \endif
 
     \if :{?used_shared_buffers}
     \else
-        \echo :yellow'HINT: run "create extension pg_buffercache" to show used/free cache size':reset
+        \echo :hint'HINT: run "create extension pg_buffercache" to show used/free cache size':reset
     \endif
 
     --------------------------------------------------------------------------------------------------------------------
     -- выводим информационные сообщения
 
-    \echo :bold'# SERVER':reset
+    \echo :head'# SERVER':reset
     \echo 'Started at:            ':started_at' (':start_uptime' ago)'
     \echo 'Config loaded at:      ':loaded_at' (':load_uptime' ago)'
 
@@ -343,10 +357,15 @@ select
     \endif
 
     \if :is_primary
-        \echo 'Server role:           ':red'primary':reset
+        \echo 'Server role:           ':primary'primary':reset' (read-write)'
     \else
-        \echo 'Server role:           ':magenta'replica':reset
-        \echo 'WAL receive (':wal_receive_count'):       ':wal_receive_from
+       \if :wal_receive_count
+           \echo 'Server role:           ':replica_active'replica':reset' (read only)'
+           \echo 'WAL receive (1):       ':wal_receive_from
+       \else
+           \echo 'Server role:           ':replica_inactive'replica':reset' (read only)'
+           \echo 'WAL receive (0):       ':warn'connection to primary is not established or lost':reset
+       \endif
     \endif
 
     \echo 'WAL send (':wal_send_count'):          ':wal_send_to
@@ -373,7 +392,7 @@ select
         \echo 'Archive mode:          ':archive_mode
     \endif
 
-    \echo :bold'\n# DATABASE':reset
+    \echo :head'\n# DATABASE':reset
 
     \echo 'Current database:      ':db_name' (size: ':db_size' total)'
     \echo 'Cache hit ratio:       ':db_cache_hit_ratio'%'
@@ -382,7 +401,7 @@ select
         \echo 'Installed extensions:  ':installed_extensions
     \endif
 
-    \echo :bold'\n# SHORT SQL':reset
+    \echo :head'\n# SHORT SQL':reset
     \echo ':W - who am i'
     \echo ':A - stat activity groups counts'
     \echo
@@ -408,7 +427,7 @@ select
         \gset
 
         \if :is_config_file_error
-            \echo :red'Errors found in config file "':config_file'"':reset
+            \echo :error'Errors found in config file "':config_file'"':reset
 
             with fs as (
                 select distinct on (name) *
@@ -425,7 +444,7 @@ select
         \endif
 
         \if :is_hba_file_error
-            \echo :red'Errors found in hba file "':hba_file'"':reset
+            \echo :error'Errors found in hba file "':hba_file'"':reset
 
             select *
             from pg_hba_file_rules
