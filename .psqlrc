@@ -61,7 +61,7 @@
 
 -- пейджер (если результат запроса не помещается на экране, он пропускается через эту программу)
 \setenv PSQL_PAGER 'less -iMFXSx4R'
-\if `command -v pspg &> /dev/null && echo 1 || echo 0`
+\if `command -v pspg > /dev/null 2>&1 && echo 1 || echo 0`
     \pset expanded off
     \setenv PSQL_PAGER 'pspg --reprint-on-exit --blackwhite'
     \setenv PSQL_WATCH_PAGER 'pspg --reprint-on-exit --blackwhite --stream'
@@ -281,7 +281,7 @@ select
 
         \set wal_directory :data_directory/pg_wal
         \set wal_real_directory `readlink -f :wal_directory`
-        \set is_wal_directory_symlink `test :wal_directory != :wal_real_directory &> /dev/null && echo 1 || echo 0`
+        \set is_wal_directory_symlink `test :wal_directory != :wal_real_directory > /dev/null 2>&1 && echo 1 || echo 0`
 
         \set data_directory_size `du -sh ':data_directory' | cut -d $'\t' -f1`
         \set wal_directory_size `du -sh ':wal_directory' | cut -d $'\t' -f1`
