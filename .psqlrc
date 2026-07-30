@@ -281,7 +281,7 @@ select
             \else
                 -- если папка не существует, то PostgreSQL хранит протоколы в PGDATA
                 \echo :warn'WARNING: log directory "':log_directory'" does not exist':reset
-                \echo :hint'HINT: run "select current_setting(\'log_directory\');" to check parameter value':reset
+                \echo :hint'HINT: check "log_directory" parameter value, run "select current_setting(\'log_directory\');"':reset
                 \set log_directory :data_directory
             \endif
         \else

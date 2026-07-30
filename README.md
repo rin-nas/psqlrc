@@ -2,7 +2,7 @@
 
 ## Введение
 
-Функциональность предназначена для администраторов СУБД PostgreSQL и Postgres Pro.
+Функциональность предназначена для администраторов СУБД [PostgreSQL](https://www.postgresql.org/) и [Postgres Pro](https://postgrespro.ru/).
 
 ## Что отображается при запуске `psql`
 
