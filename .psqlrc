@@ -196,7 +196,7 @@ select
                                            '  (lag: ', coalesce(a.total_lag_time_pretty, '¤'),
                                                  ', ', coalesce(b.total_lag_size_pretty, '¤'), ')'
                                           ),
-                                    e'\n                  ' order by r.backend_start)
+                                    e'\n                       ' order by r.backend_start)
                   FROM pg_stat_replication AS r
                   LEFT JOIN pg_replication_slots AS s ON r.pid = s.active_pid
                   CROSS JOIN COALESCE(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_flush_lsn() end) AS t(last_lsn)
@@ -266,7 +266,7 @@ select
         \if :{?data_directory}
         \else
             -- если прав доступа не хватило, то пробуем получить data_directory альтернативным способом
-            \set data_directory `ps -p $(ps -p :pg_backend_pid -o ppid=) -o cmd= | grep -o -P -- ' -D \K[^ ]+'`
+            \set data_directory `ps -p $(ps -p :pg_backend_pid -o ppid=) -o cmd= | grep -oP -- ' -D \K[^ ]+'`
         \endif
 
         -- определяем роль СУБД - мастер или реплика
@@ -276,16 +276,25 @@ select
         \endif
 
         \if :{?log_directory}
-            \set log_directory `echo ':log_directory' | grep -q -P '^/' && echo ':log_directory' || echo ':data_directory/:log_directory'`
+            \set log_directory `echo ':log_directory' | grep -qP '^/' && echo ':log_directory' || echo ':data_directory/:log_directory'`
+            \if `test -d ':log_directory' && echo 1 || echo 0`
+            \else
+                -- если папка не существует, то PostgreSQL хранит протоколы в PGDATA
+                \echo :warn'WARNING: log directory "':log_directory'" does not exist':reset
+                \echo :hint'HINT: run "select current_setting(\'log_directory\');" to check parameter value':reset
+                \set log_directory :data_directory
+            \endif
+        \else
+            \set log_directory :data_directory
         \endif
 
         \set wal_directory :data_directory/pg_wal
         \set wal_real_directory `readlink -f :wal_directory`
         \set is_wal_directory_symlink `test :wal_directory != :wal_real_directory > /dev/null 2>&1 && echo 1 || echo 0`
 
-        \set data_directory_size `du -sh ':data_directory' | cut -d $'\t' -f1`
-        \set wal_directory_size `du -sh ':wal_directory' | cut -d $'\t' -f1`
-        \set log_files_size `find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | cut -d $'\t' -f1`
+        \set data_directory_size `du -sh ':data_directory' | grep -oP '^\S+'`
+        \set wal_directory_size `du -sh ':wal_directory' | grep -oP '^\S+'`
+        \set log_files_size `find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | grep -oP '^\S+'`
     \endif
 
     \if :{?is_primary}
@@ -310,7 +319,7 @@ select
 
     \if :{?used_shared_buffers}
     \else
-        \echo :hint'HINT: run "create extension pg_buffercache" to show used/free cache size':reset
+        \echo :hint'HINT: run "create extension pg_buffercache;" to show used/free cache size':reset
     \endif
 
     --------------------------------------------------------------------------------------------------------------------
