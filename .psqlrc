@@ -65,7 +65,8 @@
 
 -- пейджер (если результат запроса не помещается на экране, он пропускается через эту программу)
 \setenv PSQL_PAGER 'less -iMFXSx4R'
-\if `command -v pspg > /dev/null 2>&1 && echo 1 || echo 0`
+\set pspg_installed `command -v pspg > /dev/null 2>&1 && echo 1 || echo 0`
+\if :pspg_installed
     \pset expanded off
     \setenv PSQL_PAGER 'pspg --reprint-on-exit --blackwhite'
     \setenv PSQL_WATCH_PAGER 'pspg --reprint-on-exit --blackwhite --stream'
@@ -330,6 +331,11 @@ select
     --------------------------------------------------------------------------------------------------------------------
     -- выводим подсказки
 
+    \if :pspg_installed
+    \else
+        \echo :hint'HINT: alternative psql pager "pspg" is supported and highly recommended to use, see https://github.com/okbob/pspg':reset
+    \endif
+
     \if :is_superuser
     \else
         \echo :hint'HINT: use to connect a user with the superuser attribute to show more information and validate configuration files':reset
@@ -446,6 +452,7 @@ select
 
     --------------------------------------------------------------------------------------------------------------------
     \echo :head'\n# SHORT SQL':reset
+
     \echo ':W - who am i'
     \echo ':A - stat activity groups counts'
     \echo
@@ -509,3 +516,4 @@ select
 \set QUIET :QUIET_ORIGINAL
 
 \endif
+
