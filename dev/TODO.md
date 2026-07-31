@@ -3,6 +3,11 @@
 * для `data_directory` вывести Size Used Avail Use%
 * https://postgrespro.ru/docs/postgrespro/current/functions-admin
 
+Получить команду запуска psql с флагами
+```
+\echo `ps -p $(ps -p $(echo $$) -o ppid=) -o cmd=`
+```
+
 Вычисление отставания реплики (размер и длительность), в зависимости от параметра `synchronous_commit`:  
 ```sql
 SELECT *

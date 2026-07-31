@@ -66,7 +66,7 @@
 
 Во третьей строке — приглашение для ввода команд `psql` и SQL запросов к СУБД
 
-Если при запуске `psql `нужно только приглашение командной строки без информационных сообщений и проверок, запустите `psql` с флагом `-q`.
+Если при запуске `psql` нужно только приглашение командной строки без информационных сообщений и проверок, запустите `psql` с флагом `-q`.
 
 ## Валидация при запуске `psql`
 
@@ -99,7 +99,7 @@ nano ~/.psqlrc
 #### Без применения `.psqlrc` 
 
 ```
-[postgres@rmukhtarov-redos1 ~]$ psql demo --no-psqlrc
+[postgres@rmukhtarov-redos1 ~]$ psql demo
 psql (18.3, server 17.9)
 Type "help" for help.
 
@@ -116,7 +116,7 @@ demo=#
 #### С применением `.psqlrc`
 
 ```
-[postgres@rmukhtarov-redos1 ~]$ psql demo
+[postgres@rmukhtarov-redos1 ~]$ psql -v pro=1 demo
 # SERVER
 Started at:            2026-06-03 16:57:18+03 (1 day 21:45:52 ago)
 Config loaded at:      2026-06-05 00:01:06+03 (14:42:04 ago)
@@ -165,7 +165,7 @@ Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 #### С применением `.psqlrc`, мастер
 
 ```
-postgres@sdm18-1:~$ psql
+postgres@sdm18-1:~$ psql -v pro=1
 # SERVER
 Started at:            2026-05-06 10:36:04+00 (30 days 01:10:49 ago)
 Config loaded at:      2026-05-06 10:36:17+00 (30 days 01:10:36 ago)
@@ -203,7 +203,7 @@ Postgres Pro (shardman) 18.3.3 fbc0896965c  postgres@[local]:5432/postgres
 #### С применением `.psqlrc`, реплика
 
 ```
-postgres@sdm18-4:~$ psql
+postgres@sdm18-4:~$ psql -v pro=1
 # SERVER
 Started at:            2026-05-06 10:36:16+00 (30 days 01:10:07 ago)
 Config loaded at:      2026-05-06 10:36:23+00 (30 days 01:10:00 ago)
