@@ -166,6 +166,8 @@ select
     -- psql запущен с флагом -q
 \else
 
+    \echo 'https://github.com/rin-nas/psqlrc'
+
     -- получаем значения параметров СУБД для вывода информационных сообщений
     with s as (
         select *, round((used_connections * 100.0) / max_connections) as used_connections_percent
@@ -354,7 +356,7 @@ select
     --------------------------------------------------------------------------------------------------------------------
     -- выводим информационные сообщения
 
-    \echo :head'# SERVER':reset
+    \echo :head'\n# SERVER':reset
 
     \echo 'Systemd unit:          ':systemd_unit
     \echo 'Started at:            ':started_at' (':start_uptime' ago)'
