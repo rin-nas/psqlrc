@@ -95,10 +95,10 @@ select
     -- именованные SQL запросы для быстрого доступа:
     $sql$
         -- https://postgrespro.ru/docs/postgresql/current/functions-info
-        SELECT coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
-               pg_backend_pid(),
+        SELECT pg_backend_pid(),
                pg_current_xact_id_if_assigned(), -- идентификатор текущей транзакции или NULL, если она ещё не имеет идентификатора
                pg_xact_status(pg_current_xact_id_if_assigned()) as pg_current_xact_status, -- состояние фиксации транзакции: in progress / committed / aborted
+               coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
                CURRENT_USER,  -- = current_role
                SESSION_USER,
                current_database(),
@@ -279,6 +279,9 @@ select
     \endif
 
     \if :is_local_connection
+
+        \set systemd_unit `ps -p :pg_backend_pid -o unit=`
+
         \if :{?data_directory}
         \else
             -- если прав доступа не хватило, то пробуем получить data_directory альтернативным способом
@@ -342,6 +345,8 @@ select
     -- выводим информационные сообщения
 
     \echo :head'# SERVER':reset
+
+    \echo 'Systemd unit:          ':systemd_unit
     \echo 'Started at:            ':started_at' (':start_uptime' ago)'
     \echo 'Config loaded at:      ':loaded_at' (':load_uptime' ago)'
 
