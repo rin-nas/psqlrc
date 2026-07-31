@@ -222,7 +222,7 @@ select
                                     e'\n                       ' order by r.backend_start)
                   FROM pg_stat_replication AS r
                   LEFT JOIN pg_replication_slots AS s ON r.pid = s.active_pid
-                  CROSS JOIN COALESCE(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_flush_lsn() end) AS t(last_lsn)
+                  CROSS JOIN COALESCE(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) AS t(last_lsn)
                   CROSS JOIN COALESCE(-- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
                                       case when r.replay_lag =   '0'::interval then '0ms'
                                            when r.replay_lag <  '1s'::interval then regexp_replace(to_char(r.replay_lag, 'FMMS"ms"'), '^0+(?=\d+ms$)', '')
