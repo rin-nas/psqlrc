@@ -10,7 +10,7 @@
 
 ## Использование
 
-```
+```bash
 nano ~/.psqlrc
 psql -v pro=1
 ```
