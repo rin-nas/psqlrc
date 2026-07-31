@@ -22,6 +22,7 @@ psql -v pro=1
 
 ### Сервер СУБД
 
+1. systemd unit name
 1. дата и время, когда был запущен сервер (и сколько времени прошло)
 1. дата и время, когда в последний раз сервер загружал файлы конфигурации (и сколько времени прошло)
 1. директория с данными (`data_directory`) и её размер для локального подключения
@@ -117,6 +118,7 @@ demo=#
 ```
 [postgres@rmukhtarov-redos1 ~]$ psql -v pro=1 demo
 # SERVER
+Systemd unit:          postgrespro-ent-17.service
 Started at:            2026-06-03 16:57:18+03 (1 day 21:45:52 ago)
 Config loaded at:      2026-06-05 00:01:06+03 (14:42:04 ago)
 Data directory:        /var/lib/pgpro/ent-18/data (size: 2.9G total)
@@ -166,6 +168,7 @@ Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 ```
 postgres@sdm18-1:~$ psql -v pro=1
 # SERVER
+Systemd unit:          postgrespro-ent-18.service
 Started at:            2026-05-06 10:36:04+00 (30 days 01:10:49 ago)
 Config loaded at:      2026-05-06 10:36:17+00 (30 days 01:10:36 ago)
 Data directory:        /pgdata/keeper-sdm18-test-shard-1-1/postgres (size: 15G total)
@@ -204,6 +207,7 @@ Postgres Pro (shardman) 18.3.3 fbc0896965c  postgres@[local]:5432/postgres
 ```
 postgres@sdm18-4:~$ psql -v pro=1
 # SERVER
+Systemd unit:          postgrespro-ent-18.service
 Started at:            2026-05-06 10:36:16+00 (30 days 01:10:07 ago)
 Config loaded at:      2026-05-06 10:36:23+00 (30 days 01:10:00 ago)
 Data directory:        /pgdata/keeper-sdm18-test-shard-1-2/postgres (size: 1.1G total)
