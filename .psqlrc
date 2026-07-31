@@ -85,7 +85,7 @@ select
       -- example: PostgreSQL 16.11 (Ubuntu 16.11-1.pgdg24.04+1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0, 64-bit
       -- example: PostgreSQL 19beta2 (Debian 19~beta2-1...) on x86_64-pc-linux-gnu...
       version()
-    ), '^.+? \d+(?:\.\d+)*[^ ]* '))[1]) as pg_version,
+    ), '^.+? \d+(?:\.\d+)*\S* '))[1]) as pg_version,
 
     coalesce(
       (select ' ' || nullif(trim(setting), '') from pg_settings where name = 'pgpro_build' limit 1), -- example: c3d046b75bf
@@ -94,11 +94,27 @@ select
 
     -- именованные SQL запросы для быстрого доступа:
     $sql$
+        -- https://postgrespro.ru/docs/postgresql/current/functions-info
         SELECT coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
-               CURRENT_USER,
+               pg_backend_pid(),
+               pg_current_xact_id_if_assigned(), -- идентификатор текущей транзакции или NULL, если она ещё не имеет идентификатора
+               pg_xact_status(pg_current_xact_id_if_assigned()) as pg_current_xact_status, -- состояние фиксации транзакции: in progress / committed / aborted
+               CURRENT_USER,  -- = current_role
                SESSION_USER,
-               current_schemas(true)
-        \gx
+               current_database(),
+               current_schema(),
+               current_schemas(true),
+               pg_current_logfile(),
+               inet_client_addr(),
+               inet_client_port(),
+               inet_server_addr(),
+               inet_server_port(),
+               pg_jit_available(),
+               pg_numa_available(),
+               version(),
+               unicode_version(),
+               icu_unicode_version()
+               \gx
     $sql$ as "W",
 
     $sql$
@@ -221,8 +237,8 @@ select
                                      ', ', coalesce(total_lag_size_pretty, '¤'), ')'
                                )
                   FROM pg_stat_wal_receiver,
-                       coalesce((regexp_match(conninfo, '\muser=([^ ]+)'))[1]) AS s (sender_user),
-                       coalesce((regexp_match(conninfo, '\mfallback_application_name=([^ ]+)'))[1]) AS f (application_name),
+                       coalesce((regexp_match(conninfo, '\muser=(\S+)'))[1]) AS s (sender_user),
+                       coalesce((regexp_match(conninfo, '\mfallback_application_name=(\S+)'))[1]) AS f (application_name),
                        coalesce(case when status != 'streaming' then null
                                      when latest_end_lsn = pg_last_wal_replay_lsn() then '0'::interval
                                      else now() - latest_end_time
@@ -266,7 +282,7 @@ select
         \if :{?data_directory}
         \else
             -- если прав доступа не хватило, то пробуем получить data_directory альтернативным способом
-            \set data_directory `ps -p $(ps -p :pg_backend_pid -o ppid=) -o cmd= | grep -oP -- ' -D \K[^ ]+'`
+            \set data_directory `ps -p $(ps -p :pg_backend_pid -o ppid=) -o cmd= | grep -oP -- ' -D \K\S+'`
         \endif
 
         -- определяем роль СУБД - мастер или реплика
