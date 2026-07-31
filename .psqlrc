@@ -68,8 +68,8 @@
 \set pspg_installed `command -v pspg > /dev/null 2>&1 && echo 1 || echo 0`
 \if :pspg_installed
     \pset expanded off
-    \setenv PSQL_PAGER 'pspg --reprint-on-exit --blackwhite'
-    \setenv PSQL_WATCH_PAGER 'pspg --reprint-on-exit --blackwhite --stream'
+    \setenv PSQL_PAGER       'pspg --reprint-on-exit --blackwhite --on-sigint-exit --no-sound'
+    \setenv PSQL_WATCH_PAGER 'pspg --reprint-on-exit --blackwhite --on-sigint-exit --no-sound --stream'
 \endif
 
 -- отображаем в таблицах рамки с непрерывными линиями
