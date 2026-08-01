@@ -5,7 +5,10 @@
 
 -- важно не сломать текущее поведение psql, на которое в скриптах уже заложились!
 \if :{?pro}
--- psql запущен с флагом -v pro=
+\else
+    -- psql запущен с флагом -v pro=
+    \quit
+\endif
 
 -- цвета
 \set red       '\033[38;5;1m'
@@ -84,8 +87,10 @@
 
 ------------------------------------------------------------------------------------------------------------------------
 -- получаем значения параметров СУБД для PROMPT1 и короткие SQL запросы
-
 select
+    pg_is_in_recovery(),
+    coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
+
     trim((regexp_match(coalesce(
       -- example: Postgres Pro (shardman) 18.3.2 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 13.3.1 20250418 (RED SOFT 13.3.1-3), 64-bit
       (select nullif(trim(setting), '') from pg_settings where name = 'pgpro_version' limit 1),
@@ -99,9 +104,135 @@ select
     coalesce(
       (select ' ' || nullif(trim(setting), '') from pg_settings where name = 'pgpro_build' limit 1), -- example: c3d046b75bf
       ''
-    ) as pg_build,
+    ) as pg_build
+\gset
 
-    -- именованные SQL запросы для быстрого доступа:
+------------------------------------------------------------------------------------------------------------------------
+\if `test :pro = install && echo 1 || echo 0`
+    \echo 'Install...'
+
+    \if :pg_is_in_recovery
+        \echo :error'ERROR: connect to server role "primary" required':reset
+        \quit
+    \endif
+
+    \if :is_superuser
+    \else
+        \echo :error'ERROR: connect a user with the superuser attribute required':reset
+        \quit
+    \endif
+
+    START TRANSACTION;
+        drop schema if exists pro cascade;
+        create schema pro;
+        create extension if not exists dblink schema pro;
+
+        create function pro.interval_pretty(interval)
+            returns text
+            immutable
+            returns null on null input
+            parallel safe
+            language sql
+            set search_path = ''
+        return
+            case when $1 =   '0'::interval then '0ms'
+                 when $1 <  '1s'::interval then regexp_replace(to_char($1,                    'FMMS"ms"'),       '^0+(?=\d+ms$)', '')
+                 when $1 < '10s'::interval then regexp_replace(to_char($1,            'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
+                 when $1 <  '1m'::interval then to_char($1,                           'FMSS"s"')
+                 when $1 <  '1h'::interval then to_char($1,                   'FMMI"m" FMSS"s"')
+                 when $1 <  '1d'::interval then to_char($1,         'FMHH24"h" FMMI"m" FMSS"s"')
+                 else                           to_char($1, 'FMDD"d" FMHH24"h" FMMI"m" FMSS"s"')
+            end;
+
+        comment on function pro.interval_pretty(interval) is 'Formats the interval (time period) to a human readable string';
+
+        CREATE VIEW pro.pg_cluster_topology AS
+        -- Шаг 1. Получаем мастер, для этого движемся от листа к корню.
+        with recursive m as (
+            select not pg_is_in_recovery()                                    as is_primary,
+                   regexp_replace(nullif(trim(current_setting('primary_conninfo')), ''),
+                                  '\m(application_name|connect_timeout)=\S*', '')
+                       || ' application_name=dblink_topology connect_timeout=5' as conninfo,
+                   coalesce(inet_server_addr(), '127.0.0.1'::inet)            as addr,
+                   coalesce(inet_server_port(), current_setting('port')::int) as port,
+                   0                                                          as level
+            union all
+            select s.*,
+                   m.level - 1
+            from m, pro.dblink(m.conninfo,
+                           $$select not pg_is_in_recovery(),
+                                    regexp_replace(nullif(trim(current_setting('primary_conninfo')), ''),
+                                                   '\m(application_name|connect_timeout)=\S*', '')
+                                        || ' application_name=dblink_topology connect_timeout=5',
+                                    inet_server_addr(),
+                                    inet_server_port()
+                           $$,
+                           false --fail_on_error
+                          ) as s (is_primary bool, conninfo text, addr inet, port int)
+            where not m.is_primary and m.conninfo is not null
+        )
+        -- select * from m order by level; -- для отладки
+        -- Шаг 2. Получаем мастер и реплики, для этого движемся от корня к листам.
+        , r as (
+            (select 1                          as level,
+                    case when m.is_primary then 'primary' else 'replica' end as role,
+                    null::inet                 as parent_addr,
+                    m.addr                     as addr,
+                    m.port                     as port,
+                    null::pg_stat_replication  as pg_sr,
+                    null::pg_replication_slots as pg_rs
+            from m
+            order by m.level
+            limit 1)
+            union all
+            select r.level + 1           as level,
+                   'replica'             as role,
+                   r.addr                as parent_addr,
+                   (s.pg_sr).client_addr as addr,
+                   r.port,
+                   s.pg_sr,
+                   s.pg_rs
+            from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
+                           $$select pg_sr, pg_rs
+                             from pg_stat_replication as pg_sr
+                             left join pg_replication_slots as pg_rs on pg_sr.pid = pg_rs.active_pid
+                           $$,
+                           false --fail_on_error
+                          ) as s (pg_sr pg_stat_replication, pg_rs pg_replication_slots)
+        )
+        select level, role, parent_addr, addr, port, (pg_sr).*, (pg_rs).*
+        from r;
+
+        COMMENT ON VIEW pro.pg_cluster_topology IS 'Cluster topology. Returns servers: master and dependent replicas, including cascaded ones.';
+
+    COMMIT;
+
+    \if :ERROR
+        \echo :error'Installed fail':reset
+    \else
+        \echo :succ'Installed success':reset
+    \endif
+
+\endif
+
+------------------------------------------------------------------------------------------------------------------------
+-- настраиваем приглашения командной строки PROMPT1 и PROMPT2
+
+\set PROMPT2 '%R%x%# '
+
+-- YYYY-MM-DD HH:MM:SS+HH:MM  user@host[IP]:/current_path/
+\set PROMPT_OS '%`date --rfc-3339=seconds`  %`whoami`@%`hostname`[%`hostname -I | xargs`] %`pwd`'
+
+-- pg_version pg_build  user@host:port/database
+\set PROMPT_PG :pg_version'':pg_build'  %n@%M:%>/%/'
+-- в Ubuntu 26.04 LTS в терминале v3.58.0 для GNOME 49 цветная строка отображается, но слишком длинная обрезается, поэтому закомментировано
+-- \set PROMPT_PG :pg_version'':gray'':pg_build' ':yellow'%n':cyan'@':orange'%M':cyan':':green'%>':blue'/%/':reset
+
+\set PROMPT1 '\n':PROMPT_OS'\n':PROMPT_PG'\n':PROMPT2
+
+------------------------------------------------------------------------------------------------------------------------
+-- устанавливаем именованные SQL запросы для быстрого доступа
+select
     $sql$
         -- https://postgrespro.ru/docs/postgresql/current/functions-info
         SELECT pg_backend_pid(),
@@ -140,32 +271,57 @@ select
                 lpad((count(*) filter (where state_change < now() - interval '5 second'))::text, 3, ' '),
                 lpad((count(*) filter (where state_change < now() - interval '1 minute'))::text, 3, ' '),
                 lpad((count(*) filter (where state_change < now() - interval '1 hour'))::text,   3, ' ')
-            ) as "count_state_changed
-> 1s/5s/1m/1h ago"
+            ) as U&"count_state_changed\000a> 1s/5s/1m/1h ago"
         from pg_stat_activity
         group by backend_type, datname, state, usename, wait_event_type, wait_event
         order by backend_type, datname, state, usename, wait_event_type, wait_event;
-    $sql$ as "A"
+    $sql$ as "A",
+
+    $sql$
+        select
+            level,
+            role,
+            parent_addr,
+            addr,
+            port,
+            --usename as user,
+            concat_ws(E'\n', application_name, slot_name) as U&"app_name\000aslot_name",
+            state, -- startup/catchup/streaming/backup/stopping
+            concat_ws(E'\n',
+                sync_state, -- async/potential/sync/quorum
+                sync_priority
+            ) as U&"mode\000apriority",
+            concat(
+                         replace(pg_size_pretty(w.last_lsn - sent_lsn),   ' bytes', ''), -- data sending WAL stream to replica via network by walsender
+                ' + ' || replace(pg_size_pretty(sent_lsn   - write_lsn),  ' bytes', ''), -- data receiving WAL stream on replica from network by walreciever
+                ' + ' || replace(pg_size_pretty(write_lsn  - flush_lsn),  ' bytes', ''), -- data writing WAL on disk on replica by walreciever
+                ' + ' || replace(pg_size_pretty(flush_lsn  - replay_lsn), ' bytes', ''), -- data applying (replaying) WAL as a recovery process
+                ' = ' || replace(pg_size_pretty(w.last_lsn - replay_lsn), ' bytes', '')
+            ) as U&"lag_size\000asend+write+flush+replay=total",
+            concat_ws(' → ',
+                public.interval_pretty(write_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (but not yet flushed it or applied it)
+                public.interval_pretty(flush_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (but not yet applied it)
+                public.interval_pretty(replay_lag) -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it
+            ) as U&"lag_time\000awrite flush replay",
+            coalesce(replace(backend_start::timestamptz(0)::text, ' ', E'\n'), E'\n') as start_at,
+            coalesce(replace(reply_time::timestamptz(0)::text,    ' ', E'\n'), E'\n') as reply_at,
+            concat(
+                slot_type, -- physical/logical
+                case when slot_type = 'logical' then concat(', db:', database, ', failover:', failover, ', synced:', synced) end,
+                E'\n', active, ' ', temporary
+            ) as U&"slot_type\000aactive temp",
+            concat_ws(E'\n',
+                concat(wal_status, ', reason:' || invalidation_reason, ', since:' || inactive_since::timestamptz(0)::text),
+                pg_size_pretty(safe_wal_size)
+            ) as U&"wal_status\000asafe_wal_size"
+        from pro.pg_cluster_topology as t,
+        coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
+        order by t.level, t.state, t.sync_state desc;
+    $sql$ as "T"
 
 \gset
 
 ------------------------------------------------------------------------------------------------------------------------
--- настраиваем приглашения командной строки PROMPT1 и PROMPT2
-
-\set PROMPT2 '%R%x%# '
-
--- YYYY-MM-DD HH:MM:SS+HH:MM  user@host[IP]:/current_path/
-\set PROMPT_OS '%`date --rfc-3339=seconds`  %`whoami`@%`hostname`[%`hostname -I | xargs`] %`pwd`'
-
--- pg_version pg_build  user@host:port/database
-\set PROMPT_PG :pg_version'':pg_build'  %n@%M:%>/%/'
--- в Ubuntu 26.04 LTS в терминале v3.58.0 для GNOME 49 цветная строка отображается, но слишком длинная обрезается, поэтому закомментировано
--- \set PROMPT_PG :pg_version'':gray'':pg_build' ':yellow'%n':cyan'@':orange'%M':cyan':':green'%>':blue'/%/':reset
-
-\set PROMPT1 '\n':PROMPT_OS'\n':PROMPT_PG'\n':PROMPT2
-
-------------------------------------------------------------------------------------------------------------------------
-
 \if :QUIET_ORIGINAL
     -- psql запущен с флагом -q
 \else
@@ -181,8 +337,6 @@ select
     select
         s.*,
         pg_backend_pid(),
-        pg_is_in_recovery(),
-        coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
         coalesce((SELECT client_addr IS NULL /*socket*/ OR client_addr IN ('::1', '127.0.0.1') FROM pg_stat_activity WHERE pid = pg_backend_pid()), false) as is_local_connection,
         exists(select from pg_extension where extname = 'pg_buffercache') as pg_buffercache_installed,
 
@@ -461,6 +615,7 @@ select
 
     \echo ':W - who am i'
     \echo ':A - stat activity groups counts'
+    \echo ':T - cluster topology (first, run `psql -v pro=install` and `nano ~postgres/.pgpass` to save/check password for postgres user)'
     \echo
 
     --------------------------------------------------------------------------------------------------------------------
@@ -520,6 +675,3 @@ select
 
 -- восстанавливаем флаг отображения информационных сообщений
 \set QUIET :QUIET_ORIGINAL
-
-\endif
-
