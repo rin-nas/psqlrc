@@ -531,7 +531,7 @@ select
     \if :{?wal_directory}
         \set str 'WAL directory:         ':wal_directory
         \if :is_wal_directory_symlink
-            \set str :str' -> ':wal_real_directory
+            \set str :str' → ':wal_real_directory
         \endif
         \if :{?wal_directory_size}
             \set str :str' (size: ':wal_directory_size' total)'
@@ -613,9 +613,9 @@ select
     --------------------------------------------------------------------------------------------------------------------
     \echo :head'\n# SHORT SQL':reset
 
-    \echo ':W - who am i'
-    \echo ':A - stat activity groups counts'
-    \echo ':T - cluster topology (first, run `psql -v pro=install` and `nano ~postgres/.pgpass` to save/check password for postgres user)'
+    \echo ':W — who am i'
+    \echo ':A — stat activity groups counts'
+    \echo ':T — cluster topology (first, run `psql -v pro=install` and `nano ~postgres/.pgpass` to save/check password for user postgres)'
     \echo
 
     --------------------------------------------------------------------------------------------------------------------

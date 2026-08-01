@@ -59,10 +59,10 @@ psql -v pro=1
 1. установленные расширения и их версии
 
 ### Короткие SQL команды
-* `:W` - who am i,
-  колонки: `current_user, session_user, current_schemas`
-* `:A` - агрегированная информация из `pg_stat_activity`, 
-  колонки: `backend_type, datname, state, usename, wait_event_type, wait_event, count_total, count_state_changed > 1s/5s/1m/1h ago` 
+* `:W` — who am i (информация о текущем пользователе, схеме и т.д.)
+* `:A` — агрегированная информация из `pg_stat_activity`
+* `:T` — топология кластера СУБД 
+  (чтобы команда работала, сначала выполните `psql -v pro=install` и `nano ~postgres/.pgpass` для сохранения/проверки наличия пароля для пользователя `postgres`)
 
 ## Что отображается в командной строке `psql`
 
