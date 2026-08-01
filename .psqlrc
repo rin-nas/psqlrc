@@ -445,12 +445,14 @@ select
 
     \if :is_local_connection
 
-        \set systemd_unit `ps -p :pg_backend_pid -o unit=`
+        \set postgres_pid  `ps -p :pg_backend_pid -o ppid= | xargs`
+        \set systemd_unit  `ps -p :pg_backend_pid -o unit= | xargs`
+        \set bin_directory `dirname $(realpath /proc/:pg_backend_pid/exe)`
 
         \if :{?data_directory}
         \else
             -- если прав доступа не хватило, то пробуем получить data_directory альтернативным способом
-            \set data_directory `ps -p $(ps -p :pg_backend_pid -o ppid=) -o cmd= | grep -oP -- ' -D \K\S+'`
+            \set data_directory `ps -p :postgres_pid -o cmd= | grep -oP -- ' -D \K\S+'`
         \endif
 
         -- определяем роль СУБД - мастер или реплика
@@ -516,9 +518,16 @@ select
 
     \echo :head'\n# SERVER':reset
 
-    \echo 'Systemd unit:          ':systemd_unit
+    \if :{?systemd_unit}
+        \echo 'Systemd unit:          ':systemd_unit' (pid=':postgres_pid')'
+    \endif
+
     \echo 'Started at:            ':started_at' (':start_uptime' ago)'
     \echo 'Config loaded at:      ':loaded_at' (':load_uptime' ago)'
+
+    \if :{?bin_directory}
+        \echo 'Bin directory:         ':bin_directory
+    \endif
 
     \if :{?data_directory}
         \set str 'Data directory:        ':data_directory
@@ -615,7 +624,7 @@ select
 
     \echo ':W — who am i'
     \echo ':A — stat activity groups counts'
-    \echo ':T — cluster topology (first, run `psql -v pro=install` and `nano ~postgres/.pgpass` to save/check password for user postgres)'
+    \echo ':T — cluster topology (first, run `psql -v pro=install` and `nano ~/.pgpass` to save/check password exists for user postgres)'
     \echo
 
     --------------------------------------------------------------------------------------------------------------------

@@ -62,7 +62,7 @@ psql -v pro=1
 * `:W` — who am i (информация о текущем пользователе, схеме и т.д.)
 * `:A` — агрегированная информация из `pg_stat_activity`
 * `:T` — топология кластера СУБД 
-  (чтобы команда работала, сначала выполните `psql -v pro=install` и `nano ~postgres/.pgpass` для сохранения/проверки наличия пароля для пользователя `postgres`)
+  (чтобы команда работала, сначала выполните `psql -v pro=install` и `nano ~/.pgpass` для сохранения/проверки наличия пароля для пользователя `postgres`)
 
 ## Что отображается в командной строке `psql`
 
@@ -118,12 +118,13 @@ demo=#
 ```
 [postgres@rmukhtarov-redos1 ~]$ psql -v pro=1 demo
 # SERVER
-Systemd unit:          postgrespro-ent-17.service
+Systemd unit:          postgrespro-ent-17.service (pid=643)
 Started at:            2026-06-03 16:57:18+03 (1 day 21:45:52 ago)
 Config loaded at:      2026-06-05 00:01:06+03 (14:42:04 ago)
-Data directory:        /var/lib/pgpro/ent-18/data (size: 2.9G total)
-WAL directory:         /var/lib/pgpro/ent-18/data/pg_wal (size: 993M total)
-Log directory:         /var/lib/pgpro/ent-18/data/log (size: 2.1M files)
+Bin directory:         /opt/pgpro/ent-17/bin
+Data directory:        /var/lib/pgpro/ent-17/data (size: 2.9G total)
+WAL directory:         /var/lib/pgpro/ent-17/data/pg_wal (size: 993M total)
+Log directory:         /var/lib/pgpro/ent-17/data/log (size: 2.1M files)
 Connections:           12 of 61 (used 20%)
 Shared buffers/cache:  7608 kB of 492 MB (used 2%)
 Server role:           primary
@@ -168,7 +169,7 @@ Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 ```
 postgres@sdm18-1:~$ psql -v pro=1
 # SERVER
-Systemd unit:          postgrespro-ent-18.service
+Systemd unit:          postgrespro-ent-18.service (pid=643)
 Started at:            2026-05-06 10:36:04+00 (30 days 01:10:49 ago)
 Config loaded at:      2026-05-06 10:36:17+00 (30 days 01:10:36 ago)
 Data directory:        /pgdata/keeper-sdm18-test-shard-1-1/postgres (size: 15G total)
@@ -207,14 +208,14 @@ Postgres Pro (shardman) 18.3.3 fbc0896965c  postgres@[local]:5432/postgres
 ```
 postgres@sdm18-4:~$ psql -v pro=1
 # SERVER
-Systemd unit:          postgrespro-ent-18.service
+Systemd unit:          postgrespro-ent-18.service (pid=643)
 Started at:            2026-05-06 10:36:16+00 (30 days 01:10:07 ago)
 Config loaded at:      2026-05-06 10:36:23+00 (30 days 01:10:00 ago)
 Data directory:        /pgdata/keeper-sdm18-test-shard-1-2/postgres (size: 1.1G total)
 WAL directory:         /pgdata/keeper-sdm18-test-shard-1-2/postgres/pg_wal (size: 17M total)
 Log directory:         /pgdata (size: 348M files)
 Connections:           32 of 1000 (used 3%)
-Shared buffers/cache:  2600 MB  HINT: install extension pg_buffercache to show used/free cache size
+Shared buffers/cache:  2600 MB
 Server role:           replica
 WAL receive (1):       biha_node_2  biha_replication_user@sdm18-1:5432  streaming  not paused  (lag: 1s 158ms, 296 bytes)
 WAL send (0):
