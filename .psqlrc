@@ -5,7 +5,7 @@
 
 -- важно не сломать текущее поведение psql, на которое в скриптах уже заложились!
 \if :{?pro}
--- psql запущен с флагом -v pro=1
+-- psql запущен с флагом -v pro=
 
 -- цвета
 \set red       '\033[38;5;1m'
@@ -42,11 +42,11 @@
 \set QUIET_ORIGINAL :QUIET
 
 -- отключаем отображение информационных сообщений для команд \pset и \timing
--- установка значения on эквивалента параметру командной строки `psql -q`
-\set QUIET on
+-- установка значения 1 эквивалента параметру командной строки `psql -q`
+\set QUIET 1
 
 -- прекращаем обработку команд после возникновения ошибки, в интерактивном режиме psql вернётся в командную строку
-\set ON_ERROR_STOP on
+\set ON_ERROR_STOP 1
 
 -- игнорируем ошибки только в интерактивных сеансах, но не в скриптах
 \set ON_ERROR_ROLLBACK interactive
@@ -68,8 +68,8 @@
 \set pspg_installed `command -v pspg > /dev/null 2>&1 && echo 1 || echo 0`
 \if :pspg_installed
     \pset expanded off
-    \setenv PSQL_PAGER       'pspg --reprint-on-exit --blackwhite --on-sigint-exit --no-sound'
-    \setenv PSQL_WATCH_PAGER 'pspg --reprint-on-exit --blackwhite --on-sigint-exit --no-sound --stream'
+    \setenv PSQL_PAGER       'pspg --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound'
+    \setenv PSQL_WATCH_PAGER 'pspg --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound --stream'
 \endif
 
 -- отображаем в таблицах рамки с непрерывными линиями
@@ -77,6 +77,10 @@
 
 -- отображаем значения NULL
 \pset null '¤'
+--\pset null '∅'
+
+-- рамки вокруг таблицы
+\pset border 2
 
 ------------------------------------------------------------------------------------------------------------------------
 -- получаем значения параметров СУБД для PROMPT1 и короткие SQL запросы
@@ -512,7 +516,7 @@ select
 \endif
 
 -- включаем отображение длительности выполнения запроса
-\timing on
+\timing 1
 
 -- восстанавливаем флаг отображения информационных сообщений
 \set QUIET :QUIET_ORIGINAL
