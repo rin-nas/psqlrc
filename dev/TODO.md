@@ -1,9 +1,16 @@
 # Идеи для доработок
 
+synchronous_standby_names
+hot_standby_feedback
+
+* max_wal_size - Максимальный размер, до которого может вырастать WAL во время автоматических контрольных точек. Это мягкий предел; размер WAL может превышать max_wal_size при особых обстоятельствах, например при большой нагрузке, сбое в archive_command/archive_library или при большом значении wal_keep_size.
+* wal_keep_size - Задаёт минимальный объём прошлых файлов WAL, который будет сохраняться в каталоге pg_wal, чтобы ведомый сервер мог выбрать их при потоковой репликации.
+* max_slot_wal_keep_size - Задаёт максимальный размер файлов WAL, который может оставаться в каталоге pg_wal для слотов репликации после выполнения контрольной точки.
+
 * для `data_directory` вывести Size Used Avail Use%
 * https://postgrespro.ru/docs/postgrespro/current/functions-admin
 
-Получить команду запуска psql с флагами
+Получить команду запуска psql с флагами:
 ```
 \echo `ps -p $(ps -p $(echo $$) -o ppid=) -o cmd=`
 ```
@@ -35,6 +42,6 @@ COALESCE(
 
 ## Цвета:
 
-1. https://misc.flogisoft.com/bash/tip_colors_and_formatting (see 256-colors.sh)
+1. https://misc.flogisoft.com/bash/tip_colors_and_formatting (see `256-colors.sh`)
 1. https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
 1. https://postgres.ai/docs/postgres-howtos/development-tools/psql/how-to-format-text-output-in-psql-scripts
