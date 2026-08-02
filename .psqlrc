@@ -5,8 +5,8 @@
 
 -- важно не сломать текущее поведение psql, на которое в скриптах уже заложились!
 \if :{?pro}
-\else
     -- psql запущен с флагом -v pro=
+\else
     \quit
 \endif
 
@@ -118,15 +118,17 @@ select
 
     \if :is_superuser
     \else
-        \echo :error'ERROR: connect a user with the superuser attribute required':reset
+        \echo :error'ERROR: connect a user (for example, postgres) with the superuser attribute required':reset
         \quit
     \endif
 
     START TRANSACTION;
+        -- все объекты будем хранить в одной схеме "pro"
         drop schema if exists pro cascade;
         create schema pro;
         create extension if not exists dblink schema pro;
 
+        -- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
         create function pro.interval_pretty(interval)
             returns text
             immutable
@@ -149,20 +151,18 @@ select
         CREATE VIEW pro.pg_cluster_topology AS
         -- Шаг 1. Получаем мастер, для этого движемся от листа к корню.
         with recursive m as (
-            select not pg_is_in_recovery()                                    as is_primary,
-                   regexp_replace(nullif(trim(current_setting('primary_conninfo')), ''),
-                                  '\m(application_name|connect_timeout)=\S*', '')
-                       || ' application_name=dblink_topology connect_timeout=5' as conninfo,
-                   coalesce(inet_server_addr(), '127.0.0.1'::inet)            as addr,
-                   coalesce(inet_server_port(), current_setting('port')::int) as port,
-                   0                                                          as level
+            select not pg_is_in_recovery()                                                as is_primary,
+                   regexp_replace(nullif(trim(current_setting('primary_conninfo')), ''), '\m(application_name|connect_timeout)=\S*', '')
+                       || ' application_name=dblink_topology connect_timeout=5'           as conninfo,
+                   coalesce(inet_server_addr(), '127.0.0.1'::inet)                        as addr,
+                   coalesce(inet_server_port(), current_setting('port')::int)             as port,
+                   0                                                                      as level
             union all
             select s.*,
                    m.level - 1
             from m, pro.dblink(m.conninfo,
                            $$select not pg_is_in_recovery(),
-                                    regexp_replace(nullif(trim(current_setting('primary_conninfo')), ''),
-                                                   '\m(application_name|connect_timeout)=\S*', '')
+                                    regexp_replace(nullif(trim(current_setting('primary_conninfo')), ''), '\m(application_name|connect_timeout)=\S*', '')
                                         || ' application_name=dblink_topology connect_timeout=5',
                                     inet_server_addr(),
                                     inet_server_port()
