@@ -301,6 +301,7 @@ select
             parent_addr,
             addr,
             port,
+            pro.interval_pretty(d2.local_dblink_connection_duration - d1.remote_dblink_connection_duration) as ping,
             --usename as user,
             concat_ws(E'\n', application_name, slot_name) as U&"app_name\000aslot_name",
             concat_ws(E'\n',
@@ -334,7 +335,9 @@ select
                 concat(wal_status, ', reason:' || invalidation_reason, ', since:' || inactive_since::timestamptz(0)::text),
                 pg_size_pretty(safe_wal_size)
             ) as U&"wal_status\000asafe_wal_size"
-        from pro.pg_cluster_topology as t
+        from pro.pg_cluster_topology as t,
+        coalesce(remote_dblink_connection_end - remote_dblink_connection_start) as d1(remote_dblink_connection_duration),
+        coalesce(local_dblink_connection_end  - local_dblink_connection_start)  as d2(local_dblink_connection_duration)
         order by t.level, t.state, t.sync_state desc;
     $sql$ as "T"
 
