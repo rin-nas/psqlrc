@@ -303,7 +303,10 @@ select
             port,
             --usename as user,
             concat_ws(E'\n', application_name, slot_name) as U&"app_name\000aslot_name",
-            state, -- startup/catchup/streaming/backup/stopping
+            concat_ws(E'\n',
+                state,      -- startup / catchup / streaming / backup / stopping
+                pause_state -- not paused / pause requested / paused
+            ) as state,
             concat_ws(E'\n',
                 sync_state, -- async/potential/sync/quorum
                 sync_priority
