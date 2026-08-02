@@ -367,6 +367,7 @@ select
         (select pg_size_pretty(nullif(trim(setting), '')::numeric * 8192) from pg_settings where name = 'shared_buffers' limit 1) as shared_buffers,
         (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g') from pg_settings where name = 'shared_preload_libraries'   limit 1) as shared_preload_libraries,
         (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g') from pg_settings where name = 'walsender_plugin_libraries' limit 1) as walsender_plugin_libraries,
+        (select nullif(trim(setting), '') from pg_settings where name = 'synchronous_standby_names' limit 1) as synchronous_standby_names,
         (select nullif(trim(setting), '') from pg_settings where name = 'synchronous_commit' limit 1) as synchronous_commit, -- off / local / remote_write / on / remote_apply
         (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension)  as installed_extensions,
 
@@ -610,6 +611,7 @@ select
     \echo 'WAL send (':wal_send_count'):          ':wal_send_to
 
     \echo 'Synchronous commit:    ':synchronous_commit
+    \echo 'Sync. standby names:   ':synchronous_standby_names
 
     \if :{?shared_preload_libraries}
         \echo 'Shared preload libs:   ':shared_preload_libraries
