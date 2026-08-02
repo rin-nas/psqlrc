@@ -180,6 +180,7 @@ select
                     null::inet                 as parent_addr,
                     m.addr                     as addr,
                     m.port                     as port,
+                    null::pg_lsn               as last_lsn,
                     null::pg_stat_replication  as pg_sr,
                     null::pg_replication_slots as pg_rs
             from m
@@ -191,17 +192,19 @@ select
                    r.addr                as parent_addr,
                    (s.pg_sr).client_addr as addr,
                    r.port,
+                   s.last_lsn,
                    s.pg_sr,
                    s.pg_rs
             from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
-                           $$select pg_sr, pg_rs
+                           $$select w.last_lsn, pg_sr, pg_rs
                              from pg_stat_replication as pg_sr
                              left join pg_replication_slots as pg_rs on pg_sr.pid = pg_rs.active_pid
+                             cross join coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
                            $$,
                            false --fail_on_error
-                          ) as s (pg_sr pg_stat_replication, pg_rs pg_replication_slots)
+                          ) as s (last_lsn pg_lsn, pg_sr pg_stat_replication, pg_rs pg_replication_slots)
         )
-        select level, is_primary, parent_addr, addr, port--, (pg_sr).*, (pg_rs).*
+        select level, is_primary, parent_addr, addr, port, last_lsn, (pg_sr).*, (pg_rs).*
         from r;
 
         COMMENT ON VIEW pro.pg_cluster_topology IS 'Cluster topology. Returns servers: master and dependent replicas, including cascaded ones.';
@@ -293,11 +296,11 @@ select
                 sync_priority
             ) as U&"mode\000apriority",
             concat(
-                         replace(pg_size_pretty(w.last_lsn - sent_lsn),   ' bytes', ''), -- data sending WAL stream to replica via network by walsender
+                         replace(pg_size_pretty(last_lsn - sent_lsn),   ' bytes', ''), -- data sending WAL stream to replica via network by walsender
                 ' + ' || replace(pg_size_pretty(sent_lsn   - write_lsn),  ' bytes', ''), -- data receiving WAL stream on replica from network by walreciever
                 ' + ' || replace(pg_size_pretty(write_lsn  - flush_lsn),  ' bytes', ''), -- data writing WAL on disk on replica by walreciever
                 ' + ' || replace(pg_size_pretty(flush_lsn  - replay_lsn), ' bytes', ''), -- data applying (replaying) WAL as a recovery process
-                ' = ' || replace(pg_size_pretty(w.last_lsn - replay_lsn), ' bytes', '')
+                ' = ' || replace(pg_size_pretty(last_lsn - replay_lsn), ' bytes', '')
             ) as U&"lag_size\000asend+write+flush+replay=total",
             concat_ws(' → ',
                 public.interval_pretty(write_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (but not yet flushed it or applied it)
@@ -315,8 +318,7 @@ select
                 concat(wal_status, ', reason:' || invalidation_reason, ', since:' || inactive_since::timestamptz(0)::text),
                 pg_size_pretty(safe_wal_size)
             ) as U&"wal_status\000asafe_wal_size"
-        from pro.pg_cluster_topology as t,
-        coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
+        from pro.pg_cluster_topology as t
         order by t.level, t.state, t.sync_state desc;
     $sql$ as "T"
 
