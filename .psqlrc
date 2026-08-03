@@ -236,9 +236,9 @@ select
     COMMIT;
 
     \if :ERROR
-        \echo :error'Installed fail':reset
+        \echo :error'Install fail':reset
     \else
-        \echo :succ'Installed success':reset
+        \echo :succ'Install success':reset
     \endif
 
 \endif
@@ -351,9 +351,9 @@ select
                 ' = ' || replace(pg_size_pretty(last_lsn   - replay_lsn), ' bytes', '')
             ) as U&"lag_size\000asend+write+flush+replay=total",
             concat_ws(' → ',
-                public.interval_pretty(write_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (but not yet flushed it or applied it)
-                public.interval_pretty(flush_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (but not yet applied it)
-                public.interval_pretty(replay_lag) -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it
+                pro.interval_pretty(write_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (but not yet flushed it or applied it)
+                pro.interval_pretty(flush_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (but not yet applied it)
+                pro.interval_pretty(replay_lag) -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it
             ) as U&"lag_time\000awrite flush replay",
             coalesce(replace(backend_start::timestamptz(0)::text, ' ', E'\n'), E'\n') as start_at,
             coalesce(replace(reply_time::timestamptz(0)::text,    ' ', E'\n'), E'\n') as reply_at,
