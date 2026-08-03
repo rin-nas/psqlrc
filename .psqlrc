@@ -151,22 +151,23 @@ select
         CREATE VIEW pro.pg_cluster_topology AS
         -- Шаг 1. Движемся от листа к корню с целью получить мастер. В случае обрыва сетевого соединения остановимся на реплике.
         with recursive m as (
-            select not pg_is_in_recovery()                                                as is_primary,
+            select not pg_is_in_recovery()                                      as is_primary,
                    regexp_replace(nullif(trim(current_setting('primary_conninfo')), ''), '\m(application_name|connect_timeout)=\S*', '')
-                       || ' application_name=dblink_topology connect_timeout=5'           as conninfo,
-                   coalesce(inet_server_addr(), '127.0.0.1'::inet)                        as addr,
-                   coalesce(inet_server_port(), current_setting('port')::int)             as port,
-                   0                                                                      as level
+                       || ' application_name=dblink_topology connect_timeout=5' as conninfo,
+                   coalesce(inet_server_addr(), '127.0.0.1'::inet)              as addr,
+                   coalesce(inet_server_port(), current_setting('port')::int)   as port,
+                   0                                                            as level
             union all
             select s.*,
                    m.level - 1
             from m, pro.dblink(
                         m.conninfo,
-                        $$select not pg_is_in_recovery(),
-                                 regexp_replace(nullif(trim(current_setting('primary_conninfo')), ''), '\m(application_name|connect_timeout)=\S*', '')
-                                     || ' application_name=dblink_topology connect_timeout=5',
-                                 inet_server_addr(),
-                                 inet_server_port()
+                        $$select
+                            not pg_is_in_recovery(),
+                            regexp_replace(nullif(trim(current_setting('primary_conninfo')), ''), '\m(application_name|connect_timeout)=\S*', '')
+                                 || ' application_name=dblink_topology connect_timeout=5',
+                            inet_server_addr(),
+                            inet_server_port()
                         $$,
                         false --fail_on_error
                     ) as s (is_primary bool, conninfo text, addr inet, port int)
@@ -202,28 +203,35 @@ select
                              cross join coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
                            $$,
                            false --fail_on_error
-                          ) as s (last_lsn pg_lsn, pg_sr pg_stat_replication, pg_rs pg_replication_slots)
+                          ) as s (last_lsn pg_lsn,
+                                  pg_sr    pg_stat_replication,
+                                  pg_rs    pg_replication_slots)
         )
         select level, is_primary, parent_addr, addr, port, last_lsn,
                s.*, clock_timestamp() as local_dblink_connection_end,
                (pg_sr).*, (pg_rs).*
         from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
-                           format($$select case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
-                                           current_setting('primary_conninfo') as primary_conninfo,
-                                           %L                as local_dblink_connection_start,
-                                           a.backend_start   as remote_dblink_connection_start,
-                                           clock_timestamp() as remote_dblink_connection_end
+                           format($$select
+                                        case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
+                                        (select nullif(trim(setting), '') from pg_settings where name = 'primary_conninfo' limit 1) as primary_conninfo,
+                                        (select nullif(trim(setting), '') from pg_settings where name = 'biha.host'        limit 1) as biha_host,
+                                        %L                as local_dblink_connection_start,
+                                        a.backend_start   as remote_dblink_connection_start,
+                                        clock_timestamp() as remote_dblink_connection_end
                                     from pg_stat_activity as a
                                     where a.pid = pg_backend_pid()
                                   $$, clock_timestamp()),
                            false --fail_on_error
                           ) as s (pause_state                    text,
                                   primary_conninfo               text,
+                                  biha_host                      text,
                                   local_dblink_connection_start  timestamptz,
                                   remote_dblink_connection_start timestamptz,
                                   remote_dblink_connection_end   timestamptz);
 
         COMMENT ON VIEW pro.pg_cluster_topology IS 'Cluster topology. Returns servers: master and dependent replicas, including cascaded ones.';
+
+        -- select * from pro.pg_cluster_topology; -- для отладки
 
     COMMIT;
 
@@ -313,7 +321,13 @@ select
                 parent_addr,
                 nullif((regexp_match(primary_conninfo, '\mhost=(\S+)'))[1], parent_addr::text)
             ) as U&"parent_addr\000aparent_host",
-            addr,
+            concat_ws(E'\n',
+                addr,
+                coalesce(
+                    client_hostname, -- это поле будет отлично от null только в случае соединений по IP и только при включённом режиме log_hostname
+                    biha_host
+                )
+            ) as U&"addr\000ahost",
             port,
             pro.interval_pretty(d2.local_dblink_connection_duration - d1.remote_dblink_connection_duration) as ping,
             --usename as user,
