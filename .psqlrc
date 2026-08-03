@@ -253,8 +253,8 @@ select
 ------------------------------------------------------------------------------------------------------------------------
 -- устанавливаем именованные SQL запросы для быстрого доступа
 select
+    -- https://postgrespro.ru/docs/postgresql/current/functions-info
     $sql$
-        -- https://postgrespro.ru/docs/postgresql/current/functions-info
         SELECT pg_backend_pid(),
                pg_current_xact_id_if_assigned(), -- идентификатор текущей транзакции или NULL, если она ещё не имеет идентификатора
                pg_xact_status(pg_current_xact_id_if_assigned()) as pg_current_xact_status, -- состояние фиксации транзакции: in progress / committed / aborted
@@ -297,6 +297,14 @@ select
         order by backend_type, datname, state, usename, wait_event_type, wait_event;
     $sql$ as "A",
 
+    /*
+    Значений полей для вывода много. Необходимо, чтобы таблица уместилось на широкоформатный экран разрешением 2880×1800 (16:10).
+    Для этого применены следующие хитрости:
+    1) Названия колонок и значения выводятся в две строки вместо одной
+    2) Несколько логически взаимосвязанных значений объединены в одной колонке
+    3) В дате-времени удалены миллисекунды
+    4) Для размеров в байтах и интервалов времени выводится только значимая информация
+    */
     $sql$
         select
             level,
