@@ -1,7 +1,7 @@
 # Идеи для доработок
 
-synchronous_standby_names
-hot_standby_feedback
+* выводить в топологии в колонке `slot_name` для мастера значение из GUC `primary_slot_name`?
+* hot_standby_feedback
 
 * max_wal_size - Максимальный размер, до которого может вырастать WAL во время автоматических контрольных точек. Это мягкий предел; размер WAL может превышать max_wal_size при особых обстоятельствах, например при большой нагрузке, сбое в archive_command/archive_library или при большом значении wal_keep_size.
 * wal_keep_size - Задаёт минимальный объём прошлых файлов WAL, который будет сохраняться в каталоге pg_wal, чтобы ведомый сервер мог выбрать их при потоковой репликации.
@@ -10,7 +10,9 @@ hot_standby_feedback
 * для `data_directory` вывести Size Used Avail Use%
 * https://postgrespro.ru/docs/postgrespro/current/functions-admin
 
-Получить команду запуска psql с флагами:
+* [load /etc/hosts to postgres](https://www.google.com/search?client=ubuntu-sn&channel=fs&q=load+%2Fetc%2Fhosts+to+postgres)
+
+Получить команду запуска `psql` с флагами:
 ```
 \echo `ps -p $(ps -p $(echo $$) -o ppid=) -o cmd=`
 ```
@@ -39,6 +41,8 @@ COALESCE(
 ```
 
 # Ссылки
+
+1. [How to use variables in psql scripts](https://postgres.ai/docs/postgres-howtos/development-tools/psql/how-to-use-variables-in-psql-scripts)
 
 ## Цвета:
 
