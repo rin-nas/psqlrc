@@ -253,8 +253,11 @@ select
 
 -- pg_version pg_build  user@host:port/database
 \set PROMPT_PG :pg_version'':pg_build'  %n@%M:%>/%/'
--- в Ubuntu 26.04 LTS в терминале v3.58.0 для GNOME 49 цветная строка отображается, но слишком длинная обрезается, поэтому закомментировано
--- \set PROMPT_PG :pg_version'':gray'':pg_build' ':yellow'%n':cyan'@':orange'%M':cyan':':green'%>':blue'/%/':reset
+
+\if `test :pro = color && echo 1 || echo 0`
+    -- в Ubuntu 26.04 LTS в терминале v3.58.0 для GNOME 49 цветная строка отображается, но слишком длинная обрезается!
+    \set PROMPT_PG :pg_version'':gray'':pg_build' ':yellow'%n':cyan'@':orange'%M':cyan':':green'%>':blue'/%/':reset
+\endif
 
 \set PROMPT1 '\n':PROMPT_OS'\n':PROMPT_PG'\n':PROMPT2
 
