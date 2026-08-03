@@ -394,6 +394,7 @@ select
         exists(select from pg_extension where extname = 'pg_buffercache') as pg_buffercache_installed,
 
         (select nullif(trim(setting), '') from pg_settings where name = 'data_directory' limit 1) as data_directory,
+        (select nullif(trim(setting), '') from pg_settings where name = 'logging_collector' limit 1) as logging_collector,
         (select nullif(trim(setting), '') from pg_settings where name = 'log_directory' limit 1) as log_directory,
         (select pg_size_pretty(nullif(trim(setting), '')::numeric * 8192) from pg_settings where name = 'shared_buffers' limit 1) as shared_buffers,
         (select regexp_replace(nullif(trim(setting), ''), ',\s*', ', ', 'g') from pg_settings where name = 'shared_preload_libraries'   limit 1) as shared_preload_libraries,
@@ -515,26 +516,6 @@ select
             \set is_primary `test -f ':data_directory/standby.signal' && echo 0 || echo 1`
         \endif
 
-        \if :{?log_directory}
-            \set log_directory `echo ':log_directory' | grep -qP '^/' && echo ':log_directory' || echo ':data_directory/:log_directory'`
-            \if `test -d ':log_directory' && echo 1 || echo 0`
-            \else
-                -- если папка не существует, то PostgreSQL хранит протоколы в PGDATA
-                \echo :warn'WARNING: log directory "':log_directory'" does not exist':reset
-                \echo :hint'HINT: check "log_directory" parameter value, run "select current_setting(\'log_directory\');"':reset
-                \set log_directory :data_directory
-            \endif
-        \else
-            \set log_directory :data_directory
-        \endif
-
-        \set wal_directory :data_directory/pg_wal
-        \set wal_real_directory `readlink -f :wal_directory`
-        \set is_wal_directory_symlink `test :wal_directory != :wal_real_directory > /dev/null 2>&1 && echo 1 || echo 0`
-
-        \set data_directory_size `du -sh ':data_directory' | grep -oP '^\S+'`
-        \set wal_directory_size `du -sh ':wal_directory' | grep -oP '^\S+'`
-        \set log_files_size `find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | grep -oP '^\S+'`
     \endif
 
     \if :{?is_primary}
@@ -544,12 +525,44 @@ select
         \set is_primary `test :pg_is_in_recovery = f && echo 1 || echo 0`
     \endif
 
+    \set wal_directory :data_directory'/pg_wal'
+
+    \if :{?logging_collector}
+        \if :logging_collector
+            \if :{?log_directory}
+                \if `echo :log_directory | grep -qP '^/' && echo 1 || echo 0`
+                \else
+                    \set log_directory :data_directory'/':log_directory
+                \endif
+            \else
+                \set log_directory :data_directory
+            \endif
+        \else
+            \unset log_directory
+        \endif
+    \endif
+
+    -- вычисляем ссылки и размеры директорий
+    \if :is_local_connection
+        \set wal_real_directory `readlink -f ':wal_directory'`
+        \if `test ':wal_directory' = ':wal_real_directory' && echo 1 || echo 0`
+            \unset wal_real_directory
+        \endif
+
+        \set data_directory_size `du -sh ':data_directory' | grep -oP '^\S+'`
+        \set wal_directory_size `du -sh ':wal_directory' | grep -oP '^\S+'`
+
+        \if :{?log_directory}
+            \set log_files_size `find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | grep -oP '^\S+'`
+        \endif
+    \endif
+
     --------------------------------------------------------------------------------------------------------------------
     -- выводим подсказки
 
     \if :pspg_installed
     \else
-        \echo :hint'HINT: alternative psql pager "pspg" is supported and highly recommended to use, see https://github.com/okbob/pspg':reset
+        \echo :hint'HINT: alternative pager "pspg" is supported and highly recommended to use, see https://github.com/okbob/pspg':reset
     \endif
 
     \if :is_superuser
@@ -565,6 +578,14 @@ select
     \if :{?used_shared_buffers}
     \else
         \echo :hint'HINT: run "create extension pg_buffercache;" to show used/free cache size':reset
+    \endif
+
+    \if :{?logging_collector}
+        \if :logging_collector
+        \else
+            \echo :warn'WARNING: logging collector is disabled, it is recommended to enable':reset
+            \echo :hint'HINT: errors are redirected to syslog':reset
+        \endif
     \endif
 
     --------------------------------------------------------------------------------------------------------------------
@@ -593,7 +614,7 @@ select
 
     \if :{?wal_directory}
         \set str 'WAL directory:         ':wal_directory
-        \if :is_wal_directory_symlink
+        \if :{?wal_real_directory}
             \set str :str' → ':wal_real_directory
         \endif
         \if :{?wal_directory_size}
