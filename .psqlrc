@@ -301,7 +301,10 @@ select
         select
             level,
             case when is_primary then 'primary' else 'replica' end as role,
-            parent_addr,
+            concat_ws(E'\n',
+                parent_addr,
+                nullif((regexp_match(primary_conninfo, '\mhost=(\S+)'))[1], parent_addr::text)
+            ) as U&"parent_addr\000aparent_host",
             addr,
             port,
             pro.interval_pretty(d2.local_dblink_connection_duration - d1.remote_dblink_connection_duration) as ping,
@@ -316,11 +319,11 @@ select
                 sync_priority
             ) as U&"mode\000apriority",
             concat(
-                         replace(pg_size_pretty(last_lsn - sent_lsn),   ' bytes', ''), -- data sending WAL stream to replica via network by walsender
+                         replace(pg_size_pretty(last_lsn   - sent_lsn),   ' bytes', ''), -- data sending WAL stream to replica via network by walsender
                 ' + ' || replace(pg_size_pretty(sent_lsn   - write_lsn),  ' bytes', ''), -- data receiving WAL stream on replica from network by walreciever
                 ' + ' || replace(pg_size_pretty(write_lsn  - flush_lsn),  ' bytes', ''), -- data writing WAL on disk on replica by walreciever
                 ' + ' || replace(pg_size_pretty(flush_lsn  - replay_lsn), ' bytes', ''), -- data applying (replaying) WAL as a recovery process
-                ' = ' || replace(pg_size_pretty(last_lsn - replay_lsn), ' bytes', '')
+                ' = ' || replace(pg_size_pretty(last_lsn   - replay_lsn), ' bytes', '')
             ) as U&"lag_size\000asend+write+flush+replay=total",
             concat_ws(' → ',
                 public.interval_pretty(write_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (but not yet flushed it or applied it)
