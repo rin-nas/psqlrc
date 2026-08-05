@@ -23,7 +23,12 @@ psql -v pro=1
 nano ~/.pgpass # сохраните пароль для пользователя postgres, при необходимости 
 psql psql -v pro=1 'postgresql://postgres@host-1,host-2,host-3,host-4/postgres?target_session_attrs=read-write&connect_timeout=3'
 ```
- 
+
+Значения переменной `pro`
+
+1. `psql -v pro=1` — с вычислением размера директорий (медленно при большом количестве файлов)
+1. `psql -v pro=0` — без вычисления размера директорий (быстро)
+
 
 ## Что отображается при запуске `psql`
 
