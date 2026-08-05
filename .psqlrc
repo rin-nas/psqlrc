@@ -550,7 +550,12 @@ select
         \endif
 
         \set data_directory_size `du -sh ':data_directory' | grep -oP '^\S+'`
-        \set wal_directory_size `du -sh ':wal_directory' | grep -oP '^\S+'`
+
+        \if :{?wal_real_directory}
+            \set wal_directory_size `du -sh ':wal_real_directory' | grep -oP '^\S+'`
+        \else
+            \set wal_directory_size `du -sh ':wal_directory' | grep -oP '^\S+'`
+        \endif
 
         \if :{?log_directory}
             \set log_files_size `find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | grep -oP '^\S+'`
