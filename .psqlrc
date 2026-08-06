@@ -215,8 +215,9 @@ select
         from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
                            format($$select
                                         case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
-                                        (select nullif(trim(setting), '') from pg_settings where name = 'primary_conninfo' limit 1) as primary_conninfo,
-                                        (select nullif(trim(setting), '') from pg_settings where name = 'biha.host'        limit 1) as biha_host,
+                                        (select nullif(trim(setting), '')         from pg_settings where name = 'primary_conninfo'     limit 1) as primary_conninfo,
+                                        (select (nullif(trim(setting), ''))::bool from pg_settings where name = 'hot_standby_feedback' limit 1) as hot_standby_feedback,
+                                        (select nullif(trim(setting), '')         from pg_settings where name = 'biha.host'            limit 1) as biha_host,
                                         %L                as local_dblink_connection_start,
                                         a.backend_start   as remote_dblink_connection_start,
                                         clock_timestamp() as remote_dblink_connection_end
@@ -226,6 +227,7 @@ select
                            false --fail_on_error
                           ) as s (pause_state                    text,
                                   primary_conninfo               text,
+                                  hot_standby_feedback           bool,
                                   biha_host                      text,
                                   local_dblink_connection_start  timestamptz,
                                   remote_dblink_connection_start timestamptz,
@@ -345,6 +347,12 @@ select
                 sync_state, -- async/potential/sync/quorum
                 sync_priority
             ) as U&"mode\000Apriority",
+            case when not is_primary then
+                concat(
+                    replace(pg_size_pretty(last_lsn - restart_lsn), ' bytes', ''),
+                    E'\n',
+                    hot_standby_feedback
+                ) else '' end as U&"hold_size\000Afeedback",
             concat(
                          replace(pg_size_pretty(last_lsn   - sent_lsn),   ' bytes', ''), -- data sending WAL stream to replica via network by walsender
                 ' + ' || replace(pg_size_pretty(sent_lsn   - write_lsn),  ' bytes', ''), -- data receiving WAL stream on replica from network by walreciever
