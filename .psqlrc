@@ -304,7 +304,7 @@ select
                 lpad((count(*) filter (where state_change < now() - interval '5 second'))::text, 3, ' '),
                 lpad((count(*) filter (where state_change < now() - interval '1 minute'))::text, 3, ' '),
                 lpad((count(*) filter (where state_change < now() - interval '1 hour'))::text,   3, ' ')
-            ) as U&"count_state_changed\000a> 1s/5s/1m/1h ago"
+            ) as U&"count_state_changed\000A> 1s/5s/1m/1h ago"
         from pg_stat_activity
         group by backend_type, datname, state, usename, wait_event_type, wait_event
         order by backend_type, datname, state, usename, wait_event_type, wait_event;
@@ -325,18 +325,18 @@ select
             concat_ws(E'\n',
                 parent_addr,
                 nullif((regexp_match(primary_conninfo, '\mhost=(\S+)'))[1], parent_addr::text)
-            ) as U&"parent_addr\000aparent_host",
+            ) as U&"parent_addr\000Aparent_host",
             concat_ws(E'\n',
                 addr,
                 coalesce(
                     client_hostname, -- это поле будет отлично от null только в случае соединений по IP и только при включённом режиме log_hostname
                     biha_host
                 )
-            ) as U&"addr\000ahost",
+            ) as U&"addr\000Ahost",
             port,
             pro.interval_pretty(d2.local_dblink_connection_duration - d1.remote_dblink_connection_duration) as ping,
             --usename as user,
-            concat_ws(E'\n', application_name, slot_name) as U&"app_name\000aslot_name",
+            concat_ws(E'\n', application_name, slot_name) as U&"app_name\000Aslot_name",
             concat_ws(E'\n',
                 state,      -- startup / catchup / streaming / backup / stopping
                 pause_state -- not paused / pause requested / paused
@@ -344,30 +344,30 @@ select
             concat_ws(E'\n',
                 sync_state, -- async/potential/sync/quorum
                 sync_priority
-            ) as U&"mode\000apriority",
+            ) as U&"mode\000Apriority",
             concat(
                          replace(pg_size_pretty(last_lsn   - sent_lsn),   ' bytes', ''), -- data sending WAL stream to replica via network by walsender
                 ' + ' || replace(pg_size_pretty(sent_lsn   - write_lsn),  ' bytes', ''), -- data receiving WAL stream on replica from network by walreciever
                 ' + ' || replace(pg_size_pretty(write_lsn  - flush_lsn),  ' bytes', ''), -- data writing WAL on disk on replica by walreciever
                 ' + ' || replace(pg_size_pretty(flush_lsn  - replay_lsn), ' bytes', ''), -- data applying (replaying) WAL as a recovery process
                 ' = ' || replace(pg_size_pretty(last_lsn   - replay_lsn), ' bytes', '')
-            ) as U&"lag_size\000asend+write+flush+replay=total",
+            ) as U&"lag_size\000Asend+write+flush+replay=total",
             concat_ws(' → ',
                 pro.interval_pretty(write_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (but not yet flushed it or applied it)
                 pro.interval_pretty(flush_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (but not yet applied it)
                 pro.interval_pretty(replay_lag) -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it
-            ) as U&"lag_time\000awrite flush replay",
+            ) as U&"lag_time\000Awrite flush replay",
             coalesce(replace(backend_start::timestamptz(0)::text, ' ', E'\n'), E'\n') as start_at,
             coalesce(replace(reply_time::timestamptz(0)::text,    ' ', E'\n'), E'\n') as reply_at,
             concat(
                 slot_type, -- physical/logical
                 case when slot_type = 'logical' then concat(', db:', database, ', failover:', failover, ', synced:', synced) end,
                 E'\n', active, ' ', temporary
-            ) as U&"slot_type\000aactive temp",
+            ) as U&"slot_type\000Aactive temp",
             concat_ws(E'\n',
                 concat(wal_status, ', reason:' || invalidation_reason, ', since:' || inactive_since::timestamptz(0)::text),
                 pg_size_pretty(safe_wal_size)
-            ) as U&"wal_status\000asafe_wal_size"
+            ) as U&"wal_status\000Asafe_wal_size"
         from pro.pg_cluster_topology as t,
         coalesce(remote_dblink_connection_end - remote_dblink_connection_start) as d1(remote_dblink_connection_duration),
         coalesce(local_dblink_connection_end  - local_dblink_connection_start)  as d2(local_dblink_connection_duration)
