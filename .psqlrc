@@ -213,21 +213,36 @@ select
                s.*, clock_timestamp() as local_dblink_connection_end,
                (pg_sr).*, (pg_rs).*
         from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
-                           format($$select
-                                        case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
-                                        (select nullif(trim(setting), '')         from pg_settings where name = 'primary_conninfo'     limit 1) as primary_conninfo,
-                                        (select (nullif(trim(setting), ''))::bool from pg_settings where name = 'hot_standby_feedback' limit 1) as hot_standby_feedback,
-                                        (select nullif(trim(setting), '')         from pg_settings where name = 'biha.host'            limit 1) as biha_host,
-                                        %L                as local_dblink_connection_start,
-                                        a.backend_start   as remote_dblink_connection_start,
-                                        clock_timestamp() as remote_dblink_connection_end
-                                    from pg_stat_activity as a
-                                    where a.pid = pg_backend_pid()
-                                  $$, clock_timestamp()),
+                           format($sql$
+                                  -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication
+                                  with guc_replica as (
+                                      select
+                                          -- Ведомые серверы. Эти параметры управляют поведением ведомого сервера, который будет получать данные репликации. На ведущем сервере они не играют никакой роли.
+                                          (select nullif(trim(setting), '')         from pg_settings where name = 'primary_conninfo'             limit 1) as primary_conninfo,
+                                          (select nullif(trim(setting), '')         from pg_settings where name = 'primary_slot_name'            limit 1) as primary_slot_name,
+                                          (select (nullif(trim(setting), ''))::bool from pg_settings where name = 'hot_standby'                  limit 1) as hot_standby,
+                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'max_standby_archive_delay'    limit 1) as max_standby_archive_delay,
+                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'max_standby_streaming_delay'  limit 1) as max_standby_streaming_delay,
+                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'wal_receiver_status_interval' limit 1) as wal_receiver_status_interval,
+                                          (select (nullif(trim(setting), ''))::bool from pg_settings where name = 'hot_standby_feedback'         limit 1) as hot_standby_feedback,
+                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'wal_receiver_timeout'         limit 1) as wal_receiver_timeout,
+                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'wal_retrieve_retry_interval'  limit 1) as wal_retrieve_retry_interval,
+                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'recovery_min_apply_delay'     limit 1) as recovery_min_apply_delay,
+                                          (select (nullif(trim(setting), ''))::bool from pg_settings where name = 'sync_replication_slots'       limit 1) as sync_replication_slots
+                                  )
+                                  select
+                                      jsonb_pretty(to_jsonb(guc_replica))::json as guc_replica,
+                                      case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
+                                      (select nullif(trim(setting), '')  from pg_settings where name = 'biha.host' limit 1) as biha_host,
+                                      %L                as local_dblink_connection_start,
+                                      a.backend_start   as remote_dblink_connection_start,
+                                      clock_timestamp() as remote_dblink_connection_end
+                                  from pg_stat_activity as a, guc_replica
+                                  where a.pid = pg_backend_pid()
+                                  $sql$, clock_timestamp()),
                            false --fail_on_error
-                          ) as s (pause_state                    text,
-                                  primary_conninfo               text,
-                                  hot_standby_feedback           bool,
+                          ) as s (guc_replica                    json,
+                                  pause_state                    text,
                                   biha_host                      text,
                                   local_dblink_connection_start  timestamptz,
                                   remote_dblink_connection_start timestamptz,
@@ -326,7 +341,7 @@ select
             case when is_primary then 'primary' else 'replica' end as role,
             concat_ws(E'\n',
                 parent_addr,
-                nullif((regexp_match(primary_conninfo, '\mhost=(\S+)'))[1], parent_addr::text)
+                nullif((regexp_match(guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1], parent_addr::text)
             ) as U&"parent_addr\000Aparent_host",
             concat_ws(E'\n',
                 addr,
@@ -347,12 +362,15 @@ select
                 sync_state, -- async/potential/sync/quorum
                 sync_priority
             ) as U&"mode\000Apriority",
+            /*
+            --TODO
             case when not is_primary then
                 concat(
                     replace(pg_size_pretty(last_lsn - restart_lsn), ' bytes', ''),
                     E'\n',
-                    hot_standby_feedback
+                    (guc_replica->>'hot_standby_feedback')::bool
                 ) else '' end as U&"hold_size\000Afeedback",
+            */
             concat(
                          replace(pg_size_pretty(last_lsn   - sent_lsn),   ' bytes', ''), -- data sending WAL stream to replica via network by walsender
                 ' + ' || replace(pg_size_pretty(sent_lsn   - write_lsn),  ' bytes', ''), -- data receiving WAL stream on replica from network by walreciever
