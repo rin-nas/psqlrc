@@ -67,12 +67,14 @@
 \setenv PSQL_EDITOR 'nano'
 
 -- пейджер (если результат запроса не помещается на экране, он пропускается через эту программу)
-\setenv PSQL_PAGER 'less -iMFXSx4R'
 \set pspg_installed `command -v pspg > /dev/null 2>&1 && echo 1 || echo 0`
+\set less_installed `command -v less > /dev/null 2>&1 && echo 1 || echo 0`
 \if :pspg_installed
     \pset expanded off
     \setenv PSQL_PAGER       'pspg --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound'
     \setenv PSQL_WATCH_PAGER 'pspg --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound --stream'
+\elif :less_installed
+    \setenv PSQL_PAGER 'less -iMFXSx4R'
 \endif
 
 -- отображаем в таблицах рамки с непрерывными линиями
