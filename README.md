@@ -58,12 +58,16 @@ psql psql -v pro=1 'postgresql://postgres@host-1,host-2,host-3,host-4/postgres?t
    * тип слота: `temporary/persistent/unknown`
    * тип синхронизации: `async/potential/sync/quorum`
    * состояние репликации: `startup/catchup/streaming/backup/stopping`
-   * отставание во времени и байтах (форматированное) 
+   * отставание во времени и байтах (форматированное)
+1. `synchronous_commit`: `on /off`
+1. `synchronous_standby_names`
+1. `shared_preload_libraries`
+1. `walsender_plugin_libraries`
 1. архивация:
-   * режим: `off/on/always`
+   * режим (`archive_mode`): `off/on/always`
    * ограничение времени существования неархивированных данных (`archive_timeout`)
-   * команда ОС для архивации
-   * команда ОС для восстановления
+   * команда ОС для архивации (`archive_command`)
+   * команда ОС для восстановления (`restore_command`)
 
 ### Текущая база данных
 
@@ -82,7 +86,7 @@ psql psql -v pro=1 'postgresql://postgres@host-1,host-2,host-3,host-4/postgres?t
 
 Пример выполнения коротких SQL команд в скриптах `bash`:
 ```bash
-psql -v pro=1 -q -c '\echo :T' | psql -v pro=1 -q
+psql -v pro=0 -q -c '\echo :T' | psql -v pro=0 -q
 ```
 
 ## Что отображается в командной строке `psql`
@@ -108,7 +112,8 @@ psql -v pro=1 -q -c '\echo :T' | psql -v pro=1 -q
 
 ## Поддержка внешнего ПО
 
-Используется пейджер [`pspg`](https://github.com/okbob/pspg), если он установлен. Иначе используется [`less`](https://en.wikipedia.org/wiki/Less_(Unix)).
+Используется пейджер [`pspg`](https://github.com/okbob/pspg), если он установлен. 
+Иначе используется [`less`](https://en.wikipedia.org/wiki/Less_(Unix)), если он установлен.
 
 
 ## Примеры
