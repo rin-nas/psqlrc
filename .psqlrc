@@ -573,6 +573,8 @@ select
     -- вычисляем ссылки и размеры директорий
     \if `test :pro = 1 && echo 1 || echo 0`
         \if :is_local_connection
+            select now() as calc_dir_size_start \gset
+
             \set wal_real_directory `readlink -f ':wal_directory'`
             \if `test ':wal_directory' = ':wal_real_directory' && echo 1 || echo 0`
                 \unset wal_real_directory
@@ -589,6 +591,8 @@ select
             \if :{?log_directory}
                 \set log_files_size `find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | grep -oP '^\S+'`
             \endif
+
+            select now() - :'calc_dir_size_start' > '1s'::interval as is_calc_dir_size_slow \gset
         \endif
     \endif
 
@@ -620,6 +624,12 @@ select
         \else
             \echo :warn'WARNING: logging collector is disabled, it is recommended to enable':reset
             \echo :hint'HINT: errors are redirected to syslog':reset
+        \endif
+    \endif
+
+    \if :{?is_calc_dir_size_slow}
+        \if :is_calc_dir_size_slow
+            \echo :hint'HINT: calculating the directories size is slow, to disable the calculation, run `psql -v pro=0`':reset
         \endif
     \endif
 
