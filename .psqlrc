@@ -41,6 +41,9 @@
 \set replica_active_style   '\033[48;5;130m'
 \set replica_inactive_style '\033[48;5;8m'
 
+-- символ бесконечности U+221E
+\set infinity  '∞'
+
 -- запоминаем флаг отображения информационных сообщений
 \set QUIET_ORIGINAL :QUIET
 
@@ -200,8 +203,8 @@ select
                    s.pg_rs
             from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
                            $$select w.last_lsn, pg_sr, pg_rs
-                             from pg_stat_replication as pg_sr
-                             left join pg_replication_slots as pg_rs on pg_sr.pid = pg_rs.active_pid
+                             from pg_stat_replication as pg_sr                                        -- https://postgrespro.ru/docs/postgresql/current/monitoring-stats#MONITORING-PG-STAT-REPLICATION-VIEW
+                             left join pg_replication_slots as pg_rs on pg_sr.pid = pg_rs.active_pid  -- https://postgrespro.ru/docs/postgresql/current/view-pg-replication-slots
                              cross join coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
                            $$,
                            false --fail_on_error
@@ -209,13 +212,16 @@ select
                                   pg_sr    pg_stat_replication,
                                   pg_rs    pg_replication_slots)
         )
-        select level, is_primary, parent_addr, addr, port, last_lsn,
-               s.*, clock_timestamp() as local_dblink_connection_end,
-               (pg_sr).*, (pg_rs).*
+        -- Шаг 3. Собираем информацию со всех серверов
+        select r.level, r.is_primary, r.parent_addr, r.addr, r.port, r.last_lsn,
+               s.*,
+               clock_timestamp() as local_dblink_connection_end,
+               (r.pg_sr).*, (r.pg_rs).*
         from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
                            format($sql$
+                                  with
                                   -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication
-                                  with guc_replica as (
+                                  guc_replica as (
                                       select
                                           -- Ведомые серверы. Эти параметры управляют поведением ведомого сервера, который будет получать данные репликации. На ведущем сервере они не играют никакой роли.
                                           (select nullif(trim(setting), '')         from pg_settings where name = 'primary_conninfo'             limit 1) as primary_conninfo,
@@ -229,28 +235,66 @@ select
                                           (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'wal_retrieve_retry_interval'  limit 1) as wal_retrieve_retry_interval,
                                           (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'recovery_min_apply_delay'     limit 1) as recovery_min_apply_delay,
                                           (select (nullif(trim(setting), ''))::bool from pg_settings where name = 'sync_replication_slots'       limit 1) as sync_replication_slots
+                                  ),
+                                  -- https://postgrespro.ru/docs/enterprise/current/biha-reference
+                                  guc_biha as (
+                                      select
+                                          -- Параметры конфигурации кластера
+                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.autorewind'            limit 1) as autorewind,
+                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.autowaltrim'           limit 1) as autowaltrim,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.asyncaction_timeout'   limit 1) as asyncaction_timeout,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.callbacks_timeout'     limit 1) as callbacks_timeout,
+                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.can_be_leader'         limit 1) as can_be_leader,
+                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.flw_ro'                limit 1) as flw_ro,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.heartbeat_max_lost'    limit 1) as heartbeat_max_lost,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.heartbeat_send_period' limit 1) as heartbeat_send_period,
+                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.host'                  limit 1) as host,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.id'                    limit 1) as id,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.no_wal_on_follower'    limit 1) as no_wal_on_follower,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.port'                  limit 1) as port,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.proxima_status'        limit 1) as proxima_status,
+                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.ssl_certificate'       limit 1) as ssl_certificate,
+                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.ssl_private_key'       limit 1) as ssl_private_key,
+                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.use_ssl'               limit 1) as use_ssl,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.watchdog_timeout'      limit 1) as watchdog_timeout,
+                                          -- Параметры конфигурации, критичные для GDBiHA
+                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.can_vote'              limit 1) as can_vote,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.minnodes'              limit 1) as minnodes,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.max_replicas'          limit 1) as max_replicas,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.nquorum'               limit 1) as nquorum,
+                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.preferred_roles'       limit 1) as preferred_roles,
+                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.priority'              limit 1) as priority,
+                                          -- Настройка аутентификации по SSL
+                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.user_biha_cert'        limit 1) as user_biha_cert,
+                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.user_biha_key'         limit 1) as user_biha_key,
+                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.ssl_mode'              limit 1) as ssl_mode
                                   )
                                   select
                                       jsonb_pretty(to_jsonb(guc_replica))::json as guc_replica,
+                                      jsonb_pretty(to_jsonb(guc_biha))::json    as guc_biha,
                                       case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
-                                      (select nullif(trim(setting), '')  from pg_settings where name = 'biha.host' limit 1) as biha_host,
                                       %L                as local_dblink_connection_start,
                                       a.backend_start   as remote_dblink_connection_start,
                                       clock_timestamp() as remote_dblink_connection_end
-                                  from pg_stat_activity as a, guc_replica
+                                  from pg_stat_activity as a
+                                  cross join guc_replica
+                                  cross join guc_biha
                                   where a.pid = pg_backend_pid()
                                   $sql$, clock_timestamp()),
                            false --fail_on_error
                           ) as s (guc_replica                    json,
+                                  guc_biha                       json,
                                   pause_state                    text,
-                                  biha_host                      text,
                                   local_dblink_connection_start  timestamptz,
                                   remote_dblink_connection_start timestamptz,
-                                  remote_dblink_connection_end   timestamptz);
+                                  remote_dblink_connection_end   timestamptz)
+        order by r.level;
 
         COMMENT ON VIEW pro.pg_cluster_topology IS 'Cluster topology. Returns servers: master and dependent replicas, including cascaded ones.';
 
         -- select * from pro.pg_cluster_topology; -- для отладки
+
+        select count(*) > 0 as test_passed from pro.pg_cluster_topology;
 
     COMMIT;
 
@@ -349,7 +393,7 @@ select
                     addr,
                     coalesce(
                         client_hostname, -- это поле будет отлично от null только в случае соединений по IP и только при включённом режиме log_hostname
-                        biha_host
+                        guc_biha->>'host'
                     )
                 ) as U&"addr\000Ahost",
                 --port, --DEPRECATED
@@ -403,7 +447,7 @@ select
             order by t.level, t.state, t.sync_state desc;
         $sql$
         else $sql$
-                \echo :hint'first, run `psql -v pro=install -c ""` and `nano ~/.pgpass` to save/check password exists for user postgres':reset
+                \echo :hint'first, run `psql -v pro=install -c "" ':DBNAME'` and `nano ~/.pgpass` to save/check password exists for user postgres':reset
              $sql$
         end as "T"
 
