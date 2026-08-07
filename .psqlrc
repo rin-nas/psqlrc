@@ -111,7 +111,7 @@ select
 
 ------------------------------------------------------------------------------------------------------------------------
 \if `test :pro = install && echo 1 || echo 0`
-    \echo 'Install...'
+    \echo :hint'Install...':reset
 
     \if :pg_is_in_recovery
         \echo :error'ERROR: connect to server role "primary" required':reset
@@ -352,10 +352,11 @@ select
                         biha_host
                     )
                 ) as U&"addr\000Ahost",
-                port,
+                --port, --DEPRECATED
                 pro.interval_pretty(d2.local_dblink_connection_duration - d1.remote_dblink_connection_duration) as ping,
-                --usename as user,
-                concat_ws(E'\n', application_name, slot_name) as U&"app_name\000Aslot_name",
+                --usename as user, --DEPRECATED
+                --concat_ws(E'\n', application_name, slot_name) as U&"app_name\000Aslot_name", --DEPRECATED
+                slot_name,
                 concat_ws(E'\n',
                     state,      -- startup / catchup / streaming / backup / stopping
                     pause_state -- not paused / pause requested / paused
@@ -749,9 +750,9 @@ select
     --------------------------------------------------------------------------------------------------------------------
     \echo :head'\n# SHORT SQL':reset
 
-    \echo ':W — who am i'
-    \echo ':A — stat activity groups counts'
-    \echo ':T — cluster topology'
+    \echo ':W — Who am i'
+    \echo ':A — Stat activity groups counts'
+    \echo ':T — Cluster topology. Returns servers: master and dependent replicas, including cascaded ones.'
     \echo
 
     --------------------------------------------------------------------------------------------------------------------
