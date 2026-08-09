@@ -2,19 +2,37 @@
 
 * выводить в топологии в колонке `slot_name` для мастера значение из GUC `primary_slot_name`?
 * hot_standby_feedback
-
+* сделать функцию для выполнения SQL запросов на мастере и репликах  
+  
 * max_wal_size - Максимальный размер, до которого может вырастать WAL во время автоматических контрольных точек. Это мягкий предел; размер WAL может превышать max_wal_size при особых обстоятельствах, например при большой нагрузке, сбое в archive_command/archive_library или при большом значении wal_keep_size.
 * wal_keep_size - Задаёт минимальный объём прошлых файлов WAL, который будет сохраняться в каталоге pg_wal, чтобы ведомый сервер мог выбрать их при потоковой репликации.
 * max_slot_wal_keep_size - Задаёт максимальный размер файлов WAL, который может оставаться в каталоге pg_wal для слотов репликации после выполнения контрольной точки.
 
 * для `data_directory` вывести Size Used Avail Use%
-* https://postgrespro.ru/docs/postgrespro/current/functions-admin
 
 * [load /etc/hosts to postgres](https://www.google.com/search?client=ubuntu-sn&channel=fs&q=load+%2Fetc%2Fhosts+to+postgres)
 
 Получить команду запуска `psql` с флагами:
 ```
 \echo `ps -p $(ps -p $(echo $$) -o ppid=) -o cmd=`
+```
+
+Прежде чем смотреть подробные отчёты о производительности часто бывает полезно оценить базовые настройки:
+```sql
+SELECT name, setting, unit, source
+FROM pg_settings
+WHERE name IN (
+'shared_buffers',
+'effective_cache_size',
+'work_mem',
+'maintenance_work_mem',
+'max_connections',
+'checkpoint_completion_target',
+'checkpoint_timeout',
+‘max_wal_size’,
+'huge_pages',
+'max_worker_processes'
+);
 ```
 
 Вычисление отставания реплики (размер и длительность), в зависимости от параметра `synchronous_commit`:  
@@ -39,6 +57,23 @@ COALESCE(
     END 
 ) AS lag_time
 ```
+
+Пример получения параметров из `pg_settings` в колонках:
+```sql
+SELECT *
+FROM crosstab(
+    $sql$
+        select null::text,
+               s.name,
+               nullif(trim(s.setting), '') 
+        from pg_settings as s
+        join unnest(array['biha.autorewind', 'biha.autowaltrim', 'biha.asyncaction_timeout']::text[]) 
+             with ordinality as n (name, position) on s.name = n.name  
+        order by n.position
+    $sql$
+) as p (category text, autorewind text, autowaltrim text, asyncaction_timeout text);
+```
+
 
 # Ссылки
 
