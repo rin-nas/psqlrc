@@ -220,70 +220,38 @@ select
         from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
                            format($sql$
                                   with
-                                  -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication
-                                  guc_replica as (
+                                  guc as (
                                       select
+                                          -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication
                                           -- Ведомые серверы. Эти параметры управляют поведением ведомого сервера, который будет получать данные репликации. На ведущем сервере они не играют никакой роли.
-                                          (select nullif(trim(setting), '')         from pg_settings where name = 'primary_conninfo'             limit 1) as primary_conninfo,
-                                          (select nullif(trim(setting), '')         from pg_settings where name = 'primary_slot_name'            limit 1) as primary_slot_name,
-                                          (select (nullif(trim(setting), ''))::bool from pg_settings where name = 'hot_standby'                  limit 1) as hot_standby,
-                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'max_standby_archive_delay'    limit 1) as max_standby_archive_delay,
-                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'max_standby_streaming_delay'  limit 1) as max_standby_streaming_delay,
-                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'wal_receiver_status_interval' limit 1) as wal_receiver_status_interval,
-                                          (select (nullif(trim(setting), ''))::bool from pg_settings where name = 'hot_standby_feedback'         limit 1) as hot_standby_feedback,
-                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'wal_receiver_timeout'         limit 1) as wal_receiver_timeout,
-                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'wal_retrieve_retry_interval'  limit 1) as wal_retrieve_retry_interval,
-                                          (select (nullif(trim(setting), ''))::int  from pg_settings where name = 'recovery_min_apply_delay'     limit 1) as recovery_min_apply_delay,
-                                          (select (nullif(trim(setting), ''))::bool from pg_settings where name = 'sync_replication_slots'       limit 1) as sync_replication_slots
-                                  ),
-                                  -- https://postgrespro.ru/docs/enterprise/current/biha-reference
-                                  guc_biha as (
-                                      select
-                                          -- Параметры конфигурации кластера
-                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.autorewind'            limit 1) as autorewind,
-                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.autowaltrim'           limit 1) as autowaltrim,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.asyncaction_timeout'   limit 1) as asyncaction_timeout,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.callbacks_timeout'     limit 1) as callbacks_timeout,
-                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.can_be_leader'         limit 1) as can_be_leader,
-                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.flw_ro'                limit 1) as flw_ro,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.heartbeat_max_lost'    limit 1) as heartbeat_max_lost,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.heartbeat_send_period' limit 1) as heartbeat_send_period,
-                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.host'                  limit 1) as host,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.id'                    limit 1) as id,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.no_wal_on_follower'    limit 1) as no_wal_on_follower,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.port'                  limit 1) as port,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.proxima_status'        limit 1) as proxima_status,
-                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.ssl_certificate'       limit 1) as ssl_certificate,
-                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.ssl_private_key'       limit 1) as ssl_private_key,
-                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.use_ssl'               limit 1) as use_ssl,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.watchdog_timeout'      limit 1) as watchdog_timeout,
-                                          -- Параметры конфигурации, критичные для GDBiHA
-                                          (select nullif(trim(setting), '')::bool from pg_settings where name = 'biha.can_vote'              limit 1) as can_vote,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.minnodes'              limit 1) as minnodes,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.max_replicas'          limit 1) as max_replicas,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.nquorum'               limit 1) as nquorum,
-                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.preferred_roles'       limit 1) as preferred_roles,
-                                          (select nullif(trim(setting), '')::int  from pg_settings where name = 'biha.priority'              limit 1) as priority,
-                                          -- Настройка аутентификации по SSL
-                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.user_biha_cert'        limit 1) as user_biha_cert,
-                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.user_biha_key'         limit 1) as user_biha_key,
-                                          (select nullif(trim(setting), '')       from pg_settings where name = 'biha.ssl_mode'              limit 1) as ssl_mode
+                                          jsonb_object_agg_strict(name, nullif(trim(setting), '')) filter (where name in ('primary_conninfo',
+                                                                                                                          'primary_slot_name',
+                                                                                                                          'hot_standby',
+                                                                                                                          'max_standby_archive_delay',
+                                                                                                                          'max_standby_streaming_delay',
+                                                                                                                          'wal_receiver_status_interval',
+                                                                                                                          'hot_standby_feedback',
+                                                                                                                          'wal_receiver_timeout',
+                                                                                                                          'wal_retrieve_retry_interval',
+                                                                                                                          'recovery_min_apply_delay',
+                                                                                                                          'sync_replication_slots')) as replica,
+                                          -- https://postgrespro.ru/docs/enterprise/current/biha-reference
+                                          jsonb_object_agg_strict(right(name, -5), nullif(trim(setting), '')) filter (where name like 'biha.%%') as biha
+                                      from pg_settings
                                   )
                                   select
-                                      jsonb_pretty(to_jsonb(guc_replica))::json as guc_replica,
-                                      jsonb_pretty(to_jsonb(guc_biha))::json    as guc_biha,
+                                      guc.replica as guc_replica,
+                                      guc.biha    as guc_biha,
                                       case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
                                       %L                as local_dblink_connection_start,
                                       a.backend_start   as remote_dblink_connection_start,
                                       clock_timestamp() as remote_dblink_connection_end
-                                  from pg_stat_activity as a
-                                  cross join guc_replica
-                                  cross join guc_biha
+                                  from pg_stat_activity as a, guc
                                   where a.pid = pg_backend_pid()
                                   $sql$, clock_timestamp()),
                            false --fail_on_error
-                          ) as s (guc_replica                    json,
-                                  guc_biha                       json,
+                          ) as s (guc_replica                    jsonb,
+                                  guc_biha                       jsonb,
                                   pause_state                    text,
                                   local_dblink_connection_start  timestamptz,
                                   remote_dblink_connection_start timestamptz,
@@ -396,11 +364,7 @@ select
                         guc_biha->>'host'
                     )
                 ) as U&"addr\000Ahost",
-                --port, --DEPRECATED
                 pro.interval_pretty(d2.local_dblink_connection_duration - d1.remote_dblink_connection_duration) as ping,
-                --usename as user, --DEPRECATED
-                --concat_ws(E'\n', application_name, slot_name) as U&"app_name\000Aslot_name", --DEPRECATED
-                slot_name,
                 concat_ws(E'\n',
                     state,      -- startup / catchup / streaming / backup / stopping
                     pause_state -- not paused / pause requested / paused
@@ -432,6 +396,7 @@ select
                 ) as U&"lag_time\000Awrite flush replay",
                 coalesce(replace(backend_start::timestamptz(0)::text, ' ', E'\n'), E'\n') as start_at,
                 coalesce(replace(reply_time::timestamptz(0)::text,    ' ', E'\n'), E'\n') as reply_at,
+                slot_name,
                 concat(
                     slot_type, -- physical/logical
                     case when slot_type = 'logical' then concat(', db:', database, ', failover:', failover, ', synced:', synced) end,
