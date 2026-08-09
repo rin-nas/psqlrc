@@ -188,7 +188,9 @@ select
                     m.port                     as port,
                     null::pg_lsn               as last_lsn,
                     null::pg_stat_replication  as pg_sr,
-                    null::pg_replication_slots as pg_rs
+                    null::pg_replication_slots as pg_rs,
+                    null::interval             as receive_uptime,
+                    null::interval             as reply_uptime
             from m
             order by m.level
             limit 1)
@@ -200,71 +202,97 @@ select
                    r.port,
                    s.last_lsn,
                    s.pg_sr,
-                   s.pg_rs
+                   s.pg_rs,
+                   s.receive_uptime,
+                   s.reply_uptime
             from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
-                           $$select w.last_lsn, pg_sr, pg_rs
-                             from pg_stat_replication as pg_sr                                        -- https://postgrespro.ru/docs/postgresql/current/monitoring-stats#MONITORING-PG-STAT-REPLICATION-VIEW
-                             left join pg_replication_slots as pg_rs on pg_sr.pid = pg_rs.active_pid  -- https://postgrespro.ru/docs/postgresql/current/view-pg-replication-slots
-                             cross join coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
-                           $$,
-                           false --fail_on_error
-                          ) as s (last_lsn pg_lsn,
-                                  pg_sr    pg_stat_replication,
-                                  pg_rs    pg_replication_slots)
+                               $sql$
+                                   select w.last_lsn,
+                                          pg_sr,
+                                          pg_rs,
+                                          now() - pg_sr.backend_start as receive_uptime,
+                                          now() - pg_sr.reply_time    as reply_uptime
+                                   from pg_stat_replication as pg_sr                                        -- https://postgrespro.ru/docs/postgresql/current/monitoring-stats#MONITORING-PG-STAT-REPLICATION-VIEW
+                                   left join pg_replication_slots as pg_rs on pg_sr.pid = pg_rs.active_pid  -- https://postgrespro.ru/docs/postgresql/current/view-pg-replication-slots
+                                   cross join coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
+                               $sql$,
+                               false --fail_on_error
+                              ) as s (last_lsn       pg_lsn,
+                                      pg_sr          pg_stat_replication,
+                                      pg_rs          pg_replication_slots,
+                                      receive_uptime interval,
+                                      reply_uptime   interval)
         )
         -- Шаг 3. Собираем информацию со всех серверов
-        select r.level, r.is_primary, r.parent_addr, r.addr, r.port, r.last_lsn,
+        select r.level, r.is_primary, r.parent_addr, r.addr, r.port, r.last_lsn, r.receive_uptime, r.reply_uptime,
                s.*,
-               clock_timestamp() as local_dblink_connection_end,
-               (r.pg_sr).*, (r.pg_rs).*
-        from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
-                           format($sql$
-                                  with
-                                  guc as (
-                                      select
-                                          -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication
-                                          -- Ведомые серверы. Эти параметры управляют поведением ведомого сервера, который будет получать данные репликации. На ведущем сервере они не играют никакой роли.
-                                          jsonb_object_agg_strict(name, nullif(trim(setting), '')) filter (where name in ('primary_conninfo',
-                                                                                                                          'primary_slot_name',
-                                                                                                                          'hot_standby',
-                                                                                                                          'max_standby_archive_delay',
-                                                                                                                          'max_standby_streaming_delay',
-                                                                                                                          'wal_receiver_status_interval',
-                                                                                                                          'hot_standby_feedback',
-                                                                                                                          'wal_receiver_timeout',
-                                                                                                                          'wal_retrieve_retry_interval',
-                                                                                                                          'recovery_min_apply_delay',
-                                                                                                                          'sync_replication_slots')) as replica,
-                                          -- https://postgrespro.ru/docs/enterprise/current/biha-reference
-                                          jsonb_object_agg_strict(right(name, -5), nullif(trim(setting), '')) filter (where name like 'biha.%%') as biha
-                                      from pg_settings
-                                  )
-                                  select
-                                      guc.replica as guc_replica,
-                                      guc.biha    as guc_biha,
-                                      case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
-                                      %L                as local_dblink_connection_start,
-                                      a.backend_start   as remote_dblink_connection_start,
-                                      clock_timestamp() as remote_dblink_connection_end
-                                  from pg_stat_activity as a, guc
-                                  where a.pid = pg_backend_pid()
-                                  $sql$, clock_timestamp()),
-                           false --fail_on_error
-                          ) as s (guc_replica                    jsonb,
-                                  guc_biha                       jsonb,
-                                  pause_state                    text,
-                                  local_dblink_connection_start  timestamptz,
-                                  remote_dblink_connection_start timestamptz,
-                                  remote_dblink_connection_end   timestamptz)
+               (r.pg_sr).*, (r.pg_rs).*,
+               clock_timestamp() as local_dblink_connection_end
+        from r
+        left join pro.dblink(
+               format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
+               format($sql$
+                      with
+                      guc as (
+                          select
+                              -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication
+                              -- Ведомые серверы. Эти параметры управляют поведением ведомого сервера, который будет получать данные репликации. На ведущем сервере они не играют никакой роли.
+                              jsonb_object_agg_strict(name, nullif(trim(setting), '')) filter (where name in ('primary_conninfo',
+                                                                                                              'primary_slot_name',
+                                                                                                              'hot_standby',
+                                                                                                              'max_standby_archive_delay',
+                                                                                                              'max_standby_streaming_delay',
+                                                                                                              'wal_receiver_status_interval',
+                                                                                                              'hot_standby_feedback',
+                                                                                                              'wal_receiver_timeout',
+                                                                                                              'wal_retrieve_retry_interval',
+                                                                                                              'recovery_min_apply_delay',
+                                                                                                              'sync_replication_slots')) as replica,
+                              -- https://postgrespro.ru/docs/enterprise/current/biha-reference
+                              jsonb_object_agg_strict(right(name, -5), nullif(trim(setting), '')) filter (where name like 'biha.%%') as biha
+                          from pg_settings
+                      )
+                      select
+                          pg_postmaster_start_time()         as started_at,
+                          now() - pg_postmaster_start_time() as start_uptime,
+                          pg_conf_load_time()                as loaded_at,
+                          now() - pg_conf_load_time()        as load_uptime,
+                          case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
+                          guc.replica       as guc_replica,
+                          guc.biha          as guc_biha,
+                          %L                as local_dblink_connection_start,
+                          a.backend_start   as remote_dblink_connection_start,
+                          clock_timestamp() as remote_dblink_connection_end
+                      from pg_stat_activity as a, guc
+                      where a.pid = pg_backend_pid()
+                      $sql$, clock_timestamp()),
+               false --fail_on_error
+              ) as s (started_at                     timestamptz,
+                      start_uptime                   interval,
+                      loaded_at                      timestamptz,
+                      load_uptime                    interval,
+                      pause_state                    text,
+                      guc_replica                    jsonb,
+                      guc_biha                       jsonb,
+                      local_dblink_connection_start  timestamptz,
+                      remote_dblink_connection_start timestamptz,
+                      remote_dblink_connection_end   timestamptz)
+              on true
         order by r.level;
 
         COMMENT ON VIEW pro.pg_cluster_topology IS 'Cluster topology. Returns servers: master and dependent replicas, including cascaded ones.';
 
         -- select * from pro.pg_cluster_topology; -- для отладки
 
-        select count(*) > 0 as test_passed from pro.pg_cluster_topology;
+        select count(*) > 0 as test_passed from pro.pg_cluster_topology \gset
 
     COMMIT;
+
+    \if :test_passed
+        \echo :hint'Test passed':reset
+    \else
+        \echo :warn'Test failed':reset
+    \endif
 
     \if :ERROR
         \echo :error'Install fail':reset
@@ -394,8 +422,14 @@ select
                     pro.interval_pretty(flush_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (but not yet applied it)
                     pro.interval_pretty(replay_lag) -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it
                 ) as U&"lag_time\000Awrite flush replay",
-                coalesce(replace(backend_start::timestamptz(0)::text, ' ', E'\n'), E'\n') as start_at,
-                coalesce(replace(reply_time::timestamptz(0)::text,    ' ', E'\n'), E'\n') as reply_at,
+
+                pro.interval_pretty(reply_uptime) as reply_ago,
+
+                concat_ws(E'\n',
+                    pro.interval_pretty(start_uptime),
+                    pro.interval_pretty(load_uptime)
+                ) as U&"start_uptime\000Aload_uptime",
+
                 slot_name,
                 concat(
                     slot_type, -- physical/logical
