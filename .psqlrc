@@ -354,16 +354,16 @@ select
                 level,
                 case when is_primary then 'primary' else 'replica' end as role,
                 concat_ws(E'\n',
-                    parent_addr,
-                    nullif((regexp_match(guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1], parent_addr::text)
-                ) as U&"parent_addr\000Aparent_host",
+                    nullif((regexp_match(guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1], parent_addr::text),
+                    parent_addr
+                ) as U&"parent_host\000Aparent_addr",
                 concat_ws(E'\n',
-                    addr,
                     coalesce(
                         client_hostname, -- это поле будет отлично от null только в случае соединений по IP и только при включённом режиме log_hostname
                         guc_biha->>'host'
-                    )
-                ) as U&"addr\000Ahost",
+                    ),
+                    addr
+                ) as U&"host\000Aaddr",
                 pro.interval_pretty(d2.local_dblink_connection_duration - d1.remote_dblink_connection_duration) as ping,
                 concat_ws(E'\n',
                     state,      -- startup / catchup / streaming / backup / stopping
