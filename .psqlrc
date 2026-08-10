@@ -190,7 +190,7 @@ select
                     null::pg_stat_replication  as pg_sr,
                     null::pg_replication_slots as pg_rs,
                     null::interval             as receive_uptime,
-                    null::interval             as reply_uptime
+                    null::interval             as reply_ago
             from m
             order by m.level
             limit 1)
@@ -204,14 +204,14 @@ select
                    s.pg_sr,
                    s.pg_rs,
                    s.receive_uptime,
-                   s.reply_uptime
+                   s.reply_ago
             from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
                                $sql$
                                    select w.last_lsn,
                                           pg_sr,
                                           pg_rs,
                                           now() - pg_sr.backend_start as receive_uptime,
-                                          now() - pg_sr.reply_time    as reply_uptime
+                                          now() - pg_sr.reply_time    as reply_ago
                                    from pg_stat_replication as pg_sr                                        -- https://postgrespro.ru/docs/postgresql/current/monitoring-stats#MONITORING-PG-STAT-REPLICATION-VIEW
                                    left join pg_replication_slots as pg_rs on pg_sr.pid = pg_rs.active_pid  -- https://postgrespro.ru/docs/postgresql/current/view-pg-replication-slots
                                    cross join coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
@@ -221,10 +221,10 @@ select
                                       pg_sr          pg_stat_replication,
                                       pg_rs          pg_replication_slots,
                                       receive_uptime interval,
-                                      reply_uptime   interval)
+                                      reply_ago      interval)
         )
         -- Шаг 3. Собираем информацию со всех серверов
-        select r.level, r.is_primary, r.parent_addr, r.addr, r.port, r.last_lsn, r.receive_uptime, r.reply_uptime,
+        select r.level, r.is_primary, r.parent_addr, r.addr, r.port, r.last_lsn, r.receive_uptime, r.reply_ago,
                s.*,
                (r.pg_sr).*, (r.pg_rs).*,
                clock_timestamp() as local_dblink_connection_end
@@ -423,7 +423,7 @@ select
                     pro.interval_pretty(replay_lag) -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it
                 ) as U&"lag_time\000Awrite flush replay",
 
-                pro.interval_pretty(reply_uptime) as reply_ago,
+                pro.interval_pretty(reply_ago) as reply_ago,
 
                 concat_ws(E'\n',
                     pro.interval_pretty(start_uptime),
