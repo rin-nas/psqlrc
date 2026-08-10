@@ -147,8 +147,8 @@ select
                  when $1 < '10s'::interval then regexp_replace(to_char($1,            'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
                  when $1 <  '1m'::interval then to_char($1,                           'FMSS"s"')
                  when $1 <  '1h'::interval then to_char($1,                   'FMMI"m" FMSS"s"')
-                 when $1 <  '1d'::interval then to_char($1,         'FMHH24"h" FMMI"m" FMSS"s"')
-                 else                           to_char($1, 'FMDD"d" FMHH24"h" FMMI"m" FMSS"s"')
+                 when $1 <  '1d'::interval then to_char($1,         'FMHH24"h" FMMI"m"')
+                 else                           to_char($1, 'FMDD"d" FMHH24"h" FMMI"m"')
             end;
 
         comment on function pro.interval_pretty(interval) is 'Formats the interval (time period) to a human readable string';
@@ -520,8 +520,8 @@ select
                                            when r.replay_lag < '10s'::interval then regexp_replace(to_char(r.replay_lag, 'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
                                            when r.replay_lag <  '1m'::interval then to_char(r.replay_lag, 'FMSS"s"')
                                            when r.replay_lag <  '1h'::interval then to_char(r.replay_lag, 'FMMI"m" FMSS"s"')
-                                           when r.replay_lag <  '1d'::interval then to_char(r.replay_lag, 'FMHH24"h" FMMI"m" FMSS"s"')
-                                           else to_char(r.replay_lag, 'FMDD"d" FMHH24"h" FMMI"m" FMSS"s"')
+                                           when r.replay_lag <  '1d'::interval then to_char(r.replay_lag, 'FMHH24"h" FMMI"m"')
+                                           else to_char(r.replay_lag, 'FMDD"d" FMHH24"h" FMMI"m"')
                                       end) AS a (total_lag_time_pretty)
                   CROSS JOIN pg_size_pretty(t.last_lsn - r.replay_lsn) AS b (total_lag_size_pretty)
                  ), '') as wal_send_to,
@@ -550,8 +550,8 @@ select
                                      when total_lag_time < '10s'::interval then regexp_replace(to_char(total_lag_time, 'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
                                      when total_lag_time <  '1m'::interval then to_char(total_lag_time, 'FMSS"s"')
                                      when total_lag_time <  '1h'::interval then to_char(total_lag_time, 'FMMI"m" FMSS"s"')
-                                     when total_lag_time <  '1d'::interval then to_char(total_lag_time, 'FMHH24"h" FMMI"m" FMSS"s"')
-                                     else to_char(total_lag_time, 'FMDD"d" FMHH24"h" FMMI"m" FMSS"s"')
+                                     when total_lag_time <  '1d'::interval then to_char(total_lag_time, 'FMHH24"h" FMMI"m"')
+                                     else to_char(total_lag_time, 'FMDD"d" FMHH24"h" FMMI"m"')
                                 end) AS c (total_lag_time_pretty),
                        pg_size_pretty(total_lag_size) AS d (total_lag_size_pretty)
                   LIMIT 1
