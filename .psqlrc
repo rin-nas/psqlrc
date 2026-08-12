@@ -264,8 +264,7 @@ select
         -- Шаг 3. Собираем информацию со всех серверов
         select r.level, r.is_primary, r.parent_addr, r.addr, r.port, r.last_lsn, r.receive_uptime, r.reply_ago,
                s.*,
-               (r.pg_sr).*, (r.pg_rs).*,
-               clock_timestamp() as local_dblink_connection_end
+               (r.pg_sr).*, (r.pg_rs).*
         from r
         left join pro.dblink(
                format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
@@ -297,24 +296,18 @@ select
                           now() - pg_conf_load_time()        as load_uptime,
                           case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
                           guc.replica       as guc_replica,
-                          guc.biha          as guc_biha,
-                          %L                as local_dblink_connection_start,
-                          a.backend_start   as remote_dblink_connection_start,
-                          clock_timestamp() as remote_dblink_connection_end
+                          guc.biha          as guc_biha
                       from pg_stat_activity as a, guc
                       where a.pid = pg_backend_pid()
                       $sql$, clock_timestamp()),
                false --fail_on_error
-              ) as s (started_at                     timestamptz,
-                      start_uptime                   interval,
-                      loaded_at                      timestamptz,
-                      load_uptime                    interval,
-                      pause_state                    text,
-                      guc_replica                    jsonb,
-                      guc_biha                       jsonb,
-                      local_dblink_connection_start  timestamptz,
-                      remote_dblink_connection_start timestamptz,
-                      remote_dblink_connection_end   timestamptz)
+              ) as s (started_at   timestamptz,
+                      start_uptime interval,
+                      loaded_at    timestamptz,
+                      load_uptime  interval,
+                      pause_state  text,
+                      guc_replica  jsonb,
+                      guc_biha     jsonb)
               on true
         order by r.level;
 
@@ -430,7 +423,7 @@ select
                     ),
                     addr
                 ) as U&"host\000Aaddr",
-                pro.interval_pretty(d2.local_dblink_connection_duration - d1.remote_dblink_connection_duration) as ping,
+                -- pro.interval_pretty(null) as ping,
                 concat_ws(E'\n',
                     state,      -- startup / catchup / streaming / backup / stopping
                     pause_state -- not paused / pause requested / paused
@@ -478,9 +471,7 @@ select
                     concat(wal_status, ', reason:' || invalidation_reason, ', since:' || inactive_since::timestamptz(0)::text),
                     pg_size_pretty(safe_wal_size)
                 ) as U&"wal_status\000Asafe_wal_size"
-            from pro.pg_cluster_topology as t,
-            coalesce(remote_dblink_connection_end - remote_dblink_connection_start) as d1(remote_dblink_connection_duration),
-            coalesce(local_dblink_connection_end  - local_dblink_connection_start)  as d2(local_dblink_connection_duration)
+            from pro.pg_cluster_topology as t
             order by t.level, t.state, t.sync_state desc;
         $sql$
         else $sql$
