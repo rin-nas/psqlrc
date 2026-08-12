@@ -296,18 +296,27 @@ select
                           now() - pg_conf_load_time()        as load_uptime,
                           case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
                           guc.replica       as guc_replica,
-                          guc.biha          as guc_biha
-                      from pg_stat_activity as a, guc
+                          guc.biha          as guc_biha,
+                          ping.latency      as ping_latency,
+                          ping.time_diff    as ping_time_diff
+                      from pg_stat_activity as a,
+                           guc,
+                           pro.ping(%L) as ping
                       where a.pid = pg_backend_pid()
-                      $sql$, clock_timestamp()),
+                      $sql$,
+                      case when r.parent_addr is not null then
+                           format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology_ping connect_timeout=3', r.parent_addr, r.port)
+                      end),
                false --fail_on_error
-              ) as s (started_at   timestamptz,
-                      start_uptime interval,
-                      loaded_at    timestamptz,
-                      load_uptime  interval,
-                      pause_state  text,
-                      guc_replica  jsonb,
-                      guc_biha     jsonb)
+              ) as s (started_at     timestamptz,
+                      start_uptime   interval,
+                      loaded_at      timestamptz,
+                      load_uptime    interval,
+                      pause_state    text,
+                      guc_replica    jsonb,
+                      guc_biha       jsonb,
+                      ping_latency   interval,
+                      ping_time_diff interval)
               on true
         order by r.level;
 
@@ -423,7 +432,10 @@ select
                     ),
                     addr
                 ) as U&"host\000Aaddr",
-                -- pro.interval_pretty(null) as ping,
+                concat_ws(E'\n',
+                    pro.interval_pretty(ping_latency),
+                    pro.interval_pretty(ping_time_diff)
+                ) as U&"ping\000Atime_diff",
                 concat_ws(E'\n',
                     state,      -- startup / catchup / streaming / backup / stopping
                     pause_state -- not paused / pause requested / paused
