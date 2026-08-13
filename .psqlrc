@@ -192,7 +192,7 @@ select
         comment on function pro.interval_pretty(interval) is 'Formats the interval (time period) to a human readable string';
 
         CREATE VIEW pro.pg_cluster_topology AS
-        -- Шаг 1. Движемся от листа к корню с целью получить мастер. В случае обрыва сетевого соединения остановимся на реплике.
+        -- Шаг 1. Движемся от листа к корню с целью получить мастер.
         with recursive m as (
             select not pg_is_in_recovery()                                      as is_primary,
                    regexp_replace(nullif(trim(current_setting('primary_conninfo')), ''), '\m(application_name|connect_timeout)=\S*', '')
@@ -217,7 +217,7 @@ select
             where not m.is_primary and m.conninfo is not null
         )
         -- select * from m order by level; -- для отладки
-        -- Шаг 2. Движемся от корня к листам с целью получить информацию о репликах
+        -- Шаг 2. Движемся от корня к листам с целью получить информацию о репликах.
         , r as (
             (select 1                          as level,
                     m.is_primary               as is_primary,
@@ -261,7 +261,7 @@ select
                                       receive_uptime interval,
                                       reply_ago      interval)
         )
-        -- Шаг 3. Собираем информацию со всех серверов
+        -- Шаг 3. Собираем информацию со всех серверов.
         select r.level, r.is_primary, r.parent_addr, r.addr, r.port, r.last_lsn, r.receive_uptime, r.reply_ago,
                s.*,
                (r.pg_sr).*, (r.pg_rs).*

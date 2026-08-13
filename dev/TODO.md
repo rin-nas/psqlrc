@@ -1,16 +1,15 @@
 # Идеи для доработок
 
-* выводить в топологии в колонке `slot_name` для мастера значение из GUC `primary_slot_name`?
-* hot_standby_feedback
-* сделать функцию для выполнения SQL запросов на мастере и репликах  
+* В случае обрыва сетевого соединения `dblink()` возвратит ошибку, а это не всегда нужно?
+* Для `data_directory` можно вывести Size Used Avail Use% ?
+* Сделать функцию для выполнения SQL запросов на мастере и репликах?
   
 * max_wal_size - Максимальный размер, до которого может вырастать WAL во время автоматических контрольных точек. Это мягкий предел; размер WAL может превышать max_wal_size при особых обстоятельствах, например при большой нагрузке, сбое в archive_command/archive_library или при большом значении wal_keep_size.
 * wal_keep_size - Задаёт минимальный объём прошлых файлов WAL, который будет сохраняться в каталоге pg_wal, чтобы ведомый сервер мог выбрать их при потоковой репликации.
 * max_slot_wal_keep_size - Задаёт максимальный размер файлов WAL, который может оставаться в каталоге pg_wal для слотов репликации после выполнения контрольной точки.
 
-* для `data_directory` вывести Size Used Avail Use%
-
 * [load /etc/hosts to postgres](https://www.google.com/search?client=ubuntu-sn&channel=fs&q=load+%2Fetc%2Fhosts+to+postgres)
+  \+ https://ask.postgrespro.ru/ "напиши на SQL или PL/pgSQL функцию для проверки синтаксиса файла /etc/hosts"
 
 Получить команду запуска `psql` с флагами:
 ```
@@ -35,27 +34,11 @@ WHERE name IN (
 );
 ```
 
-Вычисление отставания реплики (размер и длительность), в зависимости от параметра `synchronous_commit`:  
-```sql
-SELECT *
-FROM pg_stat_replication,
-(select nullif(trim(setting), '') from pg_settings where name = 'synchronous_commit') AS synchronous_commit,
-COALESCE(
-    CASE synchronous_commit
-      WHEN 'remote_apply' THEN pg_current_wal_flush_lsn() - replay_lsn
-      WHEN 'on'           THEN pg_current_wal_flush_lsn() - flush_lsn
-      WHEN 'remote_write' THEN pg_current_wal_flush_lsn() - write_lsn
-      ELSE NULL
-    END
-) AS lag_size,
-COALESCE(
-    CASE synchronous_commit
-      WHEN 'remote_apply' THEN replay_lag
-      WHEN 'on'           THEN flush_lag
-      WHEN 'remote_write' THEN write_lag
-      ELSE NULL
-    END 
-) AS lag_time
+Обнаруживать разорванные соединения примерно за 5–10 минут вместо стандартных 2 часов:
+```
+tcp_keepalives_idle = 300      # 5 минут простоя
+tcp_keepalives_interval = 30   # повторять каждые 30 секунд
+tcp_keepalives_count = 5       # после 5 неудач разорвать соединение
 ```
 
 Пример получения параметров из `pg_settings` в колонках:
