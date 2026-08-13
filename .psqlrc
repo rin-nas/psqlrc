@@ -419,12 +419,14 @@ select
         */
         $sql$
             select
-                level,
+                concat('  ', level, E'\n\n') as level,
                 case when is_primary then 'primary' else 'replica' end as role,
+
                 concat_ws(E'\n',
                     nullif((regexp_match(guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1], parent_addr::text),
                     parent_addr
                 ) as U&"parent_host\000Aparent_addr",
+
                 concat_ws(E'\n',
                     coalesce(
                         client_hostname, -- это поле будет отлично от null только в случае соединений по IP и только при включённом режиме log_hostname
@@ -432,27 +434,22 @@ select
                     ),
                     addr
                 ) as U&"host\000Aaddr",
+
                 concat_ws(E'\n',
                     pro.interval_pretty(ping_latency),
-                    pro.interval_pretty(ping_time_diff)
+                    lpad(pro.interval_pretty(greatest(ping_time_diff, ping_time_diff * -1)), 9, ' ')
                 ) as U&"ping\000Atime_diff",
+
                 concat_ws(E'\n',
                     state,      -- startup / catchup / streaming / backup / stopping
                     pause_state -- not paused / pause requested / paused
                 ) as state,
+
                 concat_ws(E'\n',
                     sync_state, -- async/potential/sync/quorum
                     sync_priority
                 ) as U&"mode\000Apriority",
-                /*
-                --TODO
-                case when not is_primary then
-                    concat(
-                        replace(pg_size_pretty(last_lsn - restart_lsn), ' bytes', ''),
-                        E'\n',
-                        (guc_replica->>'hot_standby_feedback')::bool
-                    ) else '' end as U&"hold_size\000Afeedback",
-                */
+
                 concat(
                              replace(pg_size_pretty(last_lsn   - sent_lsn),   ' bytes', ''), -- data sending WAL stream to replica via network by walsender
                     ' + ' || replace(pg_size_pretty(sent_lsn   - write_lsn),  ' bytes', ''), -- data receiving WAL stream on replica from network by walreciever
@@ -460,29 +457,41 @@ select
                     ' + ' || replace(pg_size_pretty(flush_lsn  - replay_lsn), ' bytes', ''), -- data applying (replaying) WAL as a recovery process
                     ' = ' || replace(pg_size_pretty(last_lsn   - replay_lsn), ' bytes', '')
                 ) as U&"lag_size\000Asend+write+flush+replay=total",
-                concat_ws(' → ',
+
+                concat_ws(' < ',
                     pro.interval_pretty(write_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (but not yet flushed it or applied it)
                     pro.interval_pretty(flush_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (but not yet applied it)
                     pro.interval_pretty(replay_lag) -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it
-                ) as U&"lag_time\000Awrite flush replay",
-
-                pro.interval_pretty(reply_ago) as reply_ago,
+                ) as U&"lag_time\000Awrite<flush<replay",
 
                 concat_ws(E'\n',
-                    pro.interval_pretty(start_uptime),
-                    pro.interval_pretty(load_uptime)
+                    pro.interval_pretty(reply_ago),
+                    case when not is_primary then (guc_replica->>'hot_standby_feedback')::bool end
+                ) as U&"reply_ago\000Afeedback",
+
+                concat_ws(E'\n',
+                    lpad(pro.interval_pretty(start_uptime), 12, ' '),
+                    lpad(pro.interval_pretty(load_uptime),  12, ' ')
                 ) as U&"start_uptime\000Aload_uptime",
 
-                slot_name,
-                concat(
-                    slot_type, -- physical/logical
-                    case when slot_type = 'logical' then concat(', db:', database, ', failover:', failover, ', synced:', synced) end,
-                    E'\n', active, ' ', temporary
-                ) as U&"slot_type\000Aactive temp",
                 concat_ws(E'\n',
-                    concat(wal_status, ', reason:' || invalidation_reason, ', since:' || inactive_since::timestamptz(0)::text),
+                    replace(pg_size_pretty(last_lsn - restart_lsn), ' bytes', ''),
                     pg_size_pretty(safe_wal_size)
-                ) as U&"wal_status\000Asafe_wal_size"
+                ) as U&"hold_wal_size\000Asafe_wal_size",
+
+                concat_ws(E'\n',
+                    slot_name,
+                    concat(wal_status, ', reason:' || invalidation_reason, ', since:' || inactive_since::timestamptz(0)::text)
+                ) as U&"slot_name\000Awal_status",
+
+                concat_ws(E'\n',
+                    concat(
+                        slot_type, -- physical/logical
+                        case when slot_type = 'logical' then concat(', db:', database, ', failover:', failover, ', synced:', synced) end
+                    ),
+                    concat(active, ' ', temporary)
+                ) as U&"slot_type\000Aactive temp"
+
             from pro.pg_cluster_topology as t
             order by t.level, t.state, t.sync_state desc;
         $sql$
