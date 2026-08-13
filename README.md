@@ -21,7 +21,7 @@ psql -v pro=1
 
 # или подключитесь сразу к мастеру
 nano ~/.pgpass # сохраните пароль для пользователя postgres, при необходимости 
-psql psql -v pro=1 'postgresql://postgres@host-1,host-2,host-3,host-4/postgres?target_session_attrs=read-write&connect_timeout=3'
+psql -v pro=1 'postgresql://postgres@host-1,host-2,host-3,host-4/postgres?target_session_attrs=read-write&connect_timeout=3'
 ```
 
 Значения переменной `pro`
@@ -80,7 +80,7 @@ psql psql -v pro=1 'postgresql://postgres@host-1,host-2,host-3,host-4/postgres?t
 * `:A` — агрегированная информация из `pg_stat_activity`.
 * `:T` — топология кластера СУБД. Возвращает серверы: мастер и зависимые реплики, включая каскадные. 
   Для каждой реплики имеется детализированная информация о размере и длительности отставания от зависимых серверов. 
-  Чтобы команда работала, сначала выполните `psql -v pro=install` и `nano ~/.pgpass` для сохранения/проверки наличия пароля для пользователя `postgres`.
+  Чтобы команда работала, сначала выполните `psql -v pro=install -c ''` и `nano ~/.pgpass` для сохранения/проверки наличия пароля для пользователя `postgres`.
   
 Для выполнения команды просто введите её в приглашении `psql` и нажмите клавишу `Enter`. 
 
