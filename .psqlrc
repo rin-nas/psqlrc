@@ -628,9 +628,10 @@ select
 
     \if :is_local_connection
 
-        \set postgres_pid  `ps -p :pg_backend_pid -o ppid= | xargs`
-        \set systemd_unit  `ps -p :pg_backend_pid -o unit= | xargs`
-        \set bin_directory `dirname $(realpath /proc/:pg_backend_pid/exe)`
+        \set postgres_pid         `ps -p :pg_backend_pid -o ppid= | xargs`
+        \set systemd_unit_name    `ps -p :pg_backend_pid -o unit= | xargs`
+        \set systemd_unit_enabled `systemctl is-enabled :systemd_unit_name`
+        \set bin_directory        `dirname $(realpath /proc/:pg_backend_pid/exe)`
 
         \if :{?data_directory}
         \else
@@ -738,8 +739,8 @@ select
 
     \echo :head'\n# SERVER':reset
 
-    \if :{?systemd_unit}
-        \echo 'Systemd unit:          ':systemd_unit' (pid=':postgres_pid')'
+    \if :{?systemd_unit_name}
+        \echo 'Systemd unit:          ':systemd_unit_name' (pid=':postgres_pid') ':systemd_unit_enabled
     \endif
 
     \echo 'Started at:            ':started_at' (':start_uptime' ago)'
@@ -850,52 +851,54 @@ select
 
     --------------------------------------------------------------------------------------------------------------------
     \if :is_superuser
+        BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 
-        -- проверяем наличие ошибок в конфигурационных файлах
-        with fs as (
-            select distinct on (name) *
-            from pg_file_settings -- non commented rows of config files
-            order by name, seqno desc
-        )
-        select
-            current_setting('config_file') as config_file,
-            current_setting('hba_file') as hba_file,
-            exists(
-                select
+            -- проверяем наличие ошибок в конфигурационных файлах
+            with fs as (
+                select distinct on (name) *
+                from pg_file_settings -- non commented rows of config files
+                order by name, seqno desc
+            )
+            select
+                current_setting('config_file') as config_file,
+                current_setting('hba_file') as hba_file,
+                exists(
+                    select
+                    from fs
+                    join pg_settings as s on lower(fs.name) = lower(s.name)
+                    where not fs.applied and not s.pending_restart
+                ) as is_config_file_error,
+                exists(select from pg_hba_file_rules where error is not null) as is_hba_file_error
+            \gset
+
+            \if :is_config_file_error
+                \echo :error'Errors found in config file "':config_file'"':reset
+
+                with fs as (
+                    select distinct on (name) *
+                    from pg_file_settings
+                    order by name, seqno desc
+                )
+                select fs.sourcefile, fs.sourceline, fs.name, fs.setting, fs.applied, fs.error,
+                       s.vartype, s.min_val, s.max_val, s.enumvals, s.extra_desc
                 from fs
                 join pg_settings as s on lower(fs.name) = lower(s.name)
                 where not fs.applied and not s.pending_restart
-            ) as is_config_file_error,
-            exists(select from pg_hba_file_rules where error is not null) as is_hba_file_error
-        \gset
+                order by fs.sourcefile, fs.sourceline
+                \gx
+            \endif
 
-        \if :is_config_file_error
-            \echo :error'Errors found in config file "':config_file'"':reset
+            \if :is_hba_file_error
+                \echo :error'Errors found in hba file "':hba_file'"':reset
 
-            with fs as (
-                select distinct on (name) *
-                from pg_file_settings
-                order by name, seqno desc
-            )
-            select fs.sourcefile, fs.sourceline, fs.name, fs.setting, fs.applied, fs.error,
-                   s.vartype, s.min_val, s.max_val, s.enumvals, s.extra_desc
-            from fs
-            join pg_settings as s on lower(fs.name) = lower(s.name)
-            where not fs.applied and not s.pending_restart
-            order by fs.sourcefile, fs.sourceline
-            \gx
-        \endif
+                select *
+                from pg_hba_file_rules
+                where error is not null
+                order by line_number
+                \gx
+            \endif
 
-        \if :is_hba_file_error
-            \echo :error'Errors found in hba file "':hba_file'"':reset
-
-            select *
-            from pg_hba_file_rules
-            where error is not null
-            order by line_number
-            \gx
-        \endif
-
+        COMMIT;
     \endif
 
 \endif
