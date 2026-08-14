@@ -721,21 +721,34 @@ select
         \if :is_local_connection
             select now() as calc_dir_size_start \gset
 
+            -- data_directory
+            \set data_directory_used_size `du -sh ':data_directory' | grep -oP '^\S+'`
+            \set df `df -h ':data_directory' | tail -1`
+            select a[4] as data_directory_free_size,
+                   a[5] as data_directory_used_percent
+            from regexp_split_to_array(:'df', '\s+') as a \gset
+
+            -- wal_directory
             \set wal_real_directory `readlink -f ':wal_directory'`
             \if `test ':wal_directory' = ':wal_real_directory' && echo 1 || echo 0`
                 \unset wal_real_directory
-            \endif
-
-            \set data_directory_size `du -sh ':data_directory' | grep -oP '^\S+'`
-
-            \if :{?wal_real_directory}
-                \set wal_directory_size `du -sh ':wal_real_directory' | grep -oP '^\S+'`
+                \set wal_dir :wal_directory
             \else
-                \set wal_directory_size `du -sh ':wal_directory' | grep -oP '^\S+'`
+                \set wal_dir :wal_real_directory
             \endif
+            \set wal_directory_used_size `du -sh ':wal_dir' | grep -oP '^\S+'`
+            \set df `df -h ':wal_dir' | tail -1`
+            select a[4] as wal_directory_free_size,
+                   a[5] as wal_directory_used_percent
+            from regexp_split_to_array(:'df', '\s+') as a \gset
 
+            -- log_directory
             \if :{?log_directory}
-                \set log_files_size `find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | grep -oP '^\S+'`
+                \set log_files_used_size `find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | grep -oP '^\S+'`
+                \set df `df -h ':log_directory' | tail -1`
+                select a[4] as log_directory_free_size,
+                       a[5] as log_directory_used_percent
+                from regexp_split_to_array(:'df', '\s+') as a \gset
             \endif
 
             select now() - :'calc_dir_size_start' > '1s'::interval as is_calc_dir_size_slow \gset
@@ -797,8 +810,8 @@ select
 
     \if :{?data_directory}
         \set str 'Data directory:        ':data_directory
-        \if :{?data_directory_size}
-            \set str :str' (size: ':data_directory_size' total)'
+        \if :{?data_directory_used_size}
+            \set str :str' (size: ':data_directory_used_size' used, ':data_directory_free_size' free)'
         \endif
         \echo :str
     \endif
@@ -808,16 +821,16 @@ select
         \if :{?wal_real_directory}
             \set str :str' → ':wal_real_directory
         \endif
-        \if :{?wal_directory_size}
-            \set str :str' (size: ':wal_directory_size' total)'
+        \if :{?wal_directory_used_size}
+            \set str :str' (size: ':wal_directory_used_size' used, ':wal_directory_free_size' free)'
         \endif
         \echo :str
     \endif
 
     \if :{?log_directory}
         \set str 'Log directory:         ':log_directory
-        \if :{?log_files_size}
-            \set str :str' (size: ':log_files_size' files)'
+        \if :{?log_files_used_size}
+            \set str :str' (size: ':log_files_used_size' files used, ':log_directory_free_size' free)'
         \endif
         \echo :str
     \endif
