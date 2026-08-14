@@ -771,7 +771,7 @@ select
     \echo :head'\n# SERVER':reset
 
     \if :{?systemd_unit_name}
-        \echo 'Systemd unit:          ':systemd_unit_name' (pid=':postgres_pid') ':systemd_unit_enabled
+        \echo 'Systemd unit:          ':systemd_unit_name' (pid: ':postgres_pid', autostart: ':systemd_unit_enabled')'
     \endif
 
     \echo 'Started at:            ':started_at' (':start_uptime' ago)'
