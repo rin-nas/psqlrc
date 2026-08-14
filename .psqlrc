@@ -180,15 +180,18 @@ select
             parallel safe
             language sql
             set search_path = ''
-        return
-            case when $1 = '0'::interval then '0ms'
-                 when greatest($1, $1 * -1) <  '1s'::interval then regexp_replace(to_char($1,                    'FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
-                 when greatest($1, $1 * -1) < '10s'::interval then regexp_replace(to_char($1,            'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
-                 when greatest($1, $1 * -1) <  '1m'::interval then to_char($1,                           'FMSS"s"')
-                 when greatest($1, $1 * -1) <  '1h'::interval then to_char($1,                   'FMMI"m" FMSS"s"')
-                 when greatest($1, $1 * -1) <  '1d'::interval then to_char($1,         'FMHH24"h" FMMI"m"')
-                 else                                              to_char($1, 'FMDD"d" FMHH24"h" FMMI"m"')
-            end;
+        begin atomic
+            select
+                case when gi < '1ms'::interval then '0'
+                     when gi <  '1s'::interval then regexp_replace(to_char($1,                    'FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
+                     when gi < '10s'::interval then regexp_replace(to_char($1,            'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
+                     when gi <  '1m'::interval then to_char($1,                           'FMSS"s"')
+                     when gi <  '1h'::interval then to_char($1,                   'FMMI"m" FMSS"s"')
+                     when gi <  '1d'::interval then to_char($1,         'FMHH24"h" FMMI"m"')
+                     else                           to_char($1, 'FMDD"d" FMHH24"h" FMMI"m"')
+                end
+            from greatest($1, $1 * -1) as gi;
+        end;
 
         comment on function pro.interval_pretty(interval) is 'Formats the size interval (time period) to a human readable string';
 
@@ -599,7 +602,7 @@ select
                   LEFT JOIN pg_replication_slots AS s ON r.pid = s.active_pid
                   CROSS JOIN COALESCE(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) AS t(last_lsn)
                   CROSS JOIN COALESCE(-- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
-                                      case when r.replay_lag =   '0'::interval then '0ms'
+                                      case when greatest(r.replay_lag, r.replay_lag * -1) < '1ms'::interval then '0'
                                            when greatest(r.replay_lag, r.replay_lag * -1) <  '1s'::interval then regexp_replace(to_char(r.replay_lag, 'FMMS"ms"'), '^0+(?=\d+ms$)', '')
                                            when greatest(r.replay_lag, r.replay_lag * -1) < '10s'::interval then regexp_replace(to_char(r.replay_lag, 'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
                                            when greatest(r.replay_lag, r.replay_lag * -1) <  '1m'::interval then to_char(r.replay_lag, 'FMSS"s"')
@@ -608,7 +611,6 @@ select
                                            else to_char(r.replay_lag, 'FMDD"d" FMHH24"h" FMMI"m"')
                                       end) AS a (total_lag_time_pretty)
                   CROSS JOIN pg_size_pretty(t.last_lsn - r.replay_lsn) AS b (total_lag_size_pretty)
-                  ORDER BY r.sync_state, r.state
                  ), '') as wal_send_to,
         (SELECT COUNT(*) FROM pg_stat_replication) as wal_send_count,
 
@@ -630,7 +632,7 @@ select
                                      else latest_end_lsn - pg_last_wal_replay_lsn()
                                 end) AS b (total_lag_size),
                        coalesce(-- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
-                                case when total_lag_time =   '0'::interval then '0ms'
+                                case when greatest(total_lag_time, total_lag_time * -1) < '1ms'::interval then '0'
                                      when greatest(total_lag_time, total_lag_time * -1) <  '1s'::interval then regexp_replace(to_char(total_lag_time, 'FMMS"ms"'), '^0+(?=\d+ms$)', '')
                                      when greatest(total_lag_time, total_lag_time * -1) < '10s'::interval then regexp_replace(to_char(total_lag_time, 'FMSS"s" FMMS"ms"'), '(?<!\d)0+(?=\d+ms$)', '')
                                      when greatest(total_lag_time, total_lag_time * -1) <  '1m'::interval then to_char(total_lag_time, 'FMSS"s"')
