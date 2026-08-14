@@ -171,6 +171,7 @@ select
                                      latency out interval,
                                      time_diff out interval) is 'Get latency and date-time difference between current and remote servers';
 
+
         -- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
         create function pro.interval_pretty(interval)
             returns text
@@ -189,7 +190,40 @@ select
                  else                                              to_char($1, 'FMDD"d" FMHH24"h" FMMI"m"')
             end;
 
-        comment on function pro.interval_pretty(interval) is 'Formats the interval (time period) to a human readable string';
+        comment on function pro.interval_pretty(interval) is 'Formats the size interval (time period) to a human readable string';
+
+
+        -- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/size_pretty.sql
+        create function pro.size_pretty(bigint)
+            returns text
+            immutable
+            returns null on null input
+            parallel safe
+            language sql
+            set search_path = ''
+        return
+            case when $1 = 0 then '0'
+                 else replace(pg_size_pretty($1), ' bytes', ' B')
+            end;
+
+        comment on function pro.size_pretty(bigint) is 'Formats the size to a human readable string';
+
+
+        -- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/size_pretty.sql
+        create function pro.size_pretty(numeric)
+            returns text
+            immutable
+            returns null on null input
+            parallel safe
+            language sql
+            set search_path = ''
+        return
+            case when $1 = 0 then '0'
+                 else replace(pg_size_pretty($1), ' bytes', ' B')
+            end;
+
+        comment on function pro.size_pretty(numeric) is 'Formats the size to a human readable string';
+
 
         CREATE VIEW pro.pg_cluster_topology AS
         -- Шаг 1. Движемся от листа к корню с целью получить мастер.
@@ -451,11 +485,11 @@ select
                 ) as U&"mode\000Apriority",
 
                 concat(
-                             replace(pg_size_pretty(last_lsn   - sent_lsn),   ' bytes', ''), -- data sending WAL stream to replica via network by walsender
-                    ' + ' || replace(pg_size_pretty(sent_lsn   - write_lsn),  ' bytes', ''), -- data receiving WAL stream on replica from network by walreciever
-                    ' + ' || replace(pg_size_pretty(write_lsn  - flush_lsn),  ' bytes', ''), -- data writing WAL on disk on replica by walreciever
-                    ' + ' || replace(pg_size_pretty(flush_lsn  - replay_lsn), ' bytes', ''), -- data applying (replaying) WAL as a recovery process
-                    ' = ' || replace(pg_size_pretty(last_lsn   - replay_lsn), ' bytes', '')
+                             pro.size_pretty(last_lsn  - sent_lsn),   -- data sending WAL stream to replica via network by walsender
+                    ' + ' || pro.size_pretty(sent_lsn  - write_lsn),  -- data receiving WAL stream on replica from network by walreciever
+                    ' + ' || pro.size_pretty(write_lsn - flush_lsn),  -- data writing WAL on disk on replica by walreciever
+                    ' + ' || pro.size_pretty(flush_lsn - replay_lsn), -- data applying (replaying) WAL as a recovery process
+                    ' = ' || pro.size_pretty(last_lsn  - replay_lsn)
                 ) as U&"lag_size\000Asend+write+flush+replay=total",
 
                 concat_ws(' < ',
@@ -475,8 +509,8 @@ select
                 ) as U&"start_uptime\000Aload_uptime",
 
                 concat_ws(E'\n',
-                    replace(pg_size_pretty(last_lsn - restart_lsn), ' bytes', ''),
-                    pg_size_pretty(safe_wal_size)
+                    pro.size_pretty(last_lsn - restart_lsn),
+                    pro.size_pretty(safe_wal_size)
                 ) as U&"hold_wal_size\000Asafe_wal_size",
 
                 concat_ws(E'\n',
@@ -574,6 +608,7 @@ select
                                            else to_char(r.replay_lag, 'FMDD"d" FMHH24"h" FMMI"m"')
                                       end) AS a (total_lag_time_pretty)
                   CROSS JOIN pg_size_pretty(t.last_lsn - r.replay_lsn) AS b (total_lag_size_pretty)
+                  ORDER BY r.sync_state, r.state
                  ), '') as wal_send_to,
         (SELECT COUNT(*) FROM pg_stat_replication) as wal_send_count,
 
