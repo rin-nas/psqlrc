@@ -544,7 +544,7 @@ select
     -- psql запущен с флагом -q
 \else
 
-    \echo 'https://github.com/rin-nas/psqlrc'
+    \echo '~/.psqlrc version: '`cksum ~/.psqlrc | grep -oP '^\S+' | xargs printf '%x'`'  https://github.com/rin-nas/psqlrc'
 
     -- получаем значения параметров СУБД для вывода информационных сообщений
     with s as (
@@ -759,70 +759,14 @@ select
     \endif
 
     --------------------------------------------------------------------------------------------------------------------
-    -- выводим подсказки и предупреждения
-
-    \if :pspg_installed
-    \else
-        \echo :hint'HINT: alternative pager "pspg" is supported and highly recommended to use, see https://github.com/okbob/pspg':reset
-    \endif
-
-    \if :is_superuser
-    \else
-        \echo :hint'HINT: use to connect a user (for example, postgres) with the superuser attribute to show more information and validate configuration files':reset
-    \endif
-
-    \if :is_local_connection
-    \else
-        \echo :hint'HINT: use local connection to show more details (directories size and etc.)':reset
-    \endif
-
-    \if :{?used_shared_buffers}
-    \else
-        \echo :hint'HINT: run "create extension pg_buffercache;" to show used/free cache size':reset
-    \endif
-
-    \if :{?logging_collector}
-        \if :logging_collector
-        \else
-            \echo :warn'WARNING: logging collector is disabled, it is recommended to enable':reset
-            \echo :hint'HINT: errors are redirected to syslog':reset
-        \endif
-    \endif
-
-    \if :{?is_calc_dir_size_slow}
-        \if :is_calc_dir_size_slow
-            \echo :hint'HINT: calculating the directories size is slow, to disable the calculation, run `psql -v pro=0`':reset
-        \endif
-    \endif
-
-    \if :{?data_directory_mounted_to}
-        \if `test ':data_directory_mounted_to' = '/' && echo 1 || echo 0`
-            \echo :warn'WARNING: data directory "':data_directory'" mounted to "/", it is recommended to create a separate partition with a dedicated quota of free space':reset
-        \endif
-    \endif
-
-    \if :{?wal_directory_mounted_to}
-        \if `test ':wal_directory_mounted_to' = '/' && echo 1 || echo 0`
-            \echo :warn'WARNING: wal directory "':wal_dir'" mounted to "/", it is recommended to create a separate partition with a dedicated quota of free space':reset
-        \endif
-        select :'wal_directory_mounted_to' = :'data_directory_mounted_to' as flag \gset
-        \if :flag
-            \echo :hint'HINT: wal directory "':wal_directory'" mount point is the same, that "':data_directory'". It is recommended to separate the mount points into different partitions with a dedicated quota of free space':reset
-        \endif
-    \endif
-
-    \if :{?log_directory_mounted_to}
-        \if `test ':log_directory_mounted_to' = '/' && echo 1 || echo 0`
-            \echo :warn'WARNING: log directory "':log_directory'" mounted to "/", it is recommended to create a separate partition with a dedicated quota of free space':reset
-        \endif
-        select :'log_directory_mounted_to' in (:'data_directory_mounted_to', :'wal_directory_mounted_to') as flag \gset
-        \if :flag
-            \echo :warn'WARNING: log directory "':log_directory'" mount point is the same, that "':data_directory'" or "':wal_directory'". It is recommended to separate the mount points into different partitions with a dedicated quota of free space':reset
-        \endif
-    \endif
-
-    --------------------------------------------------------------------------------------------------------------------
     -- выводим информационные сообщения
+
+    \if `test :pro = 1 && echo 1 || echo 0`
+        \if :is_local_connection
+            \echo :head'\n# OS ':reset
+            \echo `top -bn2 | head -5`
+        \endif
+    \endif
 
     \echo :head'\n# SERVER':reset
 
@@ -952,6 +896,69 @@ select
     \echo ':A — Stat activity groups counts'
     \echo ':T — Cluster topology. Returns servers: master and dependent replicas, including cascaded ones.'
     \echo
+
+    --------------------------------------------------------------------------------------------------------------------
+    -- выводим подсказки и предупреждения
+
+    \if :pspg_installed
+    \else
+        \echo :hint'HINT: alternative pager "pspg" is supported and highly recommended to use, see https://github.com/okbob/pspg':reset
+    \endif
+
+    \if :is_superuser
+    \else
+        \echo :hint'HINT: use to connect a user (for example, postgres) with the superuser attribute to show more information and validate configuration files':reset
+    \endif
+
+    \if :is_local_connection
+    \else
+        \echo :hint'HINT: use local connection to show more details (directories size and etc.)':reset
+    \endif
+
+    \if :{?used_shared_buffers}
+    \else
+        \echo :hint'HINT: run "create extension pg_buffercache;" to show used/free cache size':reset
+    \endif
+
+    \if :{?logging_collector}
+        \if :logging_collector
+        \else
+            \echo :warn'WARNING: logging collector is disabled, it is recommended to enable':reset
+            \echo :hint'HINT: errors are redirected to syslog':reset
+        \endif
+    \endif
+
+    \if :{?is_calc_dir_size_slow}
+        \if :is_calc_dir_size_slow
+            \echo :hint'HINT: calculating the directories size is slow, to disable the calculation, run `psql -v pro=0`':reset
+        \endif
+    \endif
+
+    \if :{?data_directory_mounted_to}
+        \if `test ':data_directory_mounted_to' = '/' && echo 1 || echo 0`
+            \echo :warn'WARNING: data directory "':data_directory'" mounted to "/", it is recommended to create a separate partition with a dedicated quota of free space':reset
+        \endif
+    \endif
+
+    \if :{?wal_directory_mounted_to}
+        \if `test ':wal_directory_mounted_to' = '/' && echo 1 || echo 0`
+            \echo :warn'WARNING: wal directory "':wal_dir'" mounted to "/", it is recommended to create a separate partition with a dedicated quota of free space':reset
+        \endif
+        select :'wal_directory_mounted_to' = :'data_directory_mounted_to' as flag \gset
+        \if :flag
+            \echo :hint'HINT: wal directory "':wal_directory'" mount point is the same, that "':data_directory'". It is recommended to separate the mount points into different partitions with a dedicated quota of free space':reset
+        \endif
+    \endif
+
+    \if :{?log_directory_mounted_to}
+        \if `test ':log_directory_mounted_to' = '/' && echo 1 || echo 0`
+            \echo :warn'WARNING: log directory "':log_directory'" mounted to "/", it is recommended to create a separate partition with a dedicated quota of free space':reset
+        \endif
+        select :'log_directory_mounted_to' in (:'data_directory_mounted_to', :'wal_directory_mounted_to') as flag \gset
+        \if :flag
+            \echo :warn'WARNING: log directory "':log_directory'" mount point is the same, that "':data_directory'" or "':wal_directory'". It is recommended to separate the mount points into different partitions with a dedicated quota of free space':reset
+        \endif
+    \endif
 
     --------------------------------------------------------------------------------------------------------------------
     \if :is_superuser
