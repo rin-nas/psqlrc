@@ -630,7 +630,7 @@ select
                        coalesce((regexp_match(conninfo, '\mapplication_name=(\S+)'))[1]) AS f (application_name),
                        coalesce(case when status != 'streaming' then null
                                      when latest_end_lsn = pg_last_wal_replay_lsn() then '0'::interval
-                                     else now() - latest_end_time
+                                     else clock_timestamp() - latest_end_time
                                 end) AS a (total_lag_time),
                        coalesce(case when status != 'streaming' then null
                                      else latest_end_lsn - pg_last_wal_replay_lsn()
@@ -724,8 +724,9 @@ select
             -- data_directory
             \set data_directory_used_size `du -sh ':data_directory' | grep -oP '^\S+'`
             \set df `df -h ':data_directory' | tail -1`
-            select a[4] as data_directory_free_size,
-                   a[5] as data_directory_used_percent
+            select a[4]           as data_directory_free_size,
+                   left(a[5], -1) as data_directory_used_percent,
+                   a[6]           as data_directory_mounted_to
             from regexp_split_to_array(:'df', '\s+') as a \gset
 
             -- wal_directory
@@ -738,16 +739,18 @@ select
             \endif
             \set wal_directory_used_size `du -sh ':wal_dir' | grep -oP '^\S+'`
             \set df `df -h ':wal_dir' | tail -1`
-            select a[4] as wal_directory_free_size,
-                   a[5] as wal_directory_used_percent
+            select a[4]           as wal_directory_free_size,
+                   left(a[5], -1) as wal_directory_used_percent,
+                   a[6]           as wal_directory_mounted_to
             from regexp_split_to_array(:'df', '\s+') as a \gset
 
             -- log_directory
             \if :{?log_directory}
                 \set log_files_used_size `find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | grep -oP '^\S+'`
                 \set df `df -h ':log_directory' | tail -1`
-                select a[4] as log_directory_free_size,
-                       a[5] as log_directory_used_percent
+                select a[4]           as log_directory_free_size,
+                       left(a[5], -1) as log_directory_used_percent,
+                       a[6]           as log_directory_mounted_to
                 from regexp_split_to_array(:'df', '\s+') as a \gset
             \endif
 
@@ -756,7 +759,7 @@ select
     \endif
 
     --------------------------------------------------------------------------------------------------------------------
-    -- выводим подсказки
+    -- выводим подсказки и предупреждения
 
     \if :pspg_installed
     \else
@@ -792,6 +795,32 @@ select
         \endif
     \endif
 
+    \if :{?data_directory_mounted_to}
+        \if `test ':data_directory_mounted_to' = '/' && echo 1 || echo 0`
+            \echo :warn'WARNING: data directory "':data_directory'" mounted to "/", it is recommended to create a separate partition with a dedicated quota of free space':reset
+        \endif
+    \endif
+
+    \if :{?wal_directory_mounted_to}
+        \if `test ':wal_directory_mounted_to' = '/' && echo 1 || echo 0`
+            \echo :warn'WARNING: wal directory "':wal_dir'" mounted to "/", it is recommended to create a separate partition with a dedicated quota of free space':reset
+        \endif
+        select :'wal_directory_mounted_to' = :'data_directory_mounted_to' as flag \gset
+        \if :flag
+            \echo :hint'HINT: wal directory "':wal_directory'" mount point is the same, that "':data_directory'". It is recommended to separate the mount points into different partitions with a dedicated quota of free space':reset
+        \endif
+    \endif
+
+    \if :{?log_directory_mounted_to}
+        \if `test ':log_directory_mounted_to' = '/' && echo 1 || echo 0`
+            \echo :warn'WARNING: log directory "':log_directory'" mounted to "/", it is recommended to create a separate partition with a dedicated quota of free space':reset
+        \endif
+        select :'log_directory_mounted_to' in (:'data_directory_mounted_to', :'wal_directory_mounted_to') as flag \gset
+        \if :flag
+            \echo :warn'WARNING: log directory "':log_directory'" mount point is the same, that "':data_directory'" or "':wal_directory'". It is recommended to separate the mount points into different partitions with a dedicated quota of free space':reset
+        \endif
+    \endif
+
     --------------------------------------------------------------------------------------------------------------------
     -- выводим информационные сообщения
 
@@ -811,7 +840,13 @@ select
     \if :{?data_directory}
         \set str 'Data directory:        ':data_directory
         \if :{?data_directory_used_size}
-            \set str :str' (size: ':data_directory_used_size' used, ':data_directory_free_size' free)'
+            \set color :reset
+            \if `test :data_directory_used_percent -gt 95 && echo 1 || echo 0`
+                \set color :red
+            \elif `test :data_directory_used_percent -gt 90 && echo 1 || echo 0`
+                \set color :orange
+            \endif
+            \set str :str:color' (size: ':data_directory_used_size' used, ':data_directory_free_size' free)':reset
         \endif
         \echo :str
     \endif
@@ -822,7 +857,13 @@ select
             \set str :str' → ':wal_real_directory
         \endif
         \if :{?wal_directory_used_size}
-            \set str :str' (size: ':wal_directory_used_size' used, ':wal_directory_free_size' free)'
+            \set color :reset
+            \if `test :wal_directory_used_percent -gt 95 && echo 1 || echo 0`
+                \set color :red
+            \elif `test :wal_directory_used_percent -gt 90 && echo 1 || echo 0`
+                \set color :orange
+            \endif
+            \set str :str:color' (size: ':wal_directory_used_size' used, ':wal_directory_free_size' free)':reset
         \endif
         \echo :str
     \endif
@@ -830,18 +871,23 @@ select
     \if :{?log_directory}
         \set str 'Log directory:         ':log_directory
         \if :{?log_files_used_size}
-            \set str :str' (size: ':log_files_used_size' files used, ':log_directory_free_size' free)'
+            \set color :reset
+            \if `test :log_directory_used_percent -gt 90 && echo 1 || echo 0`
+                \set color :red
+            \elif `test :log_directory_used_percent -gt 80 && echo 1 || echo 0`
+                \set color :orange
+            \endif
+            \set str :str:color' (size: ':log_files_used_size' files used, ':log_directory_free_size' free)':reset
         \endif
         \echo :str
     \endif
 
     \if :{?used_connections_percent}
-        \if `test :used_connections_percent -gt 80 && echo 1 || echo 0`
+        \set color :reset
+        \if `test :used_connections_percent -gt 85 && echo 1 || echo 0`
             \set color :red
-        \elif `test :used_connections_percent -gt 60 && echo 1 || echo 0`
+        \elif `test :used_connections_percent -gt 70 && echo 1 || echo 0`
             \set color :orange
-        \else
-            \set color :reset
         \endif
         \echo 'Connections:           ':used_connections' of ':max_connections' ':color'(used ':used_connections_percent'%)':reset
     \endif
