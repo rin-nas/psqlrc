@@ -44,6 +44,9 @@
 -- символ бесконечности U+221E
 \set infinity  '∞'
 
+-- ограничение длительности выполнения "тяжёлых" команд типа `du -sh`
+\set os_command_timeout '20s'
+
 -- запоминаем флаг отображения информационных сообщений
 \set QUIET_ORIGINAL :QUIET
 
@@ -91,7 +94,7 @@
 \pset border 2
 
 ------------------------------------------------------------------------------------------------------------------------
--- получаем значения параметров СУБД для PROMPT1 и короткие SQL запросы
+-- получаем значения параметров СУБД для PROMPT1
 select
     pg_is_in_recovery(),
     coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
@@ -399,7 +402,7 @@ select
 \set PROMPT1 '\n':PROMPT_OS'\n':PROMPT_PG'\n':PROMPT2
 
 ------------------------------------------------------------------------------------------------------------------------
--- устанавливаем именованные SQL запросы для быстрого доступа
+-- именованные SQL запросы для быстрого доступа
 select
     -- https://postgrespro.ru/docs/postgresql/current/functions-info
     $sql$
@@ -466,7 +469,7 @@ select
 
                 concat_ws(E'\n',
                     coalesce(
-                        client_hostname, -- это поле будет отлично от null только в случае соединений по IP и только при включённом режиме log_hostname
+                        client_hostname, -- это поле будет не null только в случае соединений по IP и только при включённом режиме log_hostname
                         guc_biha->>'host'
                     ),
                     addr
@@ -722,12 +725,14 @@ select
             select now() as calc_dir_size_start \gset
 
             -- data_directory
-            \set data_directory_used_size `du -sh ':data_directory' | grep -oP '^\S+'`
+            \set data_directory_used_size `timeout ':os_command_timeout' du -sh ':data_directory' | grep -oP '^\S+'`
             \set df `df -h ':data_directory' | tail -1`
             select a[4]           as data_directory_free_size,
                    left(a[5], -1) as data_directory_used_percent,
                    a[6]           as data_directory_mounted_to
-            from regexp_split_to_array(:'df', '\s+') as a \gset
+            from regexp_split_to_array(:'df', '\s+') as a
+            where trim(:'df') != ''
+            \gset
 
             -- wal_directory
             \set wal_real_directory `readlink -f ':wal_directory'`
@@ -737,21 +742,25 @@ select
             \else
                 \set wal_dir :wal_real_directory
             \endif
-            \set wal_directory_used_size `du -sh ':wal_dir' | grep -oP '^\S+'`
+            \set wal_directory_used_size `timeout ':os_command_timeout' du -sh ':wal_dir' | grep -oP '^\S+'`
             \set df `df -h ':wal_dir' | tail -1`
             select a[4]           as wal_directory_free_size,
                    left(a[5], -1) as wal_directory_used_percent,
                    a[6]           as wal_directory_mounted_to
-            from regexp_split_to_array(:'df', '\s+') as a \gset
+            from regexp_split_to_array(:'df', '\s+') as a
+            where trim(:'df') != ''
+            \gset
 
             -- log_directory
             \if :{?log_directory}
-                \set log_files_used_size `find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | grep -oP '^\S+'`
+                \set log_files_used_size `timeout ':os_command_timeout' find ':log_directory' -maxdepth 1 -type f -exec du -ch {} + | tail -1 | grep -oP '^\S+'`
                 \set df `df -h ':log_directory' | tail -1`
                 select a[4]           as log_directory_free_size,
                        left(a[5], -1) as log_directory_used_percent,
                        a[6]           as log_directory_mounted_to
-                from regexp_split_to_array(:'df', '\s+') as a \gset
+                from regexp_split_to_array(:'df', '\s+') as a
+                where trim(:'df') != ''
+                \gset
             \endif
 
             select now() - :'calc_dir_size_start' > '1s'::interval as is_calc_dir_size_slow \gset
