@@ -57,6 +57,16 @@ FROM crosstab(
 ) as p (category text, autorewind text, autowaltrim text, asyncaction_timeout text);
 ```
 
+BiHA
+```sql
+select case when e.type != 'NO_ERROR' then json_strip_nulls(to_json(e)) end as "biha.error_details() (current node)"
+from biha.error_details() as e;
+
+select name, setting, context, vartype, source, min_val, max_val, boot_val, reset_val, sourcefile, sourceline, pending_restart
+from pg_settings
+where name ~ '^biha\.[a-z]' --and trim(setting) != ''
+order by name;
+```
 
 # Ссылки
 

@@ -329,7 +329,7 @@ select
                                                                                                               'recovery_min_apply_delay',
                                                                                                               'sync_replication_slots')) as replica,
                               -- https://postgrespro.ru/docs/enterprise/current/biha-reference
-                              jsonb_object_agg_strict(right(name, -5), nullif(trim(setting), '')) filter (where name like 'biha.%%') as biha
+                              jsonb_object_agg_strict(right(name, -5), nullif(trim(setting), '')) filter (where name ~ '^biha\.[a-z]') as biha
                           from pg_settings
                       )
                       select
@@ -998,7 +998,7 @@ select
     \echo ':W — Who am i.'
     \echo ':A — Stat activity groups counts.'
     \echo ':T — Cluster topology. Returns servers: primary and dependent replicas, including cascaded ones.'
-    \echo ':B — BiHA (Built-in High Availability) status and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference'
+    \echo ':B — BiHA (Built-in High Availability) state and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference'
     \echo
 
     --------------------------------------------------------------------------------------------------------------------
