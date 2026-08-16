@@ -101,11 +101,9 @@ psql -v pro=0 -q
 
 Пример выполнения коротких SQL команд для встраивания в скрипты `bash`:
 ```bash
-# одна команда
-psql -v pro=0 -q -c '\echo :T' | psql -v pro=0 -q
+psql -v pro=0 -q -c '\echo :T' | psql -v pro=0 -q -P title="Cluster topology at ($(date --rfc-3339=seconds))"
 
-# несколько команд подряд
-psql -v pro=0 -q -c '\echo :T :B' biha_db | psql -v pro=0 -q biha_db
+psql -v pro=0 -q -c '\echo :B' biha_db | psql -v pro=0 -q -P title="BiHA cluster state and config" biha_db
 ```
 
 ## Валидация при запуске `psql`

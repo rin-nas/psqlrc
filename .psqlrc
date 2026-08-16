@@ -409,7 +409,8 @@ select
 select
     -- https://postgrespro.ru/docs/postgresql/current/functions-info
     $sql$
-        SELECT pg_backend_pid()      as "pg_backend_pid()",
+        SELECT now()::timestamptz(0) as "now()",
+               pg_backend_pid()      as "pg_backend_pid()",
                coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
                CURRENT_USER          as "CURRENT_USER",
                SESSION_USER          as "SESSION_USER",
@@ -428,7 +429,7 @@ select
                version()             as "version()",
                unicode_version()     as "unicode_version()",
                icu_unicode_version() as "icu_unicode_version()"
-               \gx
+        \gx
     $sql$ as "W",
 
     $sql$
@@ -461,6 +462,10 @@ select
         4) Для размеров в байтах и интервалов времени выводится только значимая информация
         */
         $sql$
+            -- к сожалению, внутри литерала команда \pset не работает и возвращает ошибку
+            -- select now()::timestamptz(0) as now \gset
+            -- \pset title 'Cluster topology (at ':now')'
+
             select
                 concat('  ', level, E'\n\n') as level,
                 case when is_primary then 'primary' else 'replica' end as role,
@@ -537,6 +542,8 @@ select
 
             from pro.pg_cluster_topology as t
             order by t.level, t.state, t.sync_state desc;
+
+            --\pset title
         $sql$
         else $sql$
                 \echo :hint'first, run `psql -v pro=install -c '''' ':DBNAME'` and `nano ~/.pgpass` to save/check password exists for user postgres':reset
@@ -598,7 +605,7 @@ select
 
                 -- значение поля MIN параметра synchronous_standby_names,
                 -- т.е. минимальное число синхронных резервных узлов, которые должны быть доступны, чтобы лидер продолжал подтверждать транзакции
-                nullif(c.sync_standbys_min, -1) as U&"sync_standbys_min\000A(for leader commit)",
+                nullif(c.sync_standbys_min, -1) as U&"sync_standbys_min\000A(for L commit)",
 
                 concat_ws(E'\n',
                     c.can_be_leader,
@@ -609,9 +616,9 @@ select
 
                 c.no_wal_on_follower::text || ' ms' as U&"no_wal_on_follower\000A(timeout)"
 
-            FROM biha.status_v AS s
-            JOIN biha.nodes_v AS n ON n.id = s.id
-            JOIN biha.config() AS c ON c.id = s.id
+            FROM biha.status_v     AS s
+            JOIN biha.nodes_v      AS n ON n.id = s.id
+            JOIN biha.config()     AS c ON c.id = s.id
             JOIN biha.monitoring() AS m ON m.id = s.id
             --LEFT JOIN pg_stat_replication AS r ON r.application_name = CONCAT('biha_node_', s.id)
             ORDER BY s.id;
