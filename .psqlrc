@@ -552,8 +552,11 @@ select
 
     case when exists(select from pg_catalog.pg_namespace where nspname = 'pro') then
         $sql$
-            select biha.get_ssn() as "biha.get_ssn()",
-                   now()::timestamptz(0) as "now()";
+            select 'now()' as function, now()::timestamptz(0)::text as return
+            union all
+            select 'biha.get_ssn()', biha.get_ssn()
+            union all
+            select 'biha.error_details()', json_strip_nulls(to_json(e))::text from biha.error_details() as e where e.type != 'NO_ERROR';
 
             SELECT
                 concat(' ', s.id, E' \n\n') as id,
@@ -622,6 +625,9 @@ select
             JOIN biha.monitoring() AS m ON m.id = s.id
             --LEFT JOIN pg_stat_replication AS r ON r.application_name = CONCAT('biha_node_', s.id)
             ORDER BY s.id;
+
+            -- select count(*) > 0 as callbacks_exists from biha.callbacks \gset --TODO показывать таблицу только если она не пустая
+            -- select * from biha.callbacks;
 
         $sql$
         else $sql$
