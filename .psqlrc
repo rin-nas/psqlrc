@@ -553,40 +553,40 @@ select
                 s.term,
 
                 concat_ws(E'\n',
-                  n.host, nullif(c.name, n.host)
+                    n.host, nullif(c.name, n.host)
                 ) as U&"host\000Aname",
 
                 concat_ws(E'\n',
-                  s.state,
-                  nullif(s.last_known_state, s.state)
+                    s.state,
+                    nullif(s.last_known_state, s.state)
                 ) as U&"biha_state\000Alast_known",
 
                 concat_ws(E'\n',
-                  concat_ws(' ',
-                    m.pg_state, -- текущее состояние СУБД, возможные значения: Prestartup, Startup, Recovery, Recovery_Pause, Promoting, Promoted
-                    m.startup_progress || '%' -- показывает прогресс запуска в процентах, когда значение pg_state — Startup.
-                  ),
-                  n.state -- состояние соединения узла: ACTIVE/CONNECTING/IDLE/INIT/SSLCONNECT/SSLACCEPT
+                    concat_ws(' ',
+                        m.pg_state, -- текущее состояние СУБД, возможные значения: Prestartup, Startup, Recovery, Recovery_Pause, Promoting, Promoted
+                        m.startup_progress || '%' -- показывает прогресс запуска в процентах, когда значение pg_state — Startup.
+                    ),
+                    n.state -- состояние соединения узла: ACTIVE/CONNECTING/IDLE/INIT/SSLCONNECT/SSLACCEPT
                 ) as U&"pg_state\000Aconn_state",
 
                 concat_ws(E'\n',
-                  c.mode, -- текущий режим работы узла: regular, referee, referee_with_wal.
-                  c.service_mode
+                    c.mode, -- текущий режим работы узла: regular, referee, referee_with_wal.
+                    c.service_mode
                 ) as U&"referee_mode\000Aservice_mode",
 
                 concat_ws(E'\n',
-                  pro.interval_pretty(s.since_last_hb),
-                  s.online
+                    pro.interval_pretty(s.since_last_hb),
+                    s.online
                 ) AS U&"last_hb\000Aonline",
 
                 concat_ws(E'\n',
-                  c.heartbeat_send_period,
-                  c.heartbeat_max_lost
-                ) as U&"hb_send_period ms\000Ahb_max_lost",
+                    c.heartbeat_send_period::text || ' ms',
+                    c.heartbeat_max_lost
+                ) as U&"hb_send_period\000Ahb_max_lost",
 
                 concat_ws(E'\n',
-                  c.repl_pref_roles,
-                  lpad((nullif(c.max_replicas, 2147483647))::text, 12, ' ')
+                    c.repl_pref_roles,
+                    lpad((nullif(c.max_replicas, 2147483647))::text, 12, ' ')
                 ) as U&"pref_roles\000Amax_replicas",
 
                 c.priority as U&"priority\000A(delay ms)",
@@ -600,13 +600,13 @@ select
                 nullif(c.sync_standbys_min, -1) as U&"sync_standbys_min\000A(for leader commit)",
 
                 concat_ws(E'\n',
-                  c.can_be_leader,
-                  c.can_vote
+                    c.can_be_leader,
+                    c.can_vote
                 ) as U&"can_be_leader\000Acan_vote",
 
                 -- deny_wal_sources,  -- Postgres Pro (enterprise) 18.4.1 2a1f89e2632  ERROR:  column "deny_wal_sources" does not exist
 
-                c.no_wal_on_follower as U&"no_wal_on_follower\000A(timeout ms)"
+                c.no_wal_on_follower::text || ' ms' as U&"no_wal_on_follower\000A(timeout)"
 
             FROM biha.status_v AS s
             JOIN biha.nodes_v AS n ON n.id = s.id
