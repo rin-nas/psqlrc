@@ -545,7 +545,8 @@ select
 
     case when exists(select from pg_catalog.pg_namespace where nspname = 'pro') then
         $sql$
-            select biha.get_ssn() as "biha.get_ssn()";
+            select biha.get_ssn() as "biha.get_ssn()",
+                   now()::timestamptz(0) as "now()";
 
             SELECT
                 concat(' ', s.id, E' \n\n') as id,
