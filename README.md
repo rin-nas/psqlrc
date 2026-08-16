@@ -87,7 +87,7 @@ psql -v pro=1 'postgresql://postgres@host-1,host-2,host-3,host-4/postgres?target
 ```bash
 psql -v pro=0 -q -c '\echo :T' | psql -v pro=0 -q
 
-psql -v pro=0 biha_db -q -c '\echo :T :B' | psql -v pro=0 -q biha_db
+psql -v pro=0 -q -c '\echo :T :B' biha_db | psql -v pro=0 -q biha_db
 ```
 
 ## Что отображается в командной строке `psql`
