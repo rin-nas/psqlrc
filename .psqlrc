@@ -492,14 +492,14 @@ select
                 ) as U&"ping\000Atime_diff",
 
                 concat_ws(E'\n',
-                    state,      -- startup / catchup / streaming / backup / stopping
-                    pause_state -- not paused / pause requested / paused
-                ) as "state ↓",
-
-                concat_ws(E'\n',
                     sync_state, -- async/potential/sync/quorum
                     sync_priority
                 ) as U&"mode ↑\000Apriority",
+
+                concat_ws(E'\n',
+                    state,      -- startup / catchup / streaming / backup / stopping
+                    pause_state -- not paused / pause requested / paused
+                ) as "state ↓",
 
                 concat(
                              pro.size_pretty(last_lsn  - sent_lsn),   -- data sending WAL stream to replica via network by walsender
@@ -642,7 +642,7 @@ select
     -- BiHA шпаргалка: сопоставление параметров конфигурации с функциями управления
     $sql$
         with s (name, value) as (
-            select s.name, nullif(trim(s.setting), '')
+            select s.name, s.setting
             from pg_settings as s
             where s.name ~ '^biha\.[a-z]' or s.name = 'synchronous_standby_names'
         ),
