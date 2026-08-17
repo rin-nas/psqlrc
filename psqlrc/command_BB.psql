@@ -26,7 +26,7 @@ f (name, funcs) as (
     values
     ('synchronous_standby_names',  'biha.get_ssn() text;
                                     biha.set_sync_standbys(ANY int) bool;
-                                    biha.set_sync_standbys_min(MIN int) bool;
+                                    biha.set_sync_standbys_min(MIN int) bool /* -1 to off */;
                                     biha.set_ssn(VARIADIC ids int) bool;
                                     biha.add_to_ssn(id int) returns bool;
                                     biha.remove_from_ssn(id int) bool'),
@@ -48,13 +48,15 @@ h (name, funcs) as (
     -- эти параметры конфигурации хранятся в файле pg_biha/biha.conf, и их невозможно изменить с помощью ALTER SYSTEM SET или просмотреть через SHOW
     ('*',                 'biha.add_node(id int, parent_id int) bool;
                            biha.remove_node(id int) bool;
-                           biha.set_leader(id int) bool'),
+                           biha.set_leader(id int) bool;
+                           biha.reset_node_error() bool'),
     ('*.can_vote',        'biha.set_can_vote(id int, can_vote bool) bool'),
     ('*.minnodes',        'biha.set_minnodes(id int, minnodes int) bool'),
     ('*.max_replicas',    'biha.set_max_replicas(id int, value int) bool'),
     ('*.nquorum',         'biha.set_nquorum(id int, nquorum int) bool'),
     ('*.preferred_roles', 'biha.set_pref_roles(id int, value text) bool'),
-    ('*.priority',        'biha.set_priority(id int, value int) bool')
+    ('*.priority',        'biha.set_priority(id int, value int) bool'),
+    ('*.service_mode',    'biha.service_mode (enable bool, force bool) bool')
 ),
 t (name, value, funcs) as (
     select s.name, s.value, f.funcs
