@@ -4,13 +4,13 @@
 \include ~/psqlrc/title.psql
 
 select
-    backend_type,
-    datname,
-    state,
-    usename,
-    wait_event_type,
-    wait_event,
-    count(*) as "count_total",
+    backend_type    as "backend_type ↓",
+    datname         as "database ↓",
+    state           as "state ↓",
+    usename         as "user ↓",
+    wait_event_type as "wait_event_type ↓",
+    wait_event      as "wait_event ↓",
+    count(*)        as "count_total ↓",
     concat_ws(' ',
         lpad((count(*) filter (where state_change < now() - interval '1 second'))::text, 3, ' '),
         lpad((count(*) filter (where state_change < now() - interval '5 second'))::text, 3, ' '),
