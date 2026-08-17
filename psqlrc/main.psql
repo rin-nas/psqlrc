@@ -133,7 +133,7 @@ select
         \quit
     \endif
 
-    \include_relative .psqlrc.install.psql
+    \include_relative psqlrc/install.psql
 
     \if :test_passed
         \echo :hint'Test passed':reset
@@ -170,7 +170,7 @@ select
 
 ------------------------------------------------------------------------------------------------------------------------
 
-\include_relative .psqlrc.commands.psql
+\include_relative psqlrc/commands.psql
 
 ------------------------------------------------------------------------------------------------------------------------
 \if :QUIET_ORIGINAL
@@ -183,9 +183,9 @@ select
     \pset footer off
 \else
 
-    \echo '~/.psqlrc version: '`cat ~/.psqlrc* | cksum | grep -oP '^\S+' | xargs printf '%x'`'  https://github.com/rin-nas/psqlrc'
+    \echo '~/.psqlrc version: '`cat ~/psqlrc/* | cksum | grep -oP '^\S+' | xargs printf '%x'`'  https://github.com/rin-nas/psqlrc'
 
-    \include_relative .psqlrc.info.psql
+    \include_relative psqlrc/info.psql
 
     \if :pg_buffercache_installed
         SELECT
