@@ -5,6 +5,18 @@
     \set QUIET_ORIGINAL :QUIET
 \endif
 
+
+\set QUIET 1
+\timing 0
+select count(*) > 0 as schema_pro_exists from pg_catalog.pg_namespace where nspname = 'pro' \gset
+\if :QUIET_ORIGINAL
+    \timing 0
+\else
+    \timing 1
+\endif
+\set QUIET :QUIET_ORIGINAL
+
+
 \if :QUIET_ORIGINAL
 \else
     \set QUIET 1

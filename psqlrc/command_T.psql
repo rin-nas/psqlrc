@@ -1,7 +1,13 @@
 -- Топология кластера СУБД. Возвращает серверы: мастер и зависимые реплики, включая каскадные.
 
-\set title 'Cluster topology (at '`date --rfc-3339=seconds`')'
+\set title 'Cluster topology (at '`date --rfc-3339=seconds | sed 's/:00$//'`')'
 \include ~/psqlrc/title.psql
+
+\if :schema_pro_exists
+\else
+    \echo :hint'first, run `psql -v pro=install -c '''' ':DBNAME'` and `nano ~/.pgpass` to save/check password exists for user postgres':reset
+    \quit
+\endif
 
 /*
 Значений полей для вывода много. Необходимо, чтобы таблица уместилось на широкоформатный экран разрешением 2880×1800 (16:10).

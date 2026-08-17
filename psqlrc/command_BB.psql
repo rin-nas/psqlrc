@@ -3,6 +3,12 @@
 \set title 'BiHA cheat sheet: config settings to management functions mapping'
 \include ~/psqlrc/title.psql
 
+\if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
+    \echo :error'please, connect to database "biha_db"':reset
+    \echo :hint'HINT: type "\\c biha_db"':reset
+    \quit
+\endif
+
 with s (name, value) as (
     select s.name, s.setting
     from pg_settings as s

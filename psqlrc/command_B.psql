@@ -3,6 +3,19 @@
 \set title 'BiHA cluster state and config'
 \include ~/psqlrc/title.psql
 
+\if :schema_pro_exists
+\else
+    \echo :hint'first, run `psql -v pro=install -c '''' biha_db` and `nano ~/.pgpass` to save/check password exists for user postgres':reset
+    \quit
+\endif
+
+\if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
+    \echo :error'please, connect to database "biha_db"':reset
+    \echo :hint'HINT: type "\\c biha_db"':reset
+    \quit
+\endif
+
+
 select 'now()' as function, now()::timestamptz(0)::text as return
 union all
 select 'biha.get_ssn()', biha.get_ssn()
