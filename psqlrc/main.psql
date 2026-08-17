@@ -133,7 +133,7 @@ select
         \quit
     \endif
 
-    \include_relative psqlrc/install.psql
+    \include ~/psqlrc/install.psql
 
     \if :test_passed
         \echo :hint'Test passed':reset
@@ -171,11 +171,11 @@ select
 ------------------------------------------------------------------------------------------------------------------------
 
 -- именованные SQL запросы для быстрого доступа
-\set W  '\\include_relative psqlrc/command_W.psql'
-\set A  '\\include_relative psqlrc/command_A.psql'
-\set T  '\\include_relative psqlrc/command_T.psql'
-\set B  '\\include_relative psqlrc/command_B.psql'
-\set BB '\\include_relative psqlrc/command_BB.psql'
+\set W  '\\include ~/psqlrc/command_W.psql'
+\set A  '\\include ~/psqlrc/command_A.psql'
+\set T  '\\include ~/psqlrc/command_T.psql'
+\set B  '\\include ~/psqlrc/command_B.psql'
+\set BB '\\include ~/psqlrc/command_BB.psql'
 
 ------------------------------------------------------------------------------------------------------------------------
 \if :QUIET_ORIGINAL
@@ -188,9 +188,9 @@ select
     \pset footer off
 \else
 
-    \echo '~/.psqlrc version: '`cat ~/psqlrc/* | cksum | grep -oP '^\S+' | xargs printf '%x'`'  https://github.com/rin-nas/psqlrc'
+    \echo '~/.psqlrc version: '`cat $(ls -v ~/psqlrc/*) | cksum | grep -oP '^\S+' | xargs printf '%x'`'  https://github.com/rin-nas/psqlrc'
 
-    \include_relative psqlrc/info.psql
+    \include ~/psqlrc/info.psql
 
     \if :pg_buffercache_installed
         SELECT
@@ -501,7 +501,7 @@ select
     --------------------------------------------------------------------------------------------------------------------
     \if :is_superuser
         -- проверяем наличие ошибок в конфигурационных файлах
-        \include_relative psqlrc/validate.psql
+        \include ~/psqlrc/validate.psql
     \endif
 
     -- отображаем длительность выполнения запроса
