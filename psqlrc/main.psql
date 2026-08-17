@@ -156,7 +156,7 @@ select
 \set PROMPT2 '%R%x%# '
 
 -- YYYY-MM-DD HH:MM:SS+HH:MM  user@host[IP]:/current_path/
-\set PROMPT_OS '%`date --rfc-3339=seconds`  %`whoami`@%`hostname`[%`hostname -I | xargs`] %`pwd`'
+\set PROMPT_OS '%`date --rfc-3339=seconds | sed ''s/:00$//''`  %`whoami`@%`hostname`[%`hostname -I | xargs`] %`pwd`'
 
 -- pg_version pg_build  user@host:port/database
 \set PROMPT_PG :pg_version'':pg_build'  %n@%M:%>/%/'
