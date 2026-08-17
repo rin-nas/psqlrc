@@ -1,5 +1,8 @@
 -- агрегированная информация из `pg_stat_activity`
 
+\set title 'Stat activity groups counts'
+\include ~/psqlrc/title.psql
+
 select
     backend_type,
     datname,
@@ -17,3 +20,6 @@ select
 from pg_stat_activity
 group by backend_type, datname, state, usename, wait_event_type, wait_event
 order by backend_type, datname, state, usename, wait_event_type, wait_event;
+
+\unset title
+\include ~/psqlrc/title.psql

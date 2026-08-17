@@ -1,0 +1,18 @@
+-- устанавливает или сбрасывает заголовок для таблиц
+
+\if :{?QUIET_ORIGINAL}
+\else
+    \set QUIET_ORIGINAL :QUIET
+\endif
+
+\if :QUIET_ORIGINAL
+\else
+    \set QUIET 1
+    \if :{?title}
+        \pset title :title
+    \else
+        -- unset
+        \pset title
+    \endif
+    \set QUIET 0
+\endif

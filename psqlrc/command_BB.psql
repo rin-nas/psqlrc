@@ -1,5 +1,8 @@
 -- BiHA шпаргалка: сопоставление параметров конфигурации с функциями управления
 
+\set title 'BiHA cheat sheet: config settings to management functions mapping'
+\include ~/psqlrc/title.psql
+
 with s (name, value) as (
     select s.name, s.setting
     from pg_settings as s
@@ -65,3 +68,6 @@ select
     regexp_replace(t.funcs, ';\s*', E'\n', 'g') as management_functions
 from t
 order by t.name;
+
+\unset title
+\include ~/psqlrc/title.psql

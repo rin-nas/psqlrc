@@ -1,5 +1,8 @@
 --  BiHA: состояние и конфигурация узлов кластера
 
+\set title 'BiHA cluster state and config'
+\include ~/psqlrc/title.psql
+
 select 'now()' as function, now()::timestamptz(0)::text as return
 union all
 select 'biha.get_ssn()', biha.get_ssn()
@@ -76,3 +79,6 @@ ORDER BY s.id;
 
 -- select count(*) > 0 as callbacks_exists from biha.callbacks \gset --TODO показывать таблицу только если она не пустая
 -- select * from biha.callbacks;
+
+\unset title
+\include ~/psqlrc/title.psql
