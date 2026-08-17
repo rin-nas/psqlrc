@@ -1,0 +1,24 @@
+-- who am i (информация о текущем пользователе, схеме и т.д.)
+-- https://postgrespro.ru/docs/postgresql/current/functions-info
+
+SELECT now()::timestamptz(0) as "now()",
+       pg_backend_pid()      as "pg_backend_pid()",
+       coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
+       CURRENT_USER          as "CURRENT_USER",
+       SESSION_USER          as "SESSION_USER",
+       current_database()    as "current_database()",
+       current_schema()      as "current_schema()",
+       current_schemas(true) as "current_schemas(true)",
+       pg_current_xact_id_if_assigned()                 as "current_xact_id",     -- идентификатор текущей транзакции или NULL, если она ещё не имеет идентификатора
+       pg_xact_status(pg_current_xact_id_if_assigned()) as "current_xact_status", -- состояние фиксации транзакции: in progress / committed / aborted
+       pg_current_logfile()  as "pg_current_logfile()",
+       inet_client_addr()    as "inet_client_addr()",
+       inet_client_port()    as "inet_client_port()",
+       inet_server_addr()    as "inet_server_addr()",
+       inet_server_port()    as "inet_server_port()",
+       pg_jit_available()    as "pg_jit_available()",
+       pg_numa_available()   as "pg_numa_available()",
+       version()             as "version()",
+       unicode_version()     as "unicode_version()",
+       icu_unicode_version() as "icu_unicode_version()"
+\gx

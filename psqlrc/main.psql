@@ -170,7 +170,12 @@ select
 
 ------------------------------------------------------------------------------------------------------------------------
 
-\include_relative psqlrc/commands.psql
+-- именованные SQL запросы для быстрого доступа
+\set W  '\\include_relative psqlrc/command_W.psql'
+\set A  '\\include_relative psqlrc/command_A.psql'
+\set T  '\\include_relative psqlrc/command_T.psql'
+\set B  '\\include_relative psqlrc/command_B.psql'
+\set BB '\\include_relative psqlrc/command_BB.psql'
 
 ------------------------------------------------------------------------------------------------------------------------
 \if :QUIET_ORIGINAL

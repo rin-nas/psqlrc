@@ -1,0 +1,67 @@
+-- BiHA шпаргалка: сопоставление параметров конфигурации с функциями управления
+
+with s (name, value) as (
+    select s.name, s.setting
+    from pg_settings as s
+    where s.name ~ '^biha\.[a-z]' or s.name = 'synchronous_standby_names'
+),
+-- получаем параметры конфигурации (для текущего узла), которые невозможно изменить с помощью ALTER SYSTEM SET или просмотреть через SHOW / current_setting()
+c (name, value) as (
+    select '*.' || case when j.key = 'repl_pref_roles' then 'preferred_roles' else j.key end,
+           j.value
+    from biha.config() as c
+    cross join json_each_text(row_to_json(c)) as j
+    where c.id = current_setting('biha.id')::int
+),
+f (name, funcs) as (
+    values
+    ('synchronous_standby_names',  'biha.get_ssn() text;
+                                    biha.set_sync_standbys(ANY int) bool;
+                                    biha.set_sync_standbys_min(MIN int) bool;
+                                    biha.set_ssn(VARIADIC ids int) bool;
+                                    biha.add_to_ssn(id int) returns bool;
+                                    biha.remove_from_ssn(id int) bool'),
+    ('biha.proxima_status',        'biha.enable_proxima() bool; biha.disable_proxima() bool'),
+    ('biha.heartbeat_max_lost',    'biha.set_heartbeat_max_lost(int) bool'),
+    ('biha.heartbeat_send_period', 'biha.set_heartbeat_send_period(int) bool'),
+    ('biha.no_wal_on_follower',    'biha.set_no_wal_on_follower(int) bool'),
+    ('biha.minnodes',              'biha.set_minnodes(id int, minnodes int) bool'),
+    ('biha.nquorum',               'biha.set_nquorum(id int, nquorum int) bool'),
+    ('biha.can_be_leader',         'biha.set_can_be_leader(id int, can_be_leader bool) bool'),
+    ('biha.can_vote',              'biha.set_can_vote(id int, can_vote bool) bool'),
+    ('biha.deny_wal_sources',      'biha.set_deny_wal_sources(id int, deny_node_id int[]) bool'),
+    ('biha.max_replicas',          'biha.set_max_replicas(id int, value int) bool'),
+    ('biha.preferred_roles',       'biha.set_pref_roles(id int, value text) bool'),
+    ('biha.priority',              'biha.set_priority(id int, value int) bool')
+),
+h (name, funcs) as (
+    values
+    -- эти параметры конфигурации хранятся в файле pg_biha/biha.conf, и их невозможно изменить с помощью ALTER SYSTEM SET или просмотреть через SHOW
+    ('*',                 'biha.add_node(id int, parent_id int) bool;
+                           biha.remove_node(id int) bool;
+                           biha.set_leader(id int) bool'),
+    ('*.can_vote',        'biha.set_can_vote(id int, can_vote bool) bool'),
+    ('*.minnodes',        'biha.set_minnodes(id int, minnodes int) bool'),
+    ('*.max_replicas',    'biha.set_max_replicas(id int, value int) bool'),
+    ('*.nquorum',         'biha.set_nquorum(id int, nquorum int) bool'),
+    ('*.preferred_roles', 'biha.set_pref_roles(id int, value text) bool'),
+    ('*.priority',        'biha.set_priority(id int, value int) bool')
+),
+t (name, value, funcs) as (
+    select s.name, s.value, f.funcs
+    from s
+    left join f on f.name = s.name
+    UNION ALL
+    select h.name,
+           case when h.name = '*' then './pg_biha/biha.conf' else c.value end,
+           h.funcs
+    from h
+    left join c on h.name = c.name
+)
+select
+    row_number() over (order by t.name) as "#",
+    t.name as "setting_name ↓",
+    nullif(trim(t.value), '') as setting_value,
+    regexp_replace(t.funcs, ';\s*', E'\n', 'g') as management_functions
+from t
+order by t.name;
