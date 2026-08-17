@@ -119,7 +119,7 @@ select
 \gset
 
 ------------------------------------------------------------------------------------------------------------------------
-\if `test :pro = install && echo 1 || echo 0`
+\if `test ':pro' = install && echo 1 || echo 0`
     \echo :hint'Install...':reset
 
     \if :pg_is_in_recovery
@@ -161,7 +161,7 @@ select
 -- pg_version pg_build  user@host:port/database
 \set PROMPT_PG :pg_version'':pg_build'  %n@%M:%>/%/'
 
-\if `test :pro = color && echo 1 || echo 0`
+\if `test ':pro' = color && echo 1 || echo 0`
     -- в Ubuntu 26.04 LTS в терминале v3.58.0 для GNOME 49 цветная строка отображается, но слишком длинная обрезается!
     \set PROMPT_PG :pg_version'':gray'':pg_build' ':yellow'%n':cyan'@':orange'%M':cyan':':green'%>':blue'/%/':reset
 \endif
@@ -226,7 +226,7 @@ select
     \else
         -- если прав доступа не хватило, получаем is_primary альтернативным способом
         -- но определять роль СУБД через SQL функцию pg_is_in_recovery() не всегда корректно
-        \set is_primary `test :pg_is_in_recovery = f && echo 1 || echo 0`
+        \set is_primary `test ':pg_is_in_recovery' = f && echo 1 || echo 0`
     \endif
 
     \set wal_directory :data_directory'/pg_wal'
@@ -247,7 +247,7 @@ select
     \endif
 
     -- вычисляем ссылки и размеры директорий
-    \if `test :pro = 1 && echo 1 || echo 0`
+    \if `test ':pro' = 1 && echo 1 || echo 0`
         \if :is_local_connection
             select now() as calc_dir_size_start \gset
 
@@ -297,7 +297,7 @@ select
     --------------------------------------------------------------------------------------------------------------------
     -- выводим информационные сообщения
 
-    \if `test :pro = 1 && echo 1 || echo 0`
+    \if `test ':pro' = 1 && echo 1 || echo 0`
         \if :is_local_connection
             \echo :head'\n# OS ':reset
             \echo `top -bn2 | head -5`
@@ -321,9 +321,9 @@ select
         \set str 'Data directory:        ':data_directory
         \if :{?data_directory_used_size}
             \set color :reset
-            \if `test :data_directory_used_percent -gt 95 && echo 1 || echo 0`
+            \if `test ':data_directory_used_percent' -gt 95 && echo 1 || echo 0`
                 \set color :red
-            \elif `test :data_directory_used_percent -gt 90 && echo 1 || echo 0`
+            \elif `test ':data_directory_used_percent' -gt 90 && echo 1 || echo 0`
                 \set color :orange
             \endif
             \set str :str:color' (size: ':data_directory_used_size' used, ':data_directory_free_size' free)':reset
@@ -338,9 +338,9 @@ select
         \endif
         \if :{?wal_directory_used_size}
             \set color :reset
-            \if `test :wal_directory_used_percent -gt 95 && echo 1 || echo 0`
+            \if `test ':wal_directory_used_percent' -gt 95 && echo 1 || echo 0`
                 \set color :red
-            \elif `test :wal_directory_used_percent -gt 90 && echo 1 || echo 0`
+            \elif `test ':wal_directory_used_percent' -gt 90 && echo 1 || echo 0`
                 \set color :orange
             \endif
             \set str :str:color' (size: ':wal_directory_used_size' used, ':wal_directory_free_size' free)':reset
@@ -352,9 +352,9 @@ select
         \set str 'Log directory:         ':log_directory
         \if :{?log_files_used_size}
             \set color :reset
-            \if `test :log_directory_used_percent -gt 90 && echo 1 || echo 0`
+            \if `test ':log_directory_used_percent' -gt 90 && echo 1 || echo 0`
                 \set color :red
-            \elif `test :log_directory_used_percent -gt 80 && echo 1 || echo 0`
+            \elif `test ':log_directory_used_percent' -gt 80 && echo 1 || echo 0`
                 \set color :orange
             \endif
             \set str :str:color' (size: ':log_files_used_size' files used, ':log_directory_free_size' free)':reset
@@ -364,9 +364,9 @@ select
 
     \if :{?used_connections_percent}
         \set color :reset
-        \if `test :used_connections_percent -gt 85 && echo 1 || echo 0`
+        \if `test ':used_connections_percent' -gt 85 && echo 1 || echo 0`
             \set color :red
-        \elif `test :used_connections_percent -gt 70 && echo 1 || echo 0`
+        \elif `test ':used_connections_percent' -gt 70 && echo 1 || echo 0`
             \set color :orange
         \endif
         \echo 'Connections:           ':used_connections' of ':max_connections' ':color'(used ':used_connections_percent'%)':reset
