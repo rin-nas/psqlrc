@@ -646,7 +646,7 @@ select
             from pg_settings as s
             where s.name ~ '^biha\.[a-z]' or s.name = 'synchronous_standby_names'
         ),
-        -- получаем параметры конфигурации (для текущего узла), которые невозможно изменить с помощью ALTER SYSTEM SET или просмотреть через SHOW
+        -- получаем параметры конфигурации (для текущего узла), которые невозможно изменить с помощью ALTER SYSTEM SET или просмотреть через SHOW / current_setting()
         c (name, value) as (
             select '*.' || case when j.key = 'repl_pref_roles' then 'preferred_roles' else j.key end,
                    j.value
@@ -688,7 +688,7 @@ select
             ('*.preferred_roles', 'biha.set_pref_roles(id int, value text) bool'),
             ('*.priority',        'biha.set_priority(id int, value int) bool')
         ),
-        t as (
+        t (name, value, funcs) as (
             select s.name, s.value, f.funcs
             from s
             left join f on f.name = s.name
