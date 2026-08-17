@@ -1,0 +1,22 @@
+\echo :hint'Uninstall...':reset
+
+\if :pg_is_in_recovery
+    \echo :error'ERROR: connect to server role "primary" required':reset
+    \quit
+\endif
+
+\if :is_superuser
+\else
+    \echo :error'ERROR: connect a user (for example, postgres) with the superuser attribute required':reset
+    \quit
+\endif
+
+START TRANSACTION;
+    \include ~/psqlrc/uninstall.psql
+COMMIT;
+
+\if :ERROR
+    \echo :error'Uninstall fail':reset
+\else
+    \echo :succ'Uninstall success':reset
+\endif

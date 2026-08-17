@@ -1,5 +1,6 @@
-psql -v pro=install -c ''
-psql -v pro=install -c '' biha_db
+psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql biha_db
+psql -v pro=0 -q -f ~/psqlrc/command_UNINSTALL.psql biha_db
+psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql biha_db
 
 psql -v pro=0 -q -c '\echo :W :A' | psql -v pro=0 -q
 psql -v pro=0 -q -c '\echo :T' | psql -v pro=0 -q

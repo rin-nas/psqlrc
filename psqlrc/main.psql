@@ -125,38 +125,6 @@ select
 \gset
 
 ------------------------------------------------------------------------------------------------------------------------
-\if `test ':pro' = install && echo 1 || echo 0`
-    \echo :hint'Install...':reset
-
-    \if :pg_is_in_recovery
-        \echo :error'ERROR: connect to server role "primary" required':reset
-        \quit
-    \endif
-
-    \if :is_superuser
-    \else
-        \echo :error'ERROR: connect a user (for example, postgres) with the superuser attribute required':reset
-        \quit
-    \endif
-
-    \include ~/psqlrc/install.psql
-
-    \if :test_passed
-        \echo :hint'Test passed':reset
-    \else
-        \echo :warn'Test failed':reset
-    \endif
-
-    \if :ERROR
-        \echo :error'Install fail':reset
-    \else
-        \echo :succ'Install success':reset
-    \endif
-
-    \quit
-\endif
-
-------------------------------------------------------------------------------------------------------------------------
 -- настраиваем приглашения командной строки PROMPT1 и PROMPT2
 
 \set PROMPT2 '%R%x%# '
@@ -182,6 +150,10 @@ select
 \set T  '\\include ~/psqlrc/command_T.psql'
 \set B  '\\include ~/psqlrc/command_B.psql'
 \set BB '\\include ~/psqlrc/command_BB.psql'
+
+\set INSTALL   '\\include ~/psqlrc/command_INSTALL.psql'
+\set REINSTALL '\\include ~/psqlrc/command_REINSTALL.psql'
+\set UNINSTALL '\\include ~/psqlrc/command_UNINSTALL.psql'
 
 ------------------------------------------------------------------------------------------------------------------------
 \if :QUIET_ORIGINAL

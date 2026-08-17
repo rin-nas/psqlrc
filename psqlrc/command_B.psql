@@ -5,7 +5,7 @@
 
 \if :schema_pro_exists
 \else
-    \echo :hint'first, run `psql -v pro=install -c '''' biha_db` and `nano ~/.pgpass` to save/check password exists for user postgres':reset
+    \echo :hint'type ":INSTALL" and run "\\! nano ~/.pgpass" to save/check password exists for user postgres':reset
     \quit
 \endif
 
