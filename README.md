@@ -22,6 +22,7 @@ nano ~/.pgpass
 
 ## Использование
 
+Интерактивный режим:
 ```bash
 # подключитесь локально по сокету
 psql -v pro=1
@@ -37,6 +38,13 @@ psql -v pro=0 -q
 
 1. `psql -v pro=1` — с вычислением размера директорий для локальных подключений (медленно при большом количестве файлов), игнорируется с флагом `-q`
 1. `psql -v pro=0` — без вычисления размера директорий (быстро)
+
+Встраивание в `bash` скрипты на примере выполнения коротких SQL команд:
+```bash
+psql -v pro=0 -q -c '\echo :T' | psql -v pro=0 -q -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))"
+
+psql -v pro=0 -q -c '\echo :B' biha_db | psql -v pro=0 -q -P title="BiHA cluster state and config" biha_db
+```
 
 ## Что отображается в командной строке `psql`
 
@@ -105,13 +113,6 @@ psql -v pro=0 -q
   
 Для выполнения команды просто введите её в приглашении `psql` и нажмите клавишу `Enter`. 
 
-Пример выполнения коротких SQL команд для встраивания в скрипты `bash`:
-```bash
-psql -v pro=0 -q -c '\echo :T' | psql -v pro=0 -q -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))"
-
-psql -v pro=0 -q -c '\echo :B' biha_db | psql -v pro=0 -q -P title="BiHA cluster state and config" biha_db
-```
-
 ## Валидация при запуске `psql`
 
 1. Отображаются ошибки в конфигурационном файле `postgresql.conf`, если такие имеются.
@@ -123,7 +124,6 @@ psql -v pro=0 -q -c '\echo :B' biha_db | psql -v pro=0 -q -P title="BiHA cluster
 
 Используется пейджер [`pspg`](https://github.com/okbob/pspg), если он установлен. 
 Иначе используется [`less`](https://en.wikipedia.org/wiki/Less_(Unix)), если он установлен.
-
 
 ## Примеры
 
