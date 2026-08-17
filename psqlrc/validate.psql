@@ -1,0 +1,49 @@
+-- проверяем наличие ошибок в конфигурационных файлах
+
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+    with fs as (
+        select distinct on (name) *
+        from pg_file_settings -- non commented rows of config files
+        order by name, seqno desc
+    )
+    select
+        current_setting('config_file') as config_file,
+        current_setting('hba_file') as hba_file,
+        exists(
+            select
+            from fs
+            join pg_settings as s on lower(fs.name) = lower(s.name)
+            where not fs.applied and not s.pending_restart
+        ) as is_config_file_error,
+        exists(select from pg_hba_file_rules where error is not null) as is_hba_file_error
+    \gset
+
+    \if :is_config_file_error
+        \echo :error'Errors found in config file "':config_file'"':reset
+
+        with fs as (
+            select distinct on (name) *
+            from pg_file_settings
+            order by name, seqno desc
+        )
+        select fs.sourcefile, fs.sourceline, fs.name, fs.setting, fs.applied, fs.error,
+               s.vartype, s.min_val, s.max_val, s.enumvals, s.extra_desc
+        from fs
+        join pg_settings as s on lower(fs.name) = lower(s.name)
+        where not fs.applied and not s.pending_restart
+        order by fs.sourcefile, fs.sourceline
+        \gx
+    \endif
+
+    \if :is_hba_file_error
+        \echo :error'Errors found in hba file "':hba_file'"':reset
+
+        select *
+        from pg_hba_file_rules
+        where error is not null
+        order by line_number
+        \gx
+    \endif
+
+COMMIT;
