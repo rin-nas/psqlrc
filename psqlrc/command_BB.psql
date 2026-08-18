@@ -1,6 +1,5 @@
 -- BiHA шпаргалка: сопоставление параметров конфигурации с функциями управления
 
-\set title 'BiHA cheat sheet: config settings to management functions mapping'
 \include ~/psqlrc/title.psql
 
 \if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
@@ -8,6 +7,10 @@
     \echo :hint'HINT: type "\\c biha_db"':reset
     \quit
 \endif
+
+
+\set title 'BiHA cheat sheet: config settings to management functions mapping'
+\include ~/psqlrc/title.psql
 
 with s (name, value) as (
     select s.name, s.setting

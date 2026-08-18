@@ -1,6 +1,5 @@
 --  BiHA: состояние и конфигурация узлов кластера
 
-\set title 'BiHA cluster state and config'
 \include ~/psqlrc/title.psql
 
 \if :schema_pro_exists
@@ -15,6 +14,9 @@
     \quit
 \endif
 
+
+\set title 'BiHA cluster state and config'
+\include ~/psqlrc/title.psql
 
 select 'now()' as function, now()::timestamptz(0)::text as return
 union all
