@@ -178,7 +178,12 @@ left join pro.dblink(
               with
               guc as (
                   select
-                      -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication
+                      -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication#RUNTIME-CONFIG-REPLICATION-PRIMARY
+                      -- Главный сервер. Эти параметры можно задать на главном/ведущем сервере, который должен передавать данные репликации одному или нескольким ведомым.
+                      jsonb_object_agg_strict(name, nullif(trim(setting), '')) filter (where name in ('synchronous_standby_names',
+                                                                                                      'synchronized_standby_slots')) as primary,
+
+                      -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication#RUNTIME-CONFIG-REPLICATION-STANDBY
                       -- Ведомые серверы. Эти параметры управляют поведением ведомого сервера, который будет получать данные репликации. На ведущем сервере они не играют никакой роли.
                       jsonb_object_agg_strict(name, nullif(trim(setting), '')) filter (where name in ('primary_conninfo',
                                                                                                       'primary_slot_name',
@@ -201,6 +206,7 @@ left join pro.dblink(
                   pg_conf_load_time()                as loaded_at,
                   now() - pg_conf_load_time()        as load_uptime,
                   case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
+                  guc.primary       as guc_primary,
                   guc.replica       as guc_replica,
                   guc.biha          as guc_biha,
                   ping.latency      as ping_latency,
@@ -219,6 +225,7 @@ left join pro.dblink(
               loaded_at      timestamptz,
               load_uptime    interval,
               pause_state    text,
+              guc_primary    jsonb,
               guc_replica    jsonb,
               guc_biha       jsonb,
               ping_latency   interval,
