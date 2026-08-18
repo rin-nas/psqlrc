@@ -122,7 +122,7 @@ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and con
 
 ## Поддержка внешнего ПО
 
-Используется пейджер [`pspg`](https://github.com/okbob/pspg), если он установлен. 
+Используется пейджер [`pspg`](https://github.com/okbob/pspg), если он установлен (как использовать `pspg` — см. [видео](https://pgconf.ru/talk/1589147) на русском языке). 
 Иначе используется [`less`](https://en.wikipedia.org/wiki/Less_(Unix)), если он установлен.
 
 Для большой таблицы, которая при отображении на экране терминала не умещается по ширине или длине, 
