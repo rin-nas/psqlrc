@@ -90,8 +90,26 @@ JOIN biha.monitoring() AS m ON m.id = s.id
 --LEFT JOIN pg_stat_replication AS r ON r.application_name = CONCAT('biha_node_', s.id)
 ORDER BY s.id;
 
--- select count(*) > 0 as callbacks_exists from biha.callbacks \gset --TODO показывать таблицу только если она не пустая
--- select * from biha.callbacks;
+
+-- показываем таблицу biha.callbacks только если она не пустая
+\set QUIET 1
+\timing 0
+select count(*) > 0 as callbacks_exists from biha.callbacks \gset
+\if :QUIET_ORIGINAL
+    \timing 0
+\else
+    \timing 1
+\endif
+\set QUIET :QUIET_ORIGINAL
+
+\if :callbacks_exists
+
+    \set title 'BiHA callbacks'
+    \include ~/psqlrc/title.psql
+
+    select * from biha.callbacks;
+\endif
+
 
 \unset title
 \include ~/psqlrc/title.psql
