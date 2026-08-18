@@ -206,7 +206,7 @@ Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 (1 row)
 
 
-2026-06-05 14:48:59+03:00  postgres@rmukhtarov-redos1[192.168.23.239] /var/lib/pgsql
+2026-06-05 14:48:59+03  postgres@rmukhtarov-redos1[192.168.23.239] /var/lib/pgsql
 Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 =# 
 ```
@@ -259,7 +259,7 @@ psql (18.3)
 Type "help" for help.
 
 
-2026-06-05 14:46:52+03:00  postgres@sdm18-1[192.168.22.146] /home/postgres
+2026-06-05 14:46:52+03  postgres@sdm18-1[192.168.22.146] /home/postgres
 Postgres Pro (shardman) 18.3.3 fbc0896965c  postgres@[local]:5432/postgres
 =# 
 ```
