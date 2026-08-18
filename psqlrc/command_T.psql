@@ -1,6 +1,6 @@
 -- Топология кластера СУБД. Возвращает серверы: мастер и зависимые реплики, включая каскадные.
 
-\set title 'Cluster topology (at '`date --rfc-3339=seconds | sed 's/:00$//'`')'
+\set title 'Cluster topology'
 \include ~/psqlrc/title.psql
 
 \if :schema_pro_exists

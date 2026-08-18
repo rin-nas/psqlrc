@@ -21,7 +21,8 @@ select count(*) > 0 as schema_pro_exists from pg_catalog.pg_namespace where nspn
 \else
     \set QUIET 1
     \if :{?title}
-        \pset title :title
+        \set now `date --rfc-3339=seconds | sed 's/:00$//'`
+        \pset title :title' (at ':now')'
     \else
         -- unset
         \pset title
