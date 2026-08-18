@@ -15,6 +15,23 @@ START TRANSACTION;
     \include ~/psqlrc/install.psql
 COMMIT;
 
+/*
+Запрос внутри транзакции выводит ошибку:
+    psql:/home/postgres/psqlrc/install.psql:236: ERROR:  schema "pro" does not exist
+    CONTEXT:  while executing query on unnamed dblink connection
+Потому что во VIEW используется внешнее подключение через dblink().
+Поэтому тест пока закомментирован.
+
+-- select * from pro.pg_cluster_topology; -- для отладки
+select count(*) > 0 as test_passed from pro.pg_cluster_topology \gset
+
+\if :test_passed
+    \echo :hint'Test passed':reset
+\else
+    \echo :warn'Test failed':reset
+\endif
+*/
+
 \if :ERROR
     \echo :error'Install fail':reset
 \else
