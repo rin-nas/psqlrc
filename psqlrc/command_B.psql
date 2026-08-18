@@ -72,7 +72,7 @@ SELECT
 
     -- значение поля MIN параметра synchronous_standby_names,
     -- т.е. минимальное число синхронных резервных узлов, которые должны быть доступны, чтобы лидер продолжал подтверждать транзакции
-    nullif(c.sync_standbys_min, -1) as U&"sync_standbys_min\000A(for L commit)",
+    c.sync_standbys_min as U&"sync_standbys_min\000A(for L commit)",
 
     concat_ws(E'\n',
         c.can_be_leader,
