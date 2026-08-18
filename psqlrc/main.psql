@@ -406,7 +406,7 @@ select
     --------------------------------------------------------------------------------------------------------------------
     \echo :head'\n# SHORT SQL':reset
 
-    \echo ':W — Who am i.'
+    \echo ':W — Who am I.'
     \echo ':A — Stat activity groups counts.'
     \echo ':T — Cluster topology. Returns servers: primary and dependent replicas, including cascaded ones.'
     \echo ':B — BiHA cluster state and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference'

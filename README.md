@@ -187,7 +187,7 @@ Cache hit ratio:       0%
 Installed extensions:  btree_gist 1.8.1, cube 1.5, earthdistance 1.2, pg_buffercache 1.6, plpgsql 1.0.1, ptrack 2.5
 
 # SHORT SQL
-:W — Who am i.
+:W — Who am I.
 :A — Stat activity groups counts.
 :T — Cluster topology. Returns servers: primary and dependent replicas, including cascaded ones.
 :B — BiHA cluster state and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference
@@ -252,7 +252,7 @@ Cache hit ratio:       0%
 Installed extensions:  pg_buffercache 1.6, pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
 
 # SHORT SQL
-:W — Who am i.
+:W — Who am I.
 :A — Stat activity groups counts.
 :T — Cluster topology. Returns servers: primary and dependent replicas, including cascaded ones.
 :B — BiHA cluster state and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference
@@ -304,7 +304,7 @@ Cache hit ratio:       0%
 Installed extensions:  pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
 
 # SHORT SQL
-:W — Who am i.
+:W — Who am I.
 :A — Stat activity groups counts.
 :T — Cluster topology. Returns servers: primary and dependent replicas, including cascaded ones.
 :B — BiHA cluster state and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference
@@ -326,7 +326,7 @@ Postgres Pro (shardman) 18.3.3 fbc0896965c  postgres@[local]:5432/postgres
 2026-08-18 11:51:52+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
 Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
 =# :W
-                                                  Who am i (at 2026-08-18 11:54:05+00)
+                                                  Who am I (at 2026-08-18 11:54:05+00)
 ┌────┬───────────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │  # │         name          │                                                  value                                                  │
 ├────┼───────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
