@@ -108,6 +108,7 @@ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and con
 * `:A` — агрегированная информация из `pg_stat_activity`.
 * `:T` — топология кластера СУБД. Возвращает серверы: мастер и зависимые реплики, включая каскадные.
   Для каждой реплики имеется детализированная информация о размере и длительности отставания от зависимых серверов.
+  Запускать лучше на мастере, но это не обязательно.
 * `:B` — [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference): состояние и конфигурация узлов кластера.
 * `:BB` — [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference) шпаргалка: сопоставление параметров конфигурации с функциями управления.
   

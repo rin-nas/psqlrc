@@ -145,6 +145,7 @@ select
 ------------------------------------------------------------------------------------------------------------------------
 
 -- именованные SQL запросы для быстрого доступа
+\set H  '\\include ~/psqlrc/command_H.psql'
 \set W  '\\include ~/psqlrc/command_W.psql'
 \set A  '\\include ~/psqlrc/command_A.psql'
 \set T  '\\include ~/psqlrc/command_T.psql'
@@ -406,11 +407,7 @@ select
     --------------------------------------------------------------------------------------------------------------------
     \echo :head'\n# SHORT SQL':reset
 
-    \echo ':W — Who am I.'
-    \echo ':A — Stat activity groups counts.'
-    \echo ':T — Cluster topology. Returns servers: primary and dependent replicas, including cascaded ones.'
-    \echo ':B — BiHA cluster state and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference'
-    \echo ':BB — BiHA cheat sheet: config settings to management functions mapping'
+    \echo ':H — Help and full list of short SQL commands'
     \echo
 
     --------------------------------------------------------------------------------------------------------------------
