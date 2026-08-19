@@ -104,7 +104,8 @@ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and con
 1. установленные расширения и их версии
 
 ### Короткие SQL команды
-* `:W` — who am i (информация о текущем пользователе, схеме и т.д.).
+* `:H` — помощь и полный список коротких SQL команд
+* `:W` — информация о текущем пользователе, сессии, схеме и т.д.
 * `:A` — агрегированная информация из `pg_stat_activity`.
 * `:T` — топология кластера СУБД. Возвращает серверы: мастер и зависимые реплики, включая каскадные.
   Для каждой реплики имеется детализированная информация о размере и длительности отставания от зависимых серверов.
@@ -188,11 +189,7 @@ Cache hit ratio:       0%
 Installed extensions:  btree_gist 1.8.1, cube 1.5, earthdistance 1.2, pg_buffercache 1.6, plpgsql 1.0.1, ptrack 2.5
 
 # SHORT SQL
-:W — Who am I.
-:A — Stat activity groups counts.
-:T — Cluster topology. Returns servers: primary and dependent replicas, including cascaded ones.
-:B — BiHA cluster state and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference
-:BB — BiHA cheat sheet: config settings to management functions mapping
+:H — Help and full list short SQL commands
 
 psql (18.3, server 17.9)
 Type "help" for help.
@@ -253,11 +250,7 @@ Cache hit ratio:       0%
 Installed extensions:  pg_buffercache 1.6, pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
 
 # SHORT SQL
-:W — Who am I.
-:A — Stat activity groups counts.
-:T — Cluster topology. Returns servers: primary and dependent replicas, including cascaded ones.
-:B — BiHA cluster state and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference
-:BB — BiHA cheat sheet: config settings to management functions mapping
+:H — Help and full list short SQL commands
 
 psql (18.3)
 Type "help" for help.
@@ -305,11 +298,7 @@ Cache hit ratio:       0%
 Installed extensions:  pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
 
 # SHORT SQL
-:W — Who am I.
-:A — Stat activity groups counts.
-:T — Cluster topology. Returns servers: primary and dependent replicas, including cascaded ones.
-:B — BiHA cluster state and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference
-:BB — BiHA cheat sheet: config settings to management functions mapping
+:H — Help and full list short SQL commands
 
 psql (18.3)
 Type "help" for help.

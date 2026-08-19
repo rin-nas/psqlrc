@@ -1,4 +1,4 @@
--- who am i (информация о текущем пользователе, схеме и т.д.)
+-- who am I (информация о текущем пользователе, схеме и т.д.)
 -- https://postgrespro.ru/docs/postgresql/current/functions-info
 
 \set title 'Who am I'
