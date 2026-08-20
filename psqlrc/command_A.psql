@@ -19,8 +19,7 @@ select
     ) as U&"count_state_changed\000A> 1s/5s/1m/1h ago"
 from pg_stat_activity
 group by backend_type, datname, state, usename, wait_event_type, wait_event
-order by backend_type, datname, state, usename, wait_event_type, wait_event
-\g | sed 's/↵/ /g'
+order by backend_type, datname, state, usename, wait_event_type, wait_event;
 
 \unset title
 \include ~/psqlrc/title.psql

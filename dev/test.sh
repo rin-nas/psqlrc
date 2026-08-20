@@ -6,10 +6,10 @@ psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql biha_db
 psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql biha_db
 psql -v pro=0 -q -f ~/psqlrc/command_UNINSTALL.psql biha_db
 
-psql -v pro=0 -q -f ~/psqlrc/command_W.psql biha_db
-psql -v pro=0 -q -f ~/psqlrc/command_A.psql biha_db
-psql -v pro=0 -q -f ~/psqlrc/command_B.psql biha_db
-psql -v pro=0 -q -f ~/psqlrc/command_BB.psql biha_db
+psql -v pro=0 -q -f ~/psqlrc/command_W.psql biha_db | sed 's/↵/ /g'
+psql -v pro=0 -q -f ~/psqlrc/command_A.psql biha_db | sed 's/↵/ /g'
+psql -v pro=0 -q -f ~/psqlrc/command_B.psql biha_db | sed 's/↵/ /g'
+psql -v pro=0 -q -f ~/psqlrc/command_BB.psql biha_db | sed 's/↵/ /g'
 
 #-----------------------------------------------------------------------------------------------------------------------
 

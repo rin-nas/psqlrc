@@ -28,8 +28,7 @@ WITH t as (
 )
 select row_number() over () as " #", j.key as name, j.value
 from t
-cross join json_each_text(row_to_json(t)) as j
-\g | sed 's/↵/ /g'
+cross join json_each_text(row_to_json(t)) as j;
 
 \unset title
 \include ~/psqlrc/title.psql

@@ -96,8 +96,7 @@ select
     ) as U&"slot_type\000Aactive temp"
 
 from pro.pg_cluster_topology as t
-order by t.level, t.sync_state desc, t.state
-\g | sed 's/↵/ /g'
+order by t.level, t.sync_state desc, t.state;
 
 \unset title
 \include ~/psqlrc/title.psql
