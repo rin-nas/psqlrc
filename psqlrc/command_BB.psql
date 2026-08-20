@@ -75,7 +75,7 @@ t (name, value, funcs) as (
 select
     row_number() over (order by t.name) as " #",
     t.name as "setting_name ↓",
-    nullif(trim(t.value), '') as setting_value,
+    nullif(trim(t.value), '') as U&"setting_value\000A(curent node)",
     regexp_replace(t.funcs, ';\s*', E'\n', 'g') as management_functions
 from t
 order by t.name;
