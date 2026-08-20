@@ -41,9 +41,9 @@ psql -v pro=0 -q
 
 Встраивание в `bash` скрипты на примере выполнения коротких SQL команд:
 ```bash
-psql -v pro=0 -q -f ~/psqlrc/command_T.psql -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))"
+psql -v pro=0 -q -f ~/psqlrc/command_T.psql -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" | sed 's/↵/ /g'
 
-psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and config" biha_db
+psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and config" biha_db | sed 's/↵/ /g'
 ```
 
 ## Что отображается в командной строке `psql`
