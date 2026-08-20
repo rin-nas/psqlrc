@@ -20,6 +20,7 @@ select
 from pg_stat_activity
 group by backend_type, datname, state, usename, wait_event_type, wait_event
 order by backend_type, datname, state, usename, wait_event_type, wait_event;
+-- \g | sed 's/↵/ /g' -- к сожалению, с этой командой (вместо ";") не работает пейджер
 
 \unset title
 \include ~/psqlrc/title.psql
