@@ -78,7 +78,8 @@ select
     nullif(trim(t.value), '') as U&"setting_value\000A(curent node)",
     regexp_replace(t.funcs, ';\s*', E'\n', 'g') as management_functions
 from t
-order by t.name;
+order by t.name
+\g | sed 's/↵/ /g'
 
 \unset title
 \include ~/psqlrc/title.psql
