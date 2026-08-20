@@ -1,3 +1,7 @@
+chown -R postgres: ~/psqlrc
+chmod -R 600 ~/psqlrc
+chmod 700 ~/psqlrc
+
 psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql biha_db
 psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql biha_db
 psql -v pro=0 -q -f ~/psqlrc/command_UNINSTALL.psql biha_db

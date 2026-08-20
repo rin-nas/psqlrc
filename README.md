@@ -16,7 +16,7 @@
 # 2) создайте символическую ссылку
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
 
-# 3) сохраните пароль для пользователя postgres, при необходимости
+# 3) проверьте (при необходимости) возможность удаленной аутентификации для пользователя postgres на каждом сервере кластера (см. файлы "~/.pgpass" и "pg_hba.conf")
 nano ~/.pgpass
 ```
 
@@ -451,6 +451,7 @@ Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
                  BiHA cheat sheet: config settings to management functions mapping (at 2026-08-18 11:51:52+00)
 ┌────┬────────────────────────────┬─────────────────────────────────┬──────────────────────────────────────────────────────────┐
 │  # │       setting_name ↓       │          setting_value          │                   management_functions                   │
+│    │                            │          (curent node)          │                                                          │
 ├────┼────────────────────────────┼─────────────────────────────────┼──────────────────────────────────────────────────────────┤
 │  1 │ *                          │ ./pg_biha/biha.conf             │ biha.add_node(id int, parent_id int) bool               ↵│
 │    │                            │                                 │ biha.remove_node(id int) bool                           ↵│
