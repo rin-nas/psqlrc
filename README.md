@@ -8,16 +8,47 @@
 Используя файл [`~/.psqlrc`](https://postgrespro.ru/docs/postgresql/current/app-psql#APP-PSQL-FILES-PSQLRC) можно значительно улучшить приглашение, 
 а при запуске `psql` выводить дополнительную полезную информацию для поверхностной оценки состояния сервера СУБД и текущей базы.   
 
-## Инсталляция
+## Инсталляция, обновление, удаление
 
+### Инсталляция
 ```bash
-# 1) из репозитория скопируйте папку psqlrc в домашнюю папку  
+# 1) из репозитория скопируйте папку psqlrc в домашнюю папку, установите владельца и права на папку и файлы 
+chown -R postgres: ~/psqlrc
+chmod -R 600 ~/psqlrc
+chmod 700 ~/psqlrc
 
 # 2) создайте символическую ссылку
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
 
-# 3) проверьте (при необходимости) возможность удаленной аутентификации для пользователя postgres на каждом сервере кластера (см. файлы "~/.pgpass" и "pg_hba.conf")
-nano ~/.pgpass
+# 3) добавьте служебные объекты в схему "pro"
+psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql postgres
+psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql biha_db  # для BiHA, при наличии
+
+# 4) при необходимости, проверьте возможность удалённой аутентификации для пользователя postgres на каждом сервере кластера (см. файлы "~/.pgpass" и "pg_hba.conf")
+```
+
+### Обновление на новую версию
+
+```bash
+# 1) из репозитория скопируйте папку psqlrc в домашнюю папку, установите владельца и права на папку и файлы 
+chown -R postgres: ~/psqlrc
+chmod -R 600 ~/psqlrc
+chmod 700 ~/psqlrc
+
+# 2) обновите служебные объекты в схеме "pro"
+psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql postgres
+psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql biha_db  # для BiHA, при наличии
+```
+
+### Удаление
+
+```bash
+# 1) удалите служебные объекты в схеме "pro"
+psql -v pro=0 -q -f ~/psqlrc/command_UNINSTALL.psql postgres
+psql -v pro=0 -q -f ~/psqlrc/command_UNINSTALL.psql biha_db  # для BiHA, при наличии
+
+# 2) удалите папку psqlrc и символическую ссылку
+rm -R ~/psqlrc && rm ~/.psqlrc 
 ```
 
 ## Использование
