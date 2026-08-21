@@ -193,7 +193,7 @@ rm -R ~/psqlrc && rm ~/.psqlrc
 ### Автономная СУБД
 
 <details>
-<summary>Без применения `.psqlrc` (показать/скрыть)</summary>
+<summary>Без применения .psqlrc (показать/скрыть)</summary>
 
 ```
 [postgres@rmukhtarov-redos1 ~]$ psql demo
@@ -212,7 +212,7 @@ demo=#
 </details>
 
 <details>
-<summary>С применением `.psqlrc` (показать/скрыть)</summary>
+<summary>С применением .psqlrc (показать/скрыть)</summary>
 
 ```
 [postgres@rmukhtarov-redos1 ~]$ psql -v pro=1 demo
@@ -275,7 +275,7 @@ Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 ### Кластерная СУБД
 
 <details>
-<summary>С применением `.psqlrc`, мастер (показать/скрыть)</summary>
+<summary>С применением .psqlrc, мастер (показать/скрыть)</summary>
 
 ```
 postgres@sdm18-1:~$ psql -v pro=1
@@ -324,7 +324,7 @@ Postgres Pro (shardman) 18.3.3 fbc0896965c  postgres@[local]:5432/postgres
 </details>
 
 <details>
-<summary>С применением `.psqlrc`, реплика (показать/скрыть)</summary>
+<summary>С применением .psqlrc, реплика (показать/скрыть)</summary>
 
 ```
 postgres@sdm18-4:~$ psql -v pro=1
