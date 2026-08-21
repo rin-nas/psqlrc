@@ -36,9 +36,11 @@ begin atomic
     coalesce(d2.local_connection_duration - d1.remote_connection_duration) as d3(latency);
 end;
 
-comment on function pro.ping(connection_str text,
-                             latency out interval,
-                             time_diff out interval) is 'Get latency and date-time difference between current and remote servers';
+comment on function pro.ping(
+    connection_str text,
+    latency out interval,
+    time_diff out interval
+) is 'Get latency and date-time difference between current and remote servers';
 
 
 -- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/interval_pretty.sql
