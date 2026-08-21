@@ -192,7 +192,8 @@ rm -R ~/psqlrc && rm ~/.psqlrc
 
 ### Автономная СУБД
 
-#### Без применения `.psqlrc` 
+<details>
+<summary>Без применения `.psqlrc` (показать/скрыть)</summary>
 
 ```
 [postgres@rmukhtarov-redos1 ~]$ psql demo
@@ -208,8 +209,10 @@ demo=# \d+
 
 demo=#  
 ```
+</details>
 
-#### С применением `.psqlrc`
+<details>
+<summary>С применением `.psqlrc` (показать/скрыть)</summary>
 
 ```
 [postgres@rmukhtarov-redos1 ~]$ psql -v pro=1 demo
@@ -267,10 +270,12 @@ Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 =# 
 ```
+</details>
 
 ### Кластерная СУБД
 
-#### С применением `.psqlrc`, мастер
+<details>
+<summary>С применением `.psqlrc`, мастер (показать/скрыть)</summary>
 
 ```
 postgres@sdm18-1:~$ psql -v pro=1
@@ -316,8 +321,10 @@ Type "help" for help.
 Postgres Pro (shardman) 18.3.3 fbc0896965c  postgres@[local]:5432/postgres
 =# 
 ```
+</details>
 
-#### С применением `.psqlrc`, реплика
+<details>
+<summary>С применением `.psqlrc`, реплика (показать/скрыть)</summary>
 
 ```
 postgres@sdm18-4:~$ psql -v pro=1
@@ -364,10 +371,13 @@ Type "help" for help.
 Postgres Pro (shardman) 18.3.3 fbc0896965c  postgres@[local]:5432/postgres
 =# 
 ```
+</details>
 
-### Пример вывода коротких команд
+### Короткие команды
 
-#### :W
+<details>
+<summary>:W (показать/скрыть)</summary>
+
 ```
 2026-08-18 11:51:52+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
 Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
@@ -402,7 +412,11 @@ Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
 Time: 0.900 ms
 ```
 
-#### :A
+</details>
+
+<details>
+<summary>:A (показать/скрыть)</summary>
+
 ```
 2026-08-18 11:54:05+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
 Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
@@ -431,8 +445,11 @@ Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
 
 Time: 1.478 ms
 ```
+</details>
 
-#### :T
+<details>
+<summary>:T (показать/скрыть)</summary>
+
 ```
 2026-08-18 11:54:30+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
 Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
@@ -459,8 +476,11 @@ Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
 
 Time: 204.150 ms
 ```
+</details>
 
-#### :B
+<details>
+<summary>:B (показать/скрыть)</summary>
+
 ```
 2026-08-18 11:51:26+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
 Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
@@ -497,8 +517,11 @@ Time: 0.935 ms
 
 Time: 1.175 ms
 ```
+</details>
 
-#### :BB
+<details>
+<summary>:BB (показать/скрыть)</summary>
+
 ```
 2026-08-18 11:51:49+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
 Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
@@ -553,6 +576,7 @@ Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
 
 Time: 2.853 ms
 ```
+</details>
 
 ## Ссылки по теме
 
