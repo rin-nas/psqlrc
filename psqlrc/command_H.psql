@@ -1,4 +1,4 @@
-\echo :head'Short SQL commands:':reset
+\echo :head'Short commands:':reset
 \echo ':W — Who am I.'
 \echo ':A — Stat activity groups counts.'
 \echo ':T — Cluster topology. Returns servers: primary and dependent replicas, including cascaded ones.'

@@ -405,9 +405,9 @@ select
     \endif
 
     --------------------------------------------------------------------------------------------------------------------
-    \echo :head'\n# SHORT SQL':reset
+    \echo :head'\n# SHORT COMMANDS':reset
 
-    \echo ':H — Help and full list of short SQL commands'
+    \echo ':H — Help and full list of short commands'
     \echo
 
     --------------------------------------------------------------------------------------------------------------------

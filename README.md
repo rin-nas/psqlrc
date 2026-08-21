@@ -57,15 +57,18 @@ psql -v pro=0 -q
 1. `psql -v pro=1` — с вычислением размера директорий для локальных подключений (медленно при большом количестве файлов), игнорируется с флагом `-q`
 1. `psql -v pro=0` — без вычисления размера директорий (быстро) и секции **`# OS`**
 
-**Встраивание в `bash` скрипты на примере выполнения коротких SQL команд:**
+**Встраивание в `bash` скрипты на примере выполнения коротких команд:**
 ```bash
 psql -v pro=0 -q -f ~/psqlrc/command_T.psql -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" | sed 's/↵/ /g'
 
 psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and config" biha_db | sed 's/↵/ /g'
 ```
 
-## Короткие SQL команды
-* `:H` — помощь и полный список коротких SQL команд
+## Короткие команды
+
+Короткие команды — это сценарии psql, в которых выполняется один или несколько SQL запросов и выводится результат их выполнения в табличном виде.
+
+* `:H` — помощь и полный список коротких команд
 * `:W` — информация о текущем пользователе, сессии, схеме и т.д.
 * `:A` — агрегированная информация из `pg_stat_activity`.
 * `:T` — топология кластера СУБД. Возвращает серверы: мастер и зависимые реплики, включая каскадные.
@@ -238,8 +241,8 @@ Current database:      demo (size: 1379 MB total)
 Cache hit ratio:       0%
 Installed extensions:  btree_gist 1.8.1, cube 1.5, earthdistance 1.2, pg_buffercache 1.6, plpgsql 1.0.1, ptrack 2.5
 
-# SHORT SQL
-:H — Help and full list short SQL commands
+# SHORT COMMANDS
+:H — Help and full list short commands
 
 psql (18.3, server 17.9)
 Type "help" for help.
@@ -299,8 +302,8 @@ Current database:      postgres (size: 125 MB total)
 Cache hit ratio:       0%
 Installed extensions:  pg_buffercache 1.6, pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
 
-# SHORT SQL
-:H — Help and full list short SQL commands
+# SHORT COMMANDS
+:H — Help and full list short commands
 
 psql (18.3)
 Type "help" for help.
@@ -347,8 +350,8 @@ Current database:      postgres (size: 118 MB total)
 Cache hit ratio:       0%
 Installed extensions:  pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
 
-# SHORT SQL
-:H — Help and full list short SQL commands
+# SHORT COMMANDS
+:H — Help and full list short commands
 
 psql (18.3)
 Type "help" for help.
