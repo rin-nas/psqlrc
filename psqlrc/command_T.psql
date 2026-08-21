@@ -24,8 +24,7 @@ select
     case when is_primary then 'primary' else 'replica' end as role,
 
     concat_ws(E'\n',
-        nullif((regexp_match(guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1], parent_addr::text),
-        parent_addr
+        ping_remote_server_addr --parent_addr использовать нельзя, т.к. там может быть локальный IP 127.0.0.1
     ) as U&"parent_host\000Aparent_addr",
 
     concat_ws(E'\n',
