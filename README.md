@@ -64,7 +64,7 @@ psql -v pro=0 -q -f ~/psqlrc/command_T.psql -P title="Cluster topology at ($(dat
 psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and config" biha_db | sed 's/↵/ /g'
 ```
 
-## Короткие команды
+## Короткие команды для DBA
 
 Короткие команды — это сценарии psql, в которых выполняется один или несколько SQL запросов и выводится результат их выполнения в виде таблиц и/или сообщений.
 

@@ -144,17 +144,8 @@ select
 
 ------------------------------------------------------------------------------------------------------------------------
 
--- именованные SQL запросы для быстрого доступа
-\set H  '\\include ~/psqlrc/command_H.psql'
-\set W  '\\include ~/psqlrc/command_W.psql'
-\set A  '\\include ~/psqlrc/command_A.psql'
-\set T  '\\include ~/psqlrc/command_T.psql'
-\set B  '\\include ~/psqlrc/command_B.psql'
-\set BB '\\include ~/psqlrc/command_BB.psql'
-
-\set INSTALL   '\\include ~/psqlrc/command_INSTALL.psql'
-\set REINSTALL '\\include ~/psqlrc/command_REINSTALL.psql'
-\set UNINSTALL '\\include ~/psqlrc/command_UNINSTALL.psql'
+-- короткие команды для DBA
+\include ~/psqlrc/commands.psql
 
 ------------------------------------------------------------------------------------------------------------------------
 \if :QUIET_ORIGINAL
@@ -163,7 +154,7 @@ select
     -- скрываем длительность выполнения запроса
     \timing 0
 
-    -- скрываем количество срок под таблицей
+    -- скрываем количество строк под таблицей
     \pset footer off
 \else
 
@@ -481,6 +472,9 @@ select
 
     -- отображаем длительность выполнения запроса
     \timing 1
+
+    -- отображаем количество строк под таблицей
+    \pset footer on
 
 \endif
 
