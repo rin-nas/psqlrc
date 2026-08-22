@@ -180,69 +180,93 @@ with recursive m as (
 )
 -- select * from r order by r.level; -- для отладки
 -- Шаг 3. Собираем информацию со всех серверов.
-select r.level, r.is_primary, r.parent_addr, r.addr, r.port, r.last_lsn, r.receive_uptime, r.reply_ago,
-       s.*,
-       (r.pg_sr).*, (r.pg_rs).*
-from r
-left join pro.dblink(
-       format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
-       $sql$
-           with guc as (
-               select
-                   -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication#RUNTIME-CONFIG-REPLICATION-PRIMARY
-                   -- Главный сервер. Эти параметры можно задать на главном/ведущем сервере, который должен передавать данные репликации одному или нескольким ведомым.
-                   jsonb_object_agg_strict(name, nullif(trim(setting), '')) filter (where name in ('synchronous_standby_names',
-                                                                                                   'synchronized_standby_slots')) as primary,
+, p as (
+    select r.*, s.*
+    from r
+    left join pro.dblink(
+           format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
+           $sql$
+               with guc as (
+                   select
+                       -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication#RUNTIME-CONFIG-REPLICATION-PRIMARY
+                       -- Главный сервер. Эти параметры можно задать на главном/ведущем сервере, который должен передавать данные репликации одному или нескольким ведомым.
+                       jsonb_object_agg_strict(name, nullif(trim(setting), '')) filter (where name in ('synchronous_standby_names',
+                                                                                                       'synchronized_standby_slots')) as primary,
 
-                   -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication#RUNTIME-CONFIG-REPLICATION-STANDBY
-                   -- Ведомые серверы. Эти параметры управляют поведением ведомого сервера, который будет получать данные репликации. На ведущем сервере они не играют никакой роли.
-                   jsonb_object_agg_strict(name, nullif(trim(setting), '')) filter (where name in ('primary_conninfo',
-                                                                                                   'primary_slot_name',
-                                                                                                   'hot_standby',
-                                                                                                   'max_standby_archive_delay',
-                                                                                                   'max_standby_streaming_delay',
-                                                                                                   'wal_receiver_status_interval',
-                                                                                                   'hot_standby_feedback',
-                                                                                                   'wal_receiver_timeout',
-                                                                                                   'wal_retrieve_retry_interval',
-                                                                                                   'recovery_min_apply_delay',
-                                                                                                   'sync_replication_slots')) as replica,
-                   -- https://postgrespro.ru/docs/enterprise/current/biha-reference
-                   jsonb_object_agg_strict(right(name, -5), nullif(trim(setting), '')) filter (where name ~ '^biha\.[a-z]') as biha
-               from pg_settings
-           )
-           select
-               pg_postmaster_start_time()         as started_at,
-               now() - pg_postmaster_start_time() as start_uptime,
-               pg_conf_load_time()                as loaded_at,
-               now() - pg_conf_load_time()        as load_uptime,
-               case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
-               guc.primary as guc_primary,
-               guc.replica as guc_replica,
-               guc.biha    as guc_biha,
-               ping.remote_server_addr as ping_remote_server_addr,
-               ping.latency            as ping_latency,
-               ping.time_diff          as ping_time_diff
-           from guc,
-                nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo),
-                pro.ping(
-                    regexp_replace(t.primary_conninfo, '\m(application_name|connect_timeout)=\S*', '')
-                    || ' application_name=dblink_topology_ping connect_timeout=5'
-                ) as ping
-       $sql$,
-       true --fail_on_error
-      ) as s (started_at   timestamptz,
-              start_uptime interval,
-              loaded_at    timestamptz,
-              load_uptime  interval,
-              pause_state  text,
-              guc_primary  jsonb,
-              guc_replica  jsonb,
-              guc_biha     jsonb,
-              ping_remote_server_addr inet,
-              ping_latency            interval,
-              ping_time_diff          interval
-      ) on true
-order by r.level;
+                       -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication#RUNTIME-CONFIG-REPLICATION-STANDBY
+                       -- Ведомые серверы. Эти параметры управляют поведением ведомого сервера, который будет получать данные репликации. На ведущем сервере они не играют никакой роли.
+                       jsonb_object_agg_strict(name, nullif(trim(setting), '')) filter (where name in ('primary_conninfo',
+                                                                                                       'primary_slot_name',
+                                                                                                       'hot_standby',
+                                                                                                       'max_standby_archive_delay',
+                                                                                                       'max_standby_streaming_delay',
+                                                                                                       'wal_receiver_status_interval',
+                                                                                                       'hot_standby_feedback',
+                                                                                                       'wal_receiver_timeout',
+                                                                                                       'wal_retrieve_retry_interval',
+                                                                                                       'recovery_min_apply_delay',
+                                                                                                       'sync_replication_slots')) as replica,
+                       -- https://postgrespro.ru/docs/enterprise/current/biha-reference
+                       jsonb_object_agg_strict(right(name, -5), nullif(trim(setting), '')) filter (where name ~ '^biha\.[a-z]') as biha
+                   from pg_settings
+               )
+               select
+                   pg_postmaster_start_time()         as started_at,
+                   now() - pg_postmaster_start_time() as start_uptime,
+                   pg_conf_load_time()                as loaded_at,
+                   now() - pg_conf_load_time()        as load_uptime,
+                   case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
+                   guc.primary as guc_primary,
+                   guc.replica as guc_replica,
+                   guc.biha    as guc_biha,
+                   ping.remote_server_addr as ping_remote_server_addr,
+                   ping.latency            as ping_latency,
+                   ping.time_diff          as ping_time_diff
+               from guc,
+                    pro.ping(
+                        regexp_replace(guc.replica->>'primary_conninfo', '\m(application_name|connect_timeout)=\S*', '')
+                        || ' application_name=dblink_topology_ping connect_timeout=5'
+                    ) as ping
+           $sql$,
+           true --fail_on_error
+          ) as s (started_at   timestamptz,
+                  start_uptime interval,
+                  loaded_at    timestamptz,
+                  load_uptime  interval,
+                  pause_state  text,
+                  guc_primary  jsonb,
+                  guc_replica  jsonb,
+                  guc_biha     jsonb,
+                  ping_remote_server_addr inet,
+                  ping_latency            interval,
+                  ping_time_diff          interval
+          ) on true
+)
+-- Шаг 4. Финальная сборка колонок.
+select
+    p.level, p.is_primary,
+
+    -- p.parent_addr использовать нельзя, т.к. там может быть локальный IP 127.0.0.1, а нам нужен внешний IP
+    nullif((regexp_match(p.guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1], p.ping_remote_server_addr::text) as parent_host,
+
+    p.ping_remote_server_addr as parent_addr,
+
+    coalesce(
+        (p.pg_sr).client_hostname, -- это поле будет не null только в случае соединений по IP и только при включённом режиме log_hostname
+        p.guc_biha->>'host' -- workaround
+    ) as host,
+
+    coalesce(
+        (select pp.ping_remote_server_addr from p as pp where pp.level = 2 and p.is_primary limit 1),
+        p.addr
+    ) as addr,
+
+    p.port,
+    p.last_lsn, p.receive_uptime, p.reply_ago,
+    p.started_at, p.start_uptime, p.loaded_at, p.load_uptime, p.pause_state,
+    p.guc_primary, p.guc_replica, p.guc_biha,
+    p.ping_latency, p.ping_time_diff,
+    (p.pg_sr).*, (p.pg_rs).*
+from p;
 
 COMMENT ON VIEW pro.pg_cluster_topology IS 'Cluster topology. Returns servers: master and dependent replicas, including cascaded ones.';

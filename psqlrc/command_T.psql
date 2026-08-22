@@ -24,15 +24,13 @@ select
     case when is_primary then 'primary' else 'replica' end as role,
 
     concat_ws(E'\n',
-        ping_remote_server_addr --parent_addr использовать нельзя, т.к. там может быть локальный IP 127.0.0.1
+        nullif(parent_host, host(parent_addr)),
+        host(parent_addr)
     ) as U&"parent_host\000Aparent_addr",
 
     concat_ws(E'\n',
-        coalesce(
-            client_hostname, -- это поле будет не null только в случае соединений по IP и только при включённом режиме log_hostname
-            guc_biha->>'host'
-        ),
-        addr
+        nullif(host, host(addr)),
+        host(addr)
     ) as U&"host\000Aaddr",
 
     concat_ws(E'\n',
