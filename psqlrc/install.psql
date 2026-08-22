@@ -246,9 +246,10 @@ with recursive m as (
 select
     p.level, p.is_primary,
 
-    -- p.parent_addr использовать нельзя, т.к. там может быть локальный IP 127.0.0.1, а нам нужен внешний IP
-    nullif((regexp_match(p.guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1], p.ping_remote_server_addr::text) as parent_host,
+    (regexp_match(p.guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1] as parent_host,
 
+    -- p.parent_addr использовать нельзя, т.к. в значении может быть локальный IP 127.0.0.1,
+    -- если этот запрос выполняется на мастере с локальным подключением или по сокету, а нам нужен внешний IP
     p.ping_remote_server_addr as parent_addr,
 
     coalesce(
