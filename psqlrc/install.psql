@@ -5,9 +5,9 @@ create extension dblink schema pro;
 -- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/ping.sql
 create function pro.ping(
     connection_str text,
-    remote_server_addr out inet, -- для подключения по хосту узнаём его IP
-    latency            out interval,
-    time_diff          out interval
+    remote_addr out inet, -- для подключения по хосту узнаём его IP
+    latency     out interval,
+    time_diff   out interval
 )
     returns record
     immutable
@@ -16,7 +16,7 @@ create function pro.ping(
     language sql
     set search_path = ''
 begin atomic
-    select s.remote_server_addr,
+    select s.remote_addr,
            d3.latency,
            s.local_connection_start + d3.latency - s.remote_connection_start as time_diff
     from pro.dblink(
@@ -24,7 +24,7 @@ begin atomic
                format($sql$
                       select
                           %L                 as local_connection_start,
-                          inet_server_addr() as remote_server_addr,
+                          inet_server_addr() as remote_addr,
                           a.backend_start    as remote_connection_start,
                           clock_timestamp()  as remote_connection_end
                       from pg_stat_activity as a
@@ -32,7 +32,7 @@ begin atomic
                       $sql$, clock_timestamp()),
                true --fail_on_error
     ) as s (local_connection_start  timestamptz,
-            remote_server_addr      inet,
+            remote_addr             inet,
             remote_connection_start timestamptz,
             remote_connection_end   timestamptz
            ),
@@ -43,9 +43,9 @@ end;
 
 comment on function pro.ping(
     connection_str text,
-    remote_server_addr out inet,
-    latency            out interval,
-    time_diff          out interval
+    remote_addr out inet,
+    latency     out interval,
+    time_diff   out interval
 ) is 'Get remote IP, latency and date-time difference between current and remote servers';
 
 
@@ -219,9 +219,9 @@ with recursive m as (
                    guc.primary as guc_primary,
                    guc.replica as guc_replica,
                    guc.biha    as guc_biha,
-                   ping.remote_server_addr as ping_remote_server_addr,
-                   ping.latency            as ping_latency,
-                   ping.time_diff          as ping_time_diff
+                   ping.remote_addr as ping_remote_addr,
+                   ping.latency     as ping_latency,
+                   ping.time_diff   as ping_time_diff
                from guc,
                     pro.ping(
                         regexp_replace(guc.replica->>'primary_conninfo', '\m(application_name|connect_timeout)=\S*', '', 'g')
@@ -237,9 +237,9 @@ with recursive m as (
                   guc_primary  jsonb,
                   guc_replica  jsonb,
                   guc_biha     jsonb,
-                  ping_remote_server_addr inet,
-                  ping_latency            interval,
-                  ping_time_diff          interval
+                  ping_remote_addr inet,
+                  ping_latency     interval,
+                  ping_time_diff   interval
           ) on true
 )
 -- Шаг 4. Финальная сборка колонок.
@@ -250,7 +250,7 @@ select
 
     -- p.parent_addr использовать нельзя, т.к. в значении может быть локальный IP 127.0.0.1,
     -- если этот запрос выполняется на мастере с локальным подключением или по сокету, а нам нужен внешний IP
-    p.ping_remote_server_addr as parent_addr,
+    p.ping_remote_addr as parent_addr,
 
     coalesce(
         (p.pg_sr).client_hostname, -- это поле будет не null только в случае соединений по IP и только при включённом режиме log_hostname
@@ -258,7 +258,7 @@ select
     ) as host,
 
     coalesce(
-        (select pp.ping_remote_server_addr from p as pp where pp.level = 2 and p.is_primary limit 1),
+        (select pp.ping_remote_addr from p as pp where pp.level = 2 and p.is_primary limit 1),
         p.addr
     ) as addr,
 
