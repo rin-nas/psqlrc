@@ -80,7 +80,7 @@ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and con
 Для выполнения команды просто введите её в приглашении `psql` и нажмите клавишу `Enter`.
 
 <details>
-<summary>Описание некоторых колонок команды :T (показать/скрыть)</summary>
+<summary>Описание некоторых колонок таблицы для команды :T (показать/скрыть)</summary>
 
 1. `ping` — показывает сетевую задержку между серверами `host` и `parent_host`
 1. `time_diff` — показывает разницу во времени между серверами `host` и `parent_host`
@@ -463,30 +463,25 @@ Time: 1.478 ms
 <summary>:T (показать/скрыть)</summary>
 
 ```
-2026-08-18 11:54:30+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
-Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
-=# :T
-                                                                                      Cluster topology (at 2026-08-18 11:56:59+00)
+postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/command_T.psql -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" | sed 's/↵/ /g'
+                                                                                      Cluster topology at (2026-08-22 19:47:37+00)
 ┌─────────┬─────────┬────────────────┬────────────────┬───────────┬──────────┬────────────┬─────────────────────────────────┬────────────────────┬───────────┬──────────────┬───────────────┬─────────────┬─────────────┐
-│ level ↓ │  role   │  parent_host  ↵│      host     ↵│   ping   ↵│  mode ↑ ↵│  state ↓   │            lag_size            ↵│      lag_time     ↵│ reply_ago↵│ start_uptime↵│ hold_wal_size↵│  slot_name ↵│  slot_type ↵│
+│ level ↓ │  role   │  parent_host   │      host      │   ping    │  mode ↑  │  state ↓   │            lag_size             │      lag_time      │ reply_ago │ start_uptime │ hold_wal_size │  slot_name  │  slot_type  │
 │         │         │  parent_addr   │      addr      │ time_diff │ priority │            │  send+write+flush+replay=total  │ write<flush<replay │ feedback  │ load_uptime  │ safe_wal_size │ wal_status  │ active temp │
 ├─────────┼─────────┼────────────────┼────────────────┼───────────┼──────────┼────────────┼─────────────────────────────────┼────────────────────┼───────────┼──────────────┼───────────────┼─────────────┼─────────────┤
-│    1   ↵│ primary │                │ dprs-ent-2    ↵│           │          │            │ SSN:                           ↵│                    │           │    5d 20h 4m↵│               │             │            ↵│
-│        ↵│         │                │ 127.0.0.1      │           │          │            │ ANY 1 (biha_node_1,biha_node_2) │                    │           │   3d 23h 40m │               │             │             │
+│    1    │ primary │                │ dprs-ent-2     │           │          │            │ SSN:                            │                    │           │   10d 3h 55m │               │             │             │
+│         │         │                │ 192.168.20.152 │           │          │            │ ANY 1 (biha_node_1,biha_node_2) │                    │           │    8d 7h 31m │               │             │             │
 │         │         │                │                │           │          │            │                                 │                    │           │              │               │             │             │
-│    2   ↵│ replica │ dprs-ent-2    ↵│ dprs-ent-1    ↵│ 1ms      ↵│ quorum  ↵│ streaming ↵│ 0 + 0 + 0 + 264 B = 264 B       │ 0 < 0 < 6s 809ms   │ 5s 212ms ↵│  14d 18h 36m↵│ 0            ↵│ biha_node_1↵│ physical   ↵│
-│        ↵│         │ 127.0.0.1      │ 192.168.22.104 │         0 │ 1        │ not paused │                                 │                    │ f         │   3d 23h 38m │ 5131 MB       │ reserved    │ t f         │
+│    2    │ replica │ dprs-ent-2     │ dprs-ent-1     │ 1ms       │ quorum   │ streaming  │ 0 + 0 + 0 + 224 B = 224 B       │ 0 < 0 < 6s 9ms     │ 2s 522ms  │   19d 2h 27m │ 0             │ biha_node_1 │ physical    │
+│         │         │ 192.168.20.152 │ 192.168.22.104 │       3ms │ 1        │ not paused │                                 │                    │ f         │    8d 7h 29m │ 5134 MB       │ reserved    │ t f         │
 │         │         │                │                │           │          │            │                                 │                    │           │              │               │             │             │
-│    2   ↵│ replica │ dprs-ent-2    ↵│ dprs-ent-3    ↵│ 1ms      ↵│ async   ↵│ streaming ↵│ 0 + 0 + 0 + 264 B = 264 B       │ 0 < 0 < 6s 810ms   │ 5s 209ms ↵│  21d 18h 56m↵│ 0            ↵│ biha_node_3↵│ physical   ↵│
-│        ↵│         │ 127.0.0.1      │ 192.168.22.145 │         0 │ 0        │ not paused │                                 │                    │ f         │   3d 23h 37m │ 5131 MB       │ reserved    │ t f         │
+│    2    │ replica │ dprs-ent-2     │ dprs-ent-3     │ 1ms       │ async    │ streaming  │ 0 + 0 + 0 + 224 B = 224 B       │ 0 < 1ms < 6s 9ms   │ 2s 513ms  │   26d 2h 47m │ 0             │ biha_node_3 │ physical    │
+│         │         │ 192.168.20.152 │ 192.168.22.145 │       5ms │ 0        │ not paused │                                 │                    │ f         │    8d 7h 27m │ 5134 MB       │ reserved    │ t f         │
 │         │         │                │                │           │          │            │                                 │                    │           │              │               │             │             │
-│    3   ↵│ replica │ dprs-ent-3    ↵│ dprs-ent-4    ↵│ 1ms      ↵│ async   ↵│ streaming ↵│ 0 + 0 + 0 + 264 B = 264 B       │ 0 < 0 < 6s 810ms   │ 5s 304ms ↵│    5d 20h 4m↵│ 0            ↵│ biha_node_4↵│ physical   ↵│
-│        ↵│         │ 192.168.22.145 │ 192.168.22.86  │         0 │ 0        │ not paused │                                 │                    │ f         │   5d 19h 57m │ 52 GB         │ reserved    │ t f         │
+│    3    │ replica │ dprs-ent-3     │ dprs-ent-4     │ 1ms       │ async    │ streaming  │ 0 + 0 + 0 + 224 B = 224 B       │ 0 < 0 < 6s 9ms     │ 2s 629ms  │   10d 3h 54m │ 0             │ biha_node_4 │ physical    │
+│         │         │ 192.168.22.145 │ 192.168.22.86  │       8ms │ 0        │ not paused │                                 │                    │ f         │   10d 3h 47m │ 52 GB         │ reserved    │ t f         │
 │         │         │                │                │           │          │            │                                 │                    │           │              │               │             │             │
 └─────────┴─────────┴────────────────┴────────────────┴───────────┴──────────┴────────────┴─────────────────────────────────┴────────────────────┴───────────┴──────────────┴───────────────┴─────────────┴─────────────┘
-(4 rows)
-
-Time: 204.150 ms
 ```
 </details>
 
@@ -494,40 +489,33 @@ Time: 204.150 ms
 <summary>:B (показать/скрыть)</summary>
 
 ```
-2026-08-18 11:51:26+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
-Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
-=# :B
-BiHA cluster state and config (at 2026-08-18 11:51:49+00)
+postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and config" biha_db | sed 's/↵/ /g'
+           BiHA cluster state and config
 ┌────────────────┬─────────────────────────────────┐
 │    function    │             return              │
 ├────────────────┼─────────────────────────────────┤
-│ now()          │ 2026-08-18 11:51:49+00          │
+│ now()          │ 2026-08-22 19:48:27+00          │
 │ biha.get_ssn() │ ANY 1 (biha_node_1,biha_node_2) │
 └────────────────┴─────────────────────────────────┘
-(2 rows)
 
-Time: 0.935 ms
-                                                                         BiHA cluster state and config (at 2026-08-18 11:51:49+00)
+                                                                                       BiHA cluster state and config
 ┌──────┬──────┬────────────┬────────────┬────────────┬──────────────┬─────────┬────────────────┬──────────────┬──────────┬───────────┬────────────┬───────────────────┬───────────────┬────────────────────┐
-│ id ↓ │ term │    host   ↵│ biha_state↵│  pg_state ↵│ referee_mode↵│ last_hb↵│ hb_send_period↵│  pref_roles ↵│ priority↵│  nquorum ↵│  minnodes ↵│ sync_standbys_min↵│ can_be_leader↵│ no_wal_on_follower↵│
+│ id ↓ │ term │    host    │ biha_state │  pg_state  │ referee_mode │ last_hb │ hb_send_period │  pref_roles  │ priority │  nquorum  │  minnodes  │ sync_standbys_min │ can_be_leader │ no_wal_on_follower │
 │      │      │    name    │ last_known │ conn_state │ service_mode │ online  │  hb_max_lost   │ max_replicas │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │     (timeout)      │
 ├──────┼──────┼────────────┼────────────┼────────────┼──────────────┼─────────┼────────────────┼──────────────┼──────────┼───────────┼────────────┼───────────────────┼───────────────┼────────────────────┤
-│  1  ↵│   34 │ dprs-ent-1 │ FOLLOWER   │ Recovery  ↵│ regular     ↵│ 1s 60ms↵│ 1000 ms       ↵│ L           ↵│ 100 ms   │         2 │          2 │                -1 │ t            ↵│ 500000 ms          │
-│     ↵│      │            │            │ ACTIVE     │ f            │ t       │ 10             │            2 │          │           │            │                   │ t             │                    │
+│  1   │   34 │ dprs-ent-1 │ FOLLOWER   │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ L            │ 100 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │            │ ACTIVE     │ f            │ t       │ 10             │            2 │          │           │            │                   │ t             │                    │
 │      │      │            │            │            │              │         │                │              │          │           │            │                   │               │                    │
-│  2  ↵│   34 │ dprs-ent-2 │ LEADER_RW  │            │ regular     ↵│ 1s 60ms↵│ 1000 ms       ↵│ L            │ 300 ms   │         2 │          2 │                -1 │ t            ↵│ 500000 ms          │
-│     ↵│      │            │            │            │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
+│  2   │   34 │ dprs-ent-2 │ LEADER_RW  │            │ regular      │ 820ms   │ 1000 ms        │ L            │ 300 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │            │            │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
 │      │      │            │            │            │              │         │                │              │          │           │            │                   │               │                    │
-│  3  ↵│   34 │ dprs-ent-3 │ FOLLOWER   │ Recovery  ↵│ regular     ↵│ 1s 60ms↵│ 1000 ms       ↵│ L            │ 200 ms   │         2 │          2 │                -1 │ t            ↵│ 500000 ms          │
-│     ↵│      │            │            │ ACTIVE     │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
+│  3   │   34 │ dprs-ent-3 │ FOLLOWER   │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ L            │ 200 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │            │ ACTIVE     │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
 │      │      │            │            │            │              │         │                │              │          │           │            │                   │               │                    │
-│  4  ↵│   34 │ dprs-ent-4 │ FOLLOWER   │ Recovery  ↵│ regular     ↵│ 1s 60ms↵│ 1000 ms       ↵│ FL           │ 400 ms   │         2 │          2 │                -1 │ t            ↵│ 500000 ms          │
-│     ↵│      │            │            │ ACTIVE     │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
+│  4   │   34 │ dprs-ent-4 │ FOLLOWER   │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ FL           │ 400 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │            │ ACTIVE     │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
 │      │      │            │            │            │              │         │                │              │          │           │            │                   │               │                    │
 └──────┴──────┴────────────┴────────────┴────────────┴──────────────┴─────────┴────────────────┴──────────────┴──────────┴───────────┴────────────┴───────────────────┴───────────────┴────────────────────┘
-(4 rows)
-
-Time: 1.175 ms
 ```
 </details>
 
