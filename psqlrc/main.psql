@@ -1,6 +1,6 @@
 /*
-Последняя версия этого файла: https://github.com/rin-nas/psqlrc
-Документация psql:            https://postgrespro.ru/docs/postgresql/current/app-psql
+Последняя версия:  https://github.com/rin-nas/psqlrc
+Документация psql: https://postgrespro.ru/docs/postgresql/current/app-psql
 */
 
 -- важно не сломать текущее поведение psql, на которое в скриптах уже заложились!
