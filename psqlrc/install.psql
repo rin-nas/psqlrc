@@ -109,7 +109,7 @@ CREATE VIEW pro.pg_cluster_topology AS
 -- Шаг 1. Движемся от листа к корню с целью получить мастер.
 with recursive m as (
     select not pg_is_in_recovery()                                      as is_primary,
-           regexp_replace(t.primary_conninfo, '\m(application_name|connect_timeout)=\S*', '')
+           regexp_replace(t.primary_conninfo, '\m(application_name|connect_timeout)=\S*', '', 'g')
                || ' application_name=dblink_topology connect_timeout=5' as conninfo,
            coalesce(inet_server_addr(), '127.0.0.1'::inet)              as addr,
            coalesce(inet_server_port(), current_setting('port')::int)   as port,
@@ -123,7 +123,7 @@ with recursive m as (
                 $sql$
                 select
                     not pg_is_in_recovery(),
-                    regexp_replace(t.primary_conninfo, '\m(application_name|connect_timeout)=\S*', '')
+                    regexp_replace(t.primary_conninfo, '\m(application_name|connect_timeout)=\S*', '', 'g')
                          || ' application_name=dblink_topology connect_timeout=5',
                     inet_server_addr(),
                     inet_server_port()
@@ -224,7 +224,7 @@ with recursive m as (
                    ping.time_diff          as ping_time_diff
                from guc,
                     pro.ping(
-                        regexp_replace(guc.replica->>'primary_conninfo', '\m(application_name|connect_timeout)=\S*', '')
+                        regexp_replace(guc.replica->>'primary_conninfo', '\m(application_name|connect_timeout)=\S*', '', 'g')
                         || ' application_name=dblink_topology_ping connect_timeout=5'
                     ) as ping
            $sql$,
