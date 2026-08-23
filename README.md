@@ -12,18 +12,15 @@
 
 **Было:**
 ```
-[postgres@rmukhtarov-redos1 ~]$ psql demo
-psql (18.3, server 17.9)
-Type "help" for help.
-
-demo=#  
+[postgres@redos1 ~]$ psql -q demo
+demo=#
 ```
 
 **Стало:**
 ```
-[postgres@rmukhtarov-redos1 ~]$ psql -v pro=0 -q demo
+[postgres@redos1 ~]$ psql -v pro=0 -q demo
 
-2026-06-05 14:43:10+03  postgres@rmukhtarov-redos1[192.168.23.239] /var/lib/pgsql
+2026-06-05 14:43:10+03  postgres@redos1[192.168.23.239] /var/lib/pgsql
 Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 =#
 ```
@@ -208,7 +205,7 @@ rm -R ~/psqlrc && rm ~/.psqlrc
 <summary>Без применения .psqlrc (показать/скрыть)</summary>
 
 ```
-[postgres@rmukhtarov-redos1 ~]$ psql demo
+[postgres@redos1 ~]$ psql demo
 psql (18.3, server 17.9)
 Type "help" for help.
 
@@ -227,7 +224,7 @@ demo=#
 <summary>С применением .psqlrc (показать/скрыть)</summary>
 
 ```
-[postgres@rmukhtarov-redos1 ~]$ psql -v pro=1 demo
+[postgres@redos1 ~]$ psql -v pro=1 demo
 ~/.psqlrc version: 697fd3f0  https://github.com/rin-nas/psqlrc
 
 # OS
@@ -266,7 +263,7 @@ psql (18.3, server 17.9)
 Type "help" for help.
 
 
-2026-06-05 14:43:10+03  postgres@rmukhtarov-redos1[192.168.23.239] /var/lib/pgsql
+2026-06-05 14:43:10+03  postgres@redos1[192.168.23.239] /var/lib/pgsql
 Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 =# \d+
                                     List of relations
@@ -278,7 +275,7 @@ Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 (1 row)
 
 
-2026-06-05 14:48:59+03  postgres@rmukhtarov-redos1[192.168.23.239] /var/lib/pgsql
+2026-06-05 14:48:59+03  postgres@redos1[192.168.23.239] /var/lib/pgsql
 Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 =# 
 ```
