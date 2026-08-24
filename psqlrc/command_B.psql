@@ -30,7 +30,8 @@ SELECT
     s.term,
 
     concat_ws(E'\n',
-        n.host, nullif(c.name, n.host)
+        n.host,
+        nullif(c.name, n.host)
     ) as U&"host\000Aname",
 
     concat_ws(E'\n',

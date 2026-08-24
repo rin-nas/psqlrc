@@ -5,4 +5,4 @@
 \echo ':B — BiHA cluster state and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference'
 \echo ':BB — BiHA cheat sheet: config settings to management functions mapping'
 \echo
-\echo ':INSTALL, :REINSTALL, :UNINSTALL — for current database, it [re/un]install in "pro" schema some objects (required to run some short commands)'
+\echo ':INSTALL, :REINSTALL, :UNINSTALL — for current database, it (re/un)install in "pro" schema some objects (required to run some short commands)'
