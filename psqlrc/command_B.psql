@@ -64,7 +64,7 @@ SELECT
 
     concat_ws(E'\n',
         c.repl_pref_roles,
-        lpad((nullif(c.max_replicas, 2147483647))::text, 12, ' ')
+        lpad(case when c.max_replicas = 2147483647 then '∞' else c.max_replicas::text end, 12, ' ')
     ) as U&"pref_roles\000Amax_replicas",
 
     c.priority::text || ' ms' as U&"priority\000A(delay)",
