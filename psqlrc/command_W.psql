@@ -4,8 +4,8 @@
 \set title 'Who am I'
 \include ~/psqlrc/title.psql
 
-WITH t as (
-    SELECT now()::timestamptz(0)::text as "now()",
+with t as (
+    select now()::timestamptz(0)::text as "now()",
            pg_backend_pid()      as "pg_backend_pid()",
            coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
            CURRENT_USER          as "CURRENT_USER",
@@ -26,7 +26,10 @@ WITH t as (
            unicode_version()     as "unicode_version()",
            icu_unicode_version() as "icu_unicode_version()"
 )
-select row_number() over () as " #", j.key as name, j.value
+select
+    row_number() over () as " #",
+    j.key as name,
+    j.value
 from t
 cross join json_each_text(row_to_json(t)) as j;
 

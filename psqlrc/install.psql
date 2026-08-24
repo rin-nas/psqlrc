@@ -19,7 +19,7 @@ begin atomic
     select s.remote_addr,
            d3.latency,
            s.local_connection_start + d3.latency - s.remote_connection_start as time_diff
-    from pro.dblink(
+    from pro.dblink(  -- в случае недоступности сетевого соединения dblink() возвратит ошибку
                ping.connection_str,
                format($sql$
                       select
@@ -118,19 +118,20 @@ with recursive m as (
     union all
     select s.*,
            m.level - 1
-    from m, pro.dblink(
-                m.conninfo,
-                $sql$
-                select
-                    not pg_is_in_recovery(),
-                    regexp_replace(t.primary_conninfo, '\m(application_name|connect_timeout)=\S*', '', 'g')
-                         || ' application_name=dblink_topology connect_timeout=5',
-                    inet_server_addr(),
-                    inet_server_port()
-                from nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo)
-                $sql$,
-                true --fail_on_error
-            ) as s (is_primary bool, conninfo text, addr inet, port int)
+    from m,
+         pro.dblink(  -- в случае недоступности сетевого соединения dblink() возвратит ошибку
+             m.conninfo,
+             $sql$
+                 select
+                     not pg_is_in_recovery(),
+                     regexp_replace(t.primary_conninfo, '\m(application_name|connect_timeout)=\S*', '', 'g')
+                          || ' application_name=dblink_topology connect_timeout=5',
+                     inet_server_addr(),
+                     inet_server_port()
+                 from nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo)
+             $sql$,
+             true --fail_on_error
+         ) as s (is_primary bool, conninfo text, addr inet, port int)
     where not m.is_primary and m.conninfo is not null
 )
 -- select * from m order by m.level desc; -- для отладки
@@ -160,23 +161,25 @@ with recursive m as (
            s.pg_rs,
            s.receive_uptime,
            s.reply_ago
-    from r, pro.dblink(format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
-                       $sql$
-                           select w.last_lsn,
-                                  pg_sr,
-                                  pg_rs,
-                                  now() - pg_sr.backend_start as receive_uptime,
-                                  now() - pg_sr.reply_time    as reply_ago
-                           from pg_stat_replication as pg_sr                                        -- https://postgrespro.ru/docs/postgresql/current/monitoring-stats#MONITORING-PG-STAT-REPLICATION-VIEW
-                           left join pg_replication_slots as pg_rs on pg_sr.pid = pg_rs.active_pid  -- https://postgrespro.ru/docs/postgresql/current/view-pg-replication-slots
-                           cross join coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
-                       $sql$,
-                       true --fail_on_error
-                      ) as s (last_lsn       pg_lsn,
-                              pg_sr          pg_stat_replication,
-                              pg_rs          pg_replication_slots,
-                              receive_uptime interval,
-                              reply_ago      interval)
+    from r,
+         pro.dblink(
+            format('user=postgres host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
+            $sql$
+                select w.last_lsn,
+                       pg_sr,
+                       pg_rs,
+                       now() - pg_sr.backend_start as receive_uptime,
+                       now() - pg_sr.reply_time    as reply_ago
+                from pg_stat_replication as pg_sr                                        -- https://postgrespro.ru/docs/postgresql/current/monitoring-stats#MONITORING-PG-STAT-REPLICATION-VIEW
+                left join pg_replication_slots as pg_rs on pg_sr.pid = pg_rs.active_pid  -- https://postgrespro.ru/docs/postgresql/current/view-pg-replication-slots
+                cross join coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
+            $sql$,
+            true --fail_on_error
+           ) as s (last_lsn       pg_lsn,
+                   pg_sr          pg_stat_replication,
+                   pg_rs          pg_replication_slots,
+                   receive_uptime interval,
+                   reply_ago      interval)
 )
 -- select * from r order by r.level; -- для отладки
 -- Шаг 3. Собираем информацию со всех серверов.
