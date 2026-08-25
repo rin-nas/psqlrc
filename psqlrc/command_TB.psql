@@ -1,0 +1,68 @@
+--  BiHA: топология, состояние и конфигурация узлов кластера (в одной компактной таблице)
+
+\include ~/psqlrc/title.psql
+
+\if :schema_pro_exists
+\else
+    \echo :hint'type ":INSTALL" and check (if necessary) remote authentification possibility for user postgres in every server of cluster (see files "~/.pgpass" and "':hba_file'")':reset
+    \quit
+\endif
+
+\if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
+    \echo :error'please, connect to database "biha_db"':reset
+    \echo :hint'HINT: type "\\c biha_db"':reset
+    \quit
+\endif
+
+\set title 'BiHA cluster tolopogy, state and config'
+\include ~/psqlrc/title.psql
+
+select
+    pn.id as parent_id,
+    n.id as "id ↓",
+    s.state,
+    sync_state as mode,
+
+    concat(
+        ping_latency_pretty,
+        lpad(ping_time_diff_pretty, 9 - length(ping_latency_pretty), ' ')
+    ) as U&"ping\000Atime_diff",
+
+    concat_ws('    ',
+        c.priority::text || ' ms',
+        case when c.max_replicas = 2147483647 then '∞' else c.max_replicas::text end
+    ) as U&"priority\000Amax_replicas",
+
+    concat_ws('    ',
+        rpad(c.repl_pref_roles, 2, ' '),
+        c.nquorum,
+        c.minnodes
+    ) as U&"pref_roles\000Anquorum minnodes",
+
+    concat_ws('    ',
+        c.can_be_leader,
+        c.can_vote
+    ) as U&"can_be_leader\000Acan_vote",
+
+    case when is_primary then regexp_replace(guc_primary->>'synchronous_standby_names', '\m[a-z_]+_(?=\d)', 'id=', 'g')
+         else concat(
+                           pro.size_pretty(last_lsn  - sent_lsn),   -- data sending WAL stream to replica via network by walsender
+                  ' + ' || pro.size_pretty(sent_lsn  - write_lsn),  -- data receiving WAL stream on replica from network by walreciever
+                  ' + ' || pro.size_pretty(write_lsn - flush_lsn),  -- data writing WAL on disk on replica by walreciever
+                  ' + ' || pro.size_pretty(flush_lsn - replay_lsn), -- data applying (replaying) WAL as a recovery process
+                  ' = ' || pro.size_pretty(last_lsn  - replay_lsn)  -- total
+              )
+    end as U&"lag_size\000Asend+write+flush+replay=total"
+
+from pro.pg_cluster_topology as t
+join biha.nodes_v      as n on n.host = t.host
+left join biha.nodes_v as pn on pn.host = t.parent_host
+join biha.status_v     as s on n.id = s.id
+join biha.config()     as c on c.id = s.id
+join biha.monitoring() as m on m.id = s.id
+cross join pro.interval_pretty(t.ping_latency) as ping_latency_pretty
+cross join pro.interval_pretty(greatest(t.ping_time_diff, t.ping_time_diff * -1)) as ping_time_diff_pretty
+order by n.id;
+
+\unset title
+\include ~/psqlrc/title.psql

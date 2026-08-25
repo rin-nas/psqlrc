@@ -6,6 +6,7 @@
 \set T  '\\include ~/psqlrc/command_T.psql'
 \set B  '\\include ~/psqlrc/command_B.psql'
 \set BB '\\include ~/psqlrc/command_BB.psql'
+\set TB '\\include ~/psqlrc/command_TB.psql'
 
 \set INSTALL   '\\include ~/psqlrc/command_INSTALL.psql'
 \set REINSTALL '\\include ~/psqlrc/command_REINSTALL.psql'
