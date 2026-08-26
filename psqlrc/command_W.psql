@@ -7,8 +7,8 @@
 with t as (
     select now()::timestamptz(0)::text as "now()",
            pg_backend_pid()      as "pg_backend_pid()",
-           coalesce((SELECT usesuper FROM pg_user WHERE usename = CURRENT_USER), false) as is_superuser,
-           CURRENT_USER          as "CURRENT_USER",
+           coalesce((SELECT rolsuper FROM pg_roles WHERE rolname = CURRENT_ROLE), false) as is_superuser,
+           CURRENT_USER          as "CURRENT_USER", -- = CURRENT_ROLE
            SESSION_USER          as "SESSION_USER",
            current_database()    as "current_database()",
            current_schema()      as "current_schema()",
