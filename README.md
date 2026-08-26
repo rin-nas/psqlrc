@@ -102,10 +102,12 @@ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and con
 
 ### Инсталляция
 ```bash
+sudo su - postgres
+
 # 1) из репозитория скопируйте папку psqlrc в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы 
-chown -R postgres: ~/psqlrc
-chmod -R 600 ~/psqlrc
-chmod 700 ~/psqlrc
+sudo chown -R postgres: ~postgres/psqlrc
+sudo chmod -R 600 ~postgres/psqlrc
+sudo chmod 700 ~postgres/psqlrc
 
 # 2) создайте символическую ссылку
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
@@ -120,13 +122,15 @@ psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql biha_db  # для BiHA, при
 ### Обновление на новую версию
 
 ```bash
+sudo su - postgres
+
 # 1) переименуйте старую папку psqlrc
 mv ~/psqlrc ~/psqlrc.$(date +%Y-%m-%d.%H%M%S)
 
 # 2) из репозитория скопируйте папку psqlrc в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы 
-chown -R postgres: ~/psqlrc
-chmod -R 600 ~/psqlrc
-chmod 700 ~/psqlrc
+sudo chown -R postgres: ~postgres/psqlrc
+sudo chmod -R 600 ~postgres/psqlrc
+sudo chmod 700 ~postgres/psqlrc
 
 # 3) обновите служебные объекты в схеме "pro"
 psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql postgres
@@ -136,6 +140,8 @@ psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql biha_db  # для BiHA, пр
 ### Удаление
 
 ```bash
+sudo su - postgres
+
 # 1) удалите служебные объекты в схеме "pro"
 psql -v pro=0 -q -f ~/psqlrc/command_UNINSTALL.psql postgres
 psql -v pro=0 -q -f ~/psqlrc/command_UNINSTALL.psql biha_db  # для BiHA, при наличии
