@@ -8,7 +8,7 @@
 
 \set QUIET 1
 \timing 0
-select count(*) > 0 as schema_pro_exists from pg_catalog.pg_namespace where nspname = 'pro' \gset
+select exists (select from pg_catalog.pg_namespace where nspname = 'pro') as schema_pro_exists \gset
 \if :QUIET_ORIGINAL
     \timing 0
 \else

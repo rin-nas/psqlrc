@@ -14,11 +14,33 @@
     \quit
 \endif
 
+
+\set QUIET 1
+\timing 0
+select exists (
+    select
+    from biha.config() as c
+    join json_each_text(row_to_json(c)) as j on j.key = 'deny_wal_sources'
+) as column_deny_wal_sources_exists \gset
+
+\if :QUIET_ORIGINAL
+    \timing 0
+\else
+    \timing 1
+\endif
+\set QUIET :QUIET_ORIGINAL
+
+
 \set title 'BiHA cluster tolopogy, state and config'
 \include ~/psqlrc/title.psql
 
 select
-    pn.id as parent_id,
+    \if :column_deny_wal_sources_exists
+        concat(pn.id, ' deny:' || nullif(trim(c.deny_wal_sources), '')) as U&"parent_id\000Adeny_wal_sources",
+    \else
+        pn.id as parent_id,
+    \endif
+
     n.id as "id ↓",
     s.state,
     sync_state as mode,
