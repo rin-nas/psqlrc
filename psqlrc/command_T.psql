@@ -21,7 +21,11 @@
 */
 select
     concat('   ', level, E'\n\n') as "level ↓",
-    case when is_primary then 'primary' else 'replica' end as role,
+
+    concat_ws(E'\n',
+        case when is_primary then 'primary' else 'replica' end,
+        guc_server->>'server_version'
+    ) as U&"role\000Aversion",
 
     concat_ws(E'\n',
         nullif(parent_host, host(parent_addr)),
@@ -48,7 +52,9 @@ select
         pause_state -- not paused / pause requested / paused
     ) as "state ↓",
 
-    case when is_primary then concat_ws(E'\n', 'SSN:', guc_primary->>'synchronous_standby_names')
+    case when is_primary
+         -- слишком длинное значение synchronous_standby_names разбиваем на несколько срок
+         then trim(regexp_replace('SSN: ' || (guc_primary->>'synchronous_standby_names'), '(.{22}[a-z_\d)]+)', E'\\1\n', 'g'), E' \n')
          else concat(
                            pro.size_pretty(last_lsn  - sent_lsn),   -- data sending WAL stream to replica via network by walsender
                   ' + ' || pro.size_pretty(sent_lsn  - write_lsn),  -- data receiving WAL stream on replica from network by walreciever
