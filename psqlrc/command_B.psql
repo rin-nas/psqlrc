@@ -101,7 +101,14 @@ SELECT
 
     -- deny_wal_sources,  -- Postgres Pro (enterprise) 18.4.1 2a1f89e2632  ERROR:  column "deny_wal_sources" does not exist
 
-    c.no_wal_on_follower::text || ' ms' as U&"no_wal_on_follower\000A(timeout)"
+    \if :column_deny_wal_sources_exists
+        concat_ws(E'\n',
+            c.no_wal_on_follower::text || ' ms',
+            c.deny_wal_sources
+        ) as U&"no_wal_on_follower\000Adeny_wal_sources"
+    \else
+        c.no_wal_on_follower::text || ' ms' as U&"no_wal_on_follower\000A(timeout)"
+    \endif
 
 FROM biha.status_v     AS s
 JOIN biha.nodes_v      AS n ON n.id = s.id
