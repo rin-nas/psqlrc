@@ -1,6 +1,7 @@
 # Идеи для доработок
 
-* BiHA - Показать уведомление, когда для двух узлов без рефери есть риск split-brain
+* :BB - добавить колонку "works on leader only"?
+* BiHA - Показать уведомление, когда для двух узлов без рефери есть риск split-brain?
 * https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don't_use_trust_authentication_over_TCP/IP_(host,_hostssl)
 * https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don't_use_psql_-W_or_--password
 * `idle_in_transaction_session_timeout` - warn при отсутствии ограничения

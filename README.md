@@ -105,9 +105,9 @@ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and con
 sudo su - postgres
 
 # 1) из репозитория скопируйте папку psqlrc в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы 
-sudo chown -R postgres: ~postgres/psqlrc
-sudo chmod -R 600 ~postgres/psqlrc
-sudo chmod 700 ~postgres/psqlrc
+sudo chown -R postgres: ~/psqlrc
+sudo chmod -R 600 ~/psqlrc
+sudo chmod 700 ~/psqlrc
 
 # 2) создайте символическую ссылку
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
@@ -128,9 +128,9 @@ sudo su - postgres
 mv ~/psqlrc ~/psqlrc.$(date +%Y-%m-%d.%H%M%S)
 
 # 2) из репозитория скопируйте папку psqlrc в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы 
-sudo chown -R postgres: ~postgres/psqlrc
-sudo chmod -R 600 ~postgres/psqlrc
-sudo chmod 700 ~postgres/psqlrc
+sudo chown -R postgres: ~/psqlrc
+sudo chmod -R 600 ~/psqlrc
+sudo chmod 700 ~/psqlrc
 
 # 3) обновите служебные объекты в схеме "pro"
 psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql postgres

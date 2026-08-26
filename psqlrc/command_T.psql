@@ -54,7 +54,7 @@ select
 
     case when is_primary
          -- слишком длинное значение synchronous_standby_names разбиваем на несколько срок
-         then trim(regexp_replace('SSN: ' || (guc_primary->>'synchronous_standby_names'), '(.{22}[a-z_\d)]+)', E'\\1\n', 'g'), E' \n')
+         then trim(regexp_replace('SSN: ' || (guc_primary->>'synchronous_standby_names'), '(.{22}[a-z_\-\d)]+)', E'\\1\n', 'g'), E' \n')
          else concat(
                            pro.size_pretty(last_lsn  - sent_lsn),   -- data sending WAL stream to replica via network by walsender
                   ' + ' || pro.size_pretty(sent_lsn  - write_lsn),  -- data receiving WAL stream on replica from network by walreciever
