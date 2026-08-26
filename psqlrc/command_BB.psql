@@ -41,9 +41,8 @@ f (name, funcs) as (
     ('biha.nquorum',               'biha.set_nquorum(id int, nquorum int) bool'),
     ('biha.can_be_leader',         'biha.set_can_be_leader(id int, can_be_leader bool) bool'),
     ('biha.can_vote',              'biha.set_can_vote(id int, can_vote bool) bool'),
-    ('biha.deny_wal_sources',      'biha.set_deny_wal_sources(id int, deny_node_id int[]) bool'),
+    ('biha.deny_wal_sources',      'biha.set_deny_wal_sources(id int, deny_node_id int[]) bool'), --works on leader only
     ('biha.max_replicas',          'biha.set_max_replicas(id int, value int) bool'),
-    ('biha.preferred_roles',       'biha.set_pref_roles(id int, value text) bool'),
     ('biha.priority',              'biha.set_priority(id int, value int) bool')
 ),
 h (name, funcs) as (
