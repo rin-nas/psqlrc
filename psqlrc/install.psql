@@ -191,9 +191,6 @@ with recursive m as (
            $sql$
                with guc as (
                    select
-                       -- Общие для всех серверов параметры
-                       jsonb_object_agg_strict(name, nullif(trim(setting), '')) filter (where name in ('server_version')) as server,
-
                        -- https://postgrespro.ru/docs/postgresql/current/runtime-config-replication#RUNTIME-CONFIG-REPLICATION-PRIMARY
                        -- Главный сервер. Эти параметры можно задать на главном/ведущем сервере, который должен передавать данные репликации одному или нескольким ведомым.
                        jsonb_object_agg_strict(name, nullif(trim(setting), '')) filter (where name in ('synchronous_standby_names',
@@ -222,7 +219,10 @@ with recursive m as (
                    pg_conf_load_time()                as loaded_at,
                    now() - pg_conf_load_time()        as load_uptime,
                    case when pg_is_in_recovery() then pg_get_wal_replay_pause_state() end as pause_state, -- not paused / pause requested / paused
-                   guc.server  as guc_server,
+                   coalesce(
+                       (select nullif(trim(setting), '') from pg_settings where name = 'pgpro_version' limit 1),
+                       version()
+                   ) as pg_version,
                    guc.primary as guc_primary,
                    guc.replica as guc_replica,
                    guc.biha    as guc_biha,
@@ -241,7 +241,7 @@ with recursive m as (
                   loaded_at    timestamptz,
                   load_uptime  interval,
                   pause_state  text,
-                  guc_server   jsonb,
+                  pg_version   text,
                   guc_primary  jsonb,
                   guc_replica  jsonb,
                   guc_biha     jsonb,
@@ -272,8 +272,9 @@ select
 
     p.port,
     p.last_lsn, p.receive_uptime, p.reply_ago,
-    p.started_at, p.start_uptime, p.loaded_at, p.load_uptime, p.pause_state,
-    p.guc_server, p.guc_primary, p.guc_replica, p.guc_biha,
+    p.started_at, p.start_uptime, p.loaded_at, p.load_uptime,
+    p.pause_state, p.pg_version,
+    p.guc_primary, p.guc_replica, p.guc_biha,
     p.ping_latency, p.ping_time_diff,
     (p.pg_sr).*, (p.pg_rs).*
 from p;
