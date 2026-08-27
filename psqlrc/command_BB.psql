@@ -39,25 +39,25 @@ f (name, funcs) as (
     ('biha.nquorum',               'biha.set_nquorum(id int, nquorum int) bool'),
     ('biha.can_be_leader',         'biha.set_can_be_leader(id int, can_be_leader bool) bool'), -- Postgres Pro (enterprise) 18.4.1 2a1f89e2632
     ('biha.can_vote',              'biha.set_can_vote(id int, can_vote bool) bool'),
-    ('biha.deny_wal_sources',      'biha.set_deny_wal_sources(id int, deny_node_id int[]) bool'), --works on leader only
     ('biha.max_replicas',          'biha.set_max_replicas(id int, value int) bool'),
     ('biha.priority',              'biha.set_priority(id int, value int) bool')
 ),
 h (name, funcs) as (
     values
     -- эти параметры конфигурации хранятся в файле pg_biha/biha.conf, и их невозможно изменить с помощью ALTER SYSTEM SET или просмотреть через SHOW
-    ('*',                 'biha.add_node(id int, parent_id int) bool;
-                           biha.remove_node(id int) bool;
-                           biha.set_leader(id int) bool;
-                           biha.reset_node_error() bool'),
-    ('*.can_be_leader',   'biha.set_can_be_leader(id int, can_be_leader bool) bool'), -- Postgres Pro (enterprise) 18.4.1-CUSTOM-BUILD-RELEASES-951 e2f5eb1ec88
-    ('*.can_vote',        'biha.set_can_vote(id int, can_vote bool) bool'),
-    ('*.minnodes',        'biha.set_minnodes(id int, minnodes int) bool'),
-    ('*.max_replicas',    'biha.set_max_replicas(id int, value int) bool'),
-    ('*.nquorum',         'biha.set_nquorum(id int, nquorum int) bool'),
-    ('*.preferred_roles', 'biha.set_pref_roles(id int, value text) bool'),
-    ('*.priority',        'biha.set_priority(id int, value int) bool'),
-    ('*.service_mode',    'biha.service_mode(enable bool, force bool) bool') --works on leader only
+    ('*',                  'biha.add_node(id int, parent_id int) bool;
+                            biha.remove_node(id int) bool;
+                            biha.set_leader(id int) bool;
+                            biha.reset_node_error() bool'),
+    ('*.can_be_leader',    'biha.set_can_be_leader(id int, can_be_leader bool) bool'), -- Postgres Pro (enterprise) 18.4.1-CUSTOM-BUILD-RELEASES-951 e2f5eb1ec88
+    ('*.can_vote',         'biha.set_can_vote(id int, can_vote bool) bool'),
+    ('*.deny_wal_sources', 'biha.set_deny_wal_sources(id int, deny_node_id int[]) bool'), --works on leader only
+    ('*.minnodes',         'biha.set_minnodes(id int, minnodes int) bool'),
+    ('*.max_replicas',     'biha.set_max_replicas(id int, value int) bool'),
+    ('*.nquorum',          'biha.set_nquorum(id int, nquorum int) bool'),
+    ('*.preferred_roles',  'biha.set_pref_roles(id int, value text) bool'),
+    ('*.priority',         'biha.set_priority(id int, value int) bool'),
+    ('*.service_mode',     'biha.service_mode(enable bool, force bool) bool') --works on leader only
 ),
 t (name, value, funcs) as (
     select s.name, s.value, f.funcs
