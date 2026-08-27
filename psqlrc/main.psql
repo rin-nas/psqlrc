@@ -14,12 +14,12 @@
 -- стили и ограничения
 
 -- цвета
-\set red       '\033[38;5;1m'
+\set red       '\033[38;5;196m'
 \set green     '\033[38;5;10m'
 \set blue      '\033[38;5;12m'
 \set lightblue '\033[38;5;81m'
-\set yellow    '\033[38;5;11m'
-\set orange    '\033[38;5;9m'
+\set yellow    '\033[38;5;220m'
+\set orange    '\033[38;5;208m'
 \set cyan      '\033[38;5;6m'
 \set magenta   '\033[38;5;13m'
 \set gray      '\033[38;5;7m'

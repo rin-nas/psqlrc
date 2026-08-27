@@ -56,7 +56,7 @@ h (name, funcs) as (
     ('*.nquorum',         'biha.set_nquorum(id int, nquorum int) bool'),
     ('*.preferred_roles', 'biha.set_pref_roles(id int, value text) bool'),
     ('*.priority',        'biha.set_priority(id int, value int) bool'),
-    ('*.service_mode',    'biha.service_mode(enable bool, force bool) bool')
+    ('*.service_mode',    'biha.service_mode(enable bool, force bool) bool') --works on leader only
 ),
 t (name, value, funcs) as (
     select s.name, s.value, f.funcs

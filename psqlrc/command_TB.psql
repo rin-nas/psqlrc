@@ -18,18 +18,31 @@
 
 
 \include ~/psqlrc/quiet_in.psql
+
+    select exists (
+        select
+        from biha.config() as c
+        where c.service_mode
+    ) as biha_service_mode \gset
+
     select exists (
         select
         from biha.config() as c
         join json_each_text(row_to_json(c)) as j on j.key = 'deny_wal_sources'
-    ) as column_deny_wal_sources_exists \gset
+    ) as biha_column_deny_wal_sources_exists \gset
+
 \include ~/psqlrc/quiet_out.psql
+
+
+\if :biha_service_mode
+    \echo :warn'WARNING: BiHA service mode ON (in all nodes)!':reset
+\endif
 
 \set title 'BiHA cluster tolopogy, state and config'
 \include ~/psqlrc/title.psql
 
 select
-    \if :column_deny_wal_sources_exists
+    \if :biha_column_deny_wal_sources_exists
         concat(pn.id, ' deny:' || nullif(trim(c.deny_wal_sources), '')) as U&"parent_id\000Adeny_wal_sources",
     \else
         pn.id as parent_id,
