@@ -1,10 +1,25 @@
--- Game "Bulls and cows" on SQL
+-- Game "bulls and cows" on SQL
 
-\set bc_secret '4271'
+\if :{?bc_secret}
+\else
+    \echo :head'Игра «быки и коровы»':reset
 
-\prompt 'Быки и коровы. Введите загаданное число: ' bc_guess
+    \include ~/psqlrc/quiet_in.psql
+        SELECT
+            LEFT(string_agg(digit::text, '' ORDER BY random()), 4) AS secret,
+            0 as attempt
+        FROM generate_series(0, 9) AS g(digit)
+        \gset bc_
+    \include ~/psqlrc/quiet_out.psql
+
+    -- \echo :bc_secret
+\endif
+
+\prompt 'Введите загаданное число: ' bc_guess
 
 \if `test -z ':bc_guess' && echo 1 || echo 0`
+    \echo :warn'Ничего не введено, вы вышли из игры':reset
+    \unset bc_secret
     \quit
 \endif
 
@@ -32,7 +47,8 @@
         e.bulls_count = s.len and not v1.secret_error and not v2.guess_error as finished,
         concat(e.bulls_count, 'B', e.cows_count, 'C') as hint,
         v1.secret_error,
-        v2.guess_error
+        v2.guess_error,
+        case when v2.guess_error then :bc_attempt else :bc_attempt + 1 end as attempt
     from e,
     length(:'bc_secret') as s(len),
     concat('^\d{', s.len, '}$') as r(regexp),
@@ -48,12 +64,13 @@
 \endif
 
 \if :bc_finished
-    \echo :succ'Число угадано!':reset
+    \echo :succ'Число угадано за ':bc_attempt' попыток!':reset
+    \unset bc_secret
     \quit
 \endif
 
 \if :bc_guess_error
-    \echo :error'Ошибка в ответе, введите загаданное число (':bc_secret_length' разные цифр(ы)) или нажмите клавишу Enter для выхода':reset
+    \echo :error'Ошибка в ответе, введите загаданное число (':bc_secret_length' неповторяющиеся цифры) или нажмите клавишу Enter для выхода':reset
 \else
     \echo :hint'Попытайтесь ещё раз, подсказка: ':bc_hint:reset
 \endif
@@ -63,5 +80,5 @@
 /*
 Кол-во размещений без повторений (комбинаторика):
 A(k,n) = k! / (n - k)!
-A(4,10) = 6! * 7 * 8 * 9 * 10 / 6! = 7 * 8 * 9 * 10 = 5040
+A(4,10) = 6! * 7 * 8 * 9 * 10 / 6! = 5040
 */
