@@ -1,3 +1,5 @@
+-- Game "Bulls and cows" on SQL
+
 \set bc_secret '4271'
 
 \prompt 'Быки и коровы. Введите загаданное число: ' bc_guess
@@ -6,13 +8,7 @@
     \quit
 \endif
 
-
-\if :{?QUIET_ORIGINAL}
-\else
-    \set QUIET_ORIGINAL :QUIET
-\endif
-\set QUIET 1
-\timing 0
+\include ~/psqlrc/quiet_in.psql
 
 with t as (
     select
@@ -44,13 +40,7 @@ coalesce(:'bc_secret' !~ r.regexp or (select count(distinct t.s_char) != s.len f
 coalesce(:'bc_guess'  !~ r.regexp or (select count(distinct t.g_char) != s.len from t)) as v2(guess_error)
 \gset bc_
 
-\if :QUIET_ORIGINAL
-    \timing 0
-\else
-    \timing 1
-\endif
-\set QUIET :QUIET_ORIGINAL
-
+\include ~/psqlrc/quiet_out.psql
 
 \if :bc_secret_error
     \echo :error'Ошибка в секрете':reset
@@ -71,7 +61,7 @@ coalesce(:'bc_guess'  !~ r.regexp or (select count(distinct t.g_char) != s.len f
 \include ~/psqlrc/game_bc.psql
 
 /*
-Кол-во размещений без повторений:
+Кол-во размещений без повторений (комбинаторика):
 A(k,n) = k! / (n - k)!
 A(4,10) = 6! * 7 * 8 * 9 * 10 / 6! = 7 * 8 * 9 * 10 = 5040
 */

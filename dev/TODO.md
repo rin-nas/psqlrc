@@ -9,6 +9,7 @@
   Например, так можно выполнить команды `SHOW` или `select * from pg_hba_file_rules order by rule_number;` или `select pg_reload_conf()`
 * Добавить проверку, что установлены права 600 на файл .pgpass (см. https://postgrespro.ru/docs/postgresql/current/libpq-pgpass)?
 * Добавить сколько времени назад были изменены файлы `config_file`, `hba_file`, `log_filename`, `~/.pgpass`?
+* https://gitlab.com/depesz/pgWikiDont/-/blob/master/pgWikiDont.sql
 
 * max_wal_size - Максимальный размер, до которого может вырастать WAL во время автоматических контрольных точек. Это мягкий предел; размер WAL может превышать max_wal_size при особых обстоятельствах, например при большой нагрузке, сбое в archive_command/archive_library или при большом значении wal_keep_size.
 * wal_keep_size - Задаёт минимальный объём прошлых файлов WAL, который будет сохраняться в каталоге pg_wal, чтобы ведомый сервер мог выбрать их при потоковой репликации.

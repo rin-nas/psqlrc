@@ -1,21 +1,10 @@
 -- устанавливает или сбрасывает заголовок для таблиц
 
-\if :{?QUIET_ORIGINAL}
-\else
-    \set QUIET_ORIGINAL :QUIET
-\endif
+\include ~/psqlrc/quiet_in.psql
 
-
-\set QUIET 1
-\timing 0
 select exists (select from pg_catalog.pg_namespace where nspname = 'pro') as schema_pro_exists \gset
-\if :QUIET_ORIGINAL
-    \timing 0
-\else
-    \timing 1
-\endif
-\set QUIET :QUIET_ORIGINAL
 
+\include ~/psqlrc/quiet_out.psql
 
 \if :QUIET_ORIGINAL
 \else

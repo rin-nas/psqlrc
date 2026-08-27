@@ -1,0 +1,6 @@
+\if :{?QUIET_ORIGINAL}
+\else
+    \set QUIET_ORIGINAL :QUIET
+\endif
+\set QUIET 1
+\timing 0
