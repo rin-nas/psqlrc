@@ -530,55 +530,56 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiH
 2026-08-18 11:51:49+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
 Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
 =# :BB
-                 BiHA cheat sheet: config settings to management functions mapping (at 2026-08-18 11:51:52+00)
-┌────┬────────────────────────────┬─────────────────────────────────┬──────────────────────────────────────────────────────────┐
-│  # │       setting_name ↓       │          setting_value          │                   management_functions                   │
-│    │                            │          (curent node)          │                                                          │
-├────┼────────────────────────────┼─────────────────────────────────┼──────────────────────────────────────────────────────────┤
-│  1 │ *                          │ ./pg_biha/biha.conf             │ biha.add_node(id int, parent_id int) bool               ↵│
-│    │                            │                                 │ biha.remove_node(id int) bool                           ↵│
-│    │                            │                                 │ biha.set_leader(id int) bool                            ↵│
-│    │                            │                                 │ biha.reset_node_error() bool                             │
-│  2 │ *.can_vote                 │ true                            │ biha.set_can_vote(id int, can_vote bool) bool            │
-│  3 │ *.max_replicas             │ 2147483647                      │ biha.set_max_replicas(id int, value int) bool            │
-│  4 │ *.minnodes                 │ 2                               │ biha.set_minnodes(id int, minnodes int) bool             │
-│  5 │ *.nquorum                  │ 2                               │ biha.set_nquorum(id int, nquorum int) bool               │
-│  6 │ *.preferred_roles          │ L                               │ biha.set_pref_roles(id int, value text) bool             │
-│  7 │ *.priority                 │ 300                             │ biha.set_priority(id int, value int) bool                │
-│  8 │ *.service_mode             │ false                           │ biha.service_mode(enable bool, force bool) bool          │
-│  9 │ biha.asyncaction_timeout   │ 30000                           │ ¤                                                        │
-│ 10 │ biha.autorewind            │ off                             │ ¤                                                        │
-│ 11 │ biha.autowaltrim           │ on                              │ ¤                                                        │
-│ 12 │ biha.callbacks_timeout     │ 10000                           │ ¤                                                        │
-│ 13 │ biha.can_be_leader         │ on                              │ biha.set_can_be_leader(id int, can_be_leader bool) bool  │
-│ 14 │ biha.flw_ro                │ on                              │ ¤                                                        │
-│ 15 │ biha.heartbeat_max_lost    │ 10                              │ biha.set_heartbeat_max_lost(int) bool                    │
-│ 16 │ biha.heartbeat_send_period │ 1000                            │ biha.set_heartbeat_send_period(int) bool                 │
-│ 17 │ biha.host                  │ dprs-ent-2                      │ ¤                                                        │
-│ 18 │ biha.id                    │ 2                               │ ¤                                                        │
-│ 19 │ biha.manage_slots_xmin     │ on                              │ ¤                                                        │
-│ 20 │ biha.no_wal_on_follower    │ 500000                          │ biha.set_no_wal_on_follower(int) bool                    │
-│ 21 │ biha.port                  │ 5435                            │ ¤                                                        │
-│ 22 │ biha.proxima_status        │ 0                               │ biha.enable_proxima() bool                              ↵│
-│    │                            │                                 │ biha.disable_proxima() bool                              │
-│ 23 │ biha.ssl_certificate       │ ./pg_biha/biha_pub_cert.pem     │ ¤                                                        │
-│ 24 │ biha.ssl_mode              │ ¤                               │ ¤                                                        │
-│ 25 │ biha.ssl_private_key       │ ./pg_biha/biha_priv_key.pem     │ ¤                                                        │
-│ 26 │ biha.use_ssl               │ off                             │ ¤                                                        │
-│ 27 │ biha.user_biha_cert        │ ¤                               │ ¤                                                        │
-│ 28 │ biha.user_biha_key         │ ¤                               │ ¤                                                        │
-│ 29 │ biha.wal_validation        │ on                              │ ¤                                                        │
-│ 30 │ biha.watchdog_timeout      │ 2                               │ ¤                                                        │
-│ 31 │ synchronous_standby_names  │ ANY 1 (biha_node_1,biha_node_2) │ biha.get_ssn() text                                     ↵│
-│    │                            │                                 │ biha.set_sync_standbys(ANY int) bool                    ↵│
-│    │                            │                                 │ biha.set_sync_standbys_min(MIN int) bool /* -1 to off */↵│
-│    │                            │                                 │ biha.set_ssn(VARIADIC ids int) bool                     ↵│
-│    │                            │                                 │ biha.add_to_ssn(id int) returns bool                    ↵│
-│    │                            │                                 │ biha.remove_from_ssn(id int) bool                        │
-└────┴────────────────────────────┴─────────────────────────────────┴──────────────────────────────────────────────────────────┘
-(31 rows)
+                           BiHA cheat sheet: config settings to management functions mapping (at 2026-08-18 11:51:52+00)
+┌────┬────────────────────────────┬───────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┐
+│  # │       setting_name ↓       │                   setting_value                  ↵│                    management_functions                    │
+│    │                            │                   (curent node)                   │                                                            │
+├────┼────────────────────────────┼───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
+│  1 │ *                          │ ./pg_biha/biha.conf                               │ biha.add_node(id int, parent_id int) bool                 ↵│
+│    │                            │                                                   │ biha.remove_node(id int) bool                             ↵│
+│    │                            │                                                   │ biha.set_leader(id int) bool                              ↵│
+│    │                            │                                                   │ biha.reset_node_error() bool                               │
+│  2 │ *.can_be_leader            │ true                                              │ biha.set_can_be_leader(id int, can_be_leader bool) bool    │
+│  3 │ *.can_vote                 │ true                                              │ biha.set_can_vote(id int, can_vote bool) bool              │
+│  4 │ *.deny_wal_sources         │ 3, 2                                              │ biha.set_deny_wal_sources(id int, deny_node_id int[]) bool │
+│  5 │ *.max_replicas             │ 2147483647                                        │ biha.set_max_replicas(id int, value int) bool              │
+│  6 │ *.minnodes                 │ 2                                                 │ biha.set_minnodes(id int, minnodes int) bool               │
+│  7 │ *.nquorum                  │ 2                                                 │ biha.set_nquorum(id int, nquorum int) bool                 │
+│  8 │ *.preferred_roles          │ L                                                 │ biha.set_pref_roles(id int, value text) bool               │
+│  9 │ *.priority                 │ -1                                                │ biha.set_priority(id int, value int) bool                  │
+│ 10 │ *.service_mode             │ false                                             │ biha.service_mode(enable bool, force bool) bool            │
+│ 11 │ biha.asyncaction_timeout   │ 30000                                             │ ¤                                                          │
+│ 12 │ biha.autorewind            │ off                                               │ ¤                                                          │
+│ 13 │ biha.autowaltrim           │ on                                                │ ¤                                                          │
+│ 14 │ biha.callbacks_timeout     │ 10000                                             │ ¤                                                          │
+│ 15 │ biha.flw_ro                │ on                                                │ ¤                                                          │
+│ 16 │ biha.heartbeat_max_lost    │ 10                                                │ biha.set_heartbeat_max_lost(int) bool                      │
+│ 17 │ biha.heartbeat_send_period │ 1000                                              │ biha.set_heartbeat_send_period(int) bool                   │
+│ 18 │ biha.host                  │ dprs-biha181-demo2-11                             │ ¤                                                          │
+│ 19 │ biha.id                    │ 1                                                 │ ¤                                                          │
+│ 20 │ biha.manage_slots_xmin     │ on                                                │ ¤                                                          │
+│ 21 │ biha.no_wal_on_follower    │ 20000                                             │ biha.set_no_wal_on_follower(int) bool                      │
+│ 22 │ biha.port                  │ 5435                                              │ ¤                                                          │
+│ 23 │ biha.proxima_status        │ 0                                                 │ biha.enable_proxima() bool                                ↵│
+│    │                            │                                                   │ biha.disable_proxima() bool                                │
+│ 24 │ biha.ssl_certificate       │ ./pg_biha/biha_pub_cert.pem                       │ ¤                                                          │
+│ 25 │ biha.ssl_mode              │ ¤                                                 │ ¤                                                          │
+│ 26 │ biha.ssl_private_key       │ ./pg_biha/biha_priv_key.pem                       │ ¤                                                          │
+│ 27 │ biha.use_ssl               │ off                                               │ ¤                                                          │
+│ 28 │ biha.user_biha_cert        │ ¤                                                 │ ¤                                                          │
+│ 29 │ biha.user_biha_key         │ ¤                                                 │ ¤                                                          │
+│ 30 │ biha.wal_validation        │ on                                                │ ¤                                                          │
+│ 31 │ biha.watchdog_timeout      │ 2                                                 │ ¤                                                          │
+│ 32 │ synchronous_standby_names  │ ANY 1 MIN 0 (biha_node_1,biha_node_2,biha_node_3) │ biha.get_ssn() text                                       ↵│
+│    │                            │                                                   │ biha.set_sync_standbys(ANY int) bool                      ↵│
+│    │                            │                                                   │ biha.set_sync_standbys_min(MIN int) bool /* -1 to off */  ↵│
+│    │                            │                                                   │ biha.set_ssn(VARIADIC ids int) bool                       ↵│
+│    │                            │                                                   │ biha.add_to_ssn(id int) returns bool                      ↵│
+│    │                            │                                                   │ biha.remove_from_ssn(id int) bool                          │
+└────┴────────────────────────────┴───────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┘
+(32 rows)
 
-Time: 2.853 ms
+Time: 2.576 ms
 ```
 </details>
 
