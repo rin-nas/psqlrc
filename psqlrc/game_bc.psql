@@ -10,35 +10,35 @@
 
 \include ~/psqlrc/quiet_in.psql
 
-with t as (
+    with t as (
+        select
+            s.pos,
+            s.val as s_char,
+            g.val as g_char
+        from unnest(string_to_array(:'bc_secret', null)) with ordinality as s(val, pos)
+        left join unnest(string_to_array(:'bc_guess', null)) with ordinality as g(val, pos) on s.pos = g.pos
+    )
+    --table t; -- debug
+    , e as (
+        select count(*) filter (where t1.s_char  = t1.g_char) as bulls_count,
+               count(*) filter (where t1.s_char != t1.g_char) as cows_count
+        from t as t1
+        join t as t2 on t1.s_char = t2.g_char
+    )
+    --table e; -- debug
     select
-        s.pos,
-        s.val as s_char,
-        g.val as g_char
-    from unnest(string_to_array(:'bc_secret', null)) with ordinality as s(val, pos)
-    left join unnest(string_to_array(:'bc_guess', null)) with ordinality as g(val, pos) on s.pos = g.pos
-)
---table t; -- debug
-, e as (
-    select count(*) filter (where t1.s_char  = t1.g_char) as bulls_count,
-           count(*) filter (where t1.s_char != t1.g_char) as cows_count
-    from t as t1
-    join t as t2 on t1.s_char = t2.g_char
-)
---table e; -- debug
-select
-    -- e.*, :'bc_secret' as secret, :'bc_guess' as guess, -- debug
-    s.len as secret_length,
-    e.bulls_count = s.len and not v1.secret_error and not v2.guess_error as finished,
-    concat(e.bulls_count, 'B', e.cows_count, 'C') as hint,
-    v1.secret_error,
-    v2.guess_error
-from e,
-length(:'bc_secret') as s(len),
-concat('^\d{', s.len, '}$') as r(regexp),
-coalesce(:'bc_secret' !~ r.regexp or (select count(distinct t.s_char) != s.len from t)) as v1(secret_error),
-coalesce(:'bc_guess'  !~ r.regexp or (select count(distinct t.g_char) != s.len from t)) as v2(guess_error)
-\gset bc_
+        -- e.*, :'bc_secret' as secret, :'bc_guess' as guess, -- debug
+        s.len as secret_length,
+        e.bulls_count = s.len and not v1.secret_error and not v2.guess_error as finished,
+        concat(e.bulls_count, 'B', e.cows_count, 'C') as hint,
+        v1.secret_error,
+        v2.guess_error
+    from e,
+    length(:'bc_secret') as s(len),
+    concat('^\d{', s.len, '}$') as r(regexp),
+    coalesce(:'bc_secret' !~ r.regexp or (select count(distinct t.s_char) != s.len from t)) as v1(secret_error),
+    coalesce(:'bc_guess'  !~ r.regexp or (select count(distinct t.g_char) != s.len from t)) as v2(guess_error)
+    \gset bc_
 
 \include ~/psqlrc/quiet_out.psql
 

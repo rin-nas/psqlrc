@@ -1,6 +1,8 @@
 -- Топология кластера СУБД. Возвращает серверы: мастер и зависимые реплики, включая каскадные.
 
-\include ~/psqlrc/title.psql
+\include ~/psqlrc/quiet_in.psql
+    select exists (select from pg_catalog.pg_namespace where nspname = 'pro') as schema_pro_exists \gset
+\include ~/psqlrc/quiet_out.psql
 
 \if :schema_pro_exists
 \else

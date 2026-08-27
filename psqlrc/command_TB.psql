@@ -1,6 +1,8 @@
 --  BiHA: топология, состояние и конфигурация узлов кластера (в одной компактной таблице)
 
-\include ~/psqlrc/title.psql
+\include ~/psqlrc/quiet_in.psql
+    select exists (select from pg_catalog.pg_namespace where nspname = 'pro') as schema_pro_exists \gset
+\include ~/psqlrc/quiet_out.psql
 
 \if :schema_pro_exists
 \else
@@ -15,21 +17,13 @@
 \endif
 
 
-\set QUIET 1
-\timing 0
-select exists (
-    select
-    from biha.config() as c
-    join json_each_text(row_to_json(c)) as j on j.key = 'deny_wal_sources'
-) as column_deny_wal_sources_exists \gset
-
-\if :QUIET_ORIGINAL
-    \timing 0
-\else
-    \timing 1
-\endif
-\set QUIET :QUIET_ORIGINAL
-
+\include ~/psqlrc/quiet_in.psql
+    select exists (
+        select
+        from biha.config() as c
+        join json_each_text(row_to_json(c)) as j on j.key = 'deny_wal_sources'
+    ) as column_deny_wal_sources_exists \gset
+\include ~/psqlrc/quiet_out.psql
 
 \set title 'BiHA cluster tolopogy, state and config'
 \include ~/psqlrc/title.psql

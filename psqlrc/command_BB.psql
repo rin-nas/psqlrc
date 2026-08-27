@@ -1,7 +1,5 @@
 -- BiHA шпаргалка: сопоставление параметров конфигурации с функциями управления
 
-\include ~/psqlrc/title.psql
-
 \if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
     \echo :error'please, connect to database "biha_db"':reset
     \echo :hint'HINT: type "\\c biha_db"':reset
