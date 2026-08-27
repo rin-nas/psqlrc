@@ -29,6 +29,7 @@
 \set bold      '\033[1m'
 \set italic    '\033[3m'
 \set underline '\033[4m'
+\set crossed   '\033[9m'
 \set blink     '\033[5m'
 \set reset     '\033[0m'
 

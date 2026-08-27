@@ -43,7 +43,10 @@
 
 select
     \if :biha_column_deny_wal_sources_exists
-        concat(pn.id, ' deny:' || nullif(trim(c.deny_wal_sources), '')) as U&"parent_id\000Adeny_wal_sources",
+        concat_ws('    ',
+            lpad(coalesce(pn.id::text, ''), 2, ' '),
+            c.deny_wal_sources
+        ) as U&"parent_id\000Adeny_wal_sources",
     \else
         pn.id as parent_id,
     \endif
