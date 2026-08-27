@@ -1,3 +1,5 @@
+-- скрываем информационные сообщения для команд \pset и \timing
+
 \if :{?QUIET_ORIGINAL}
 \else
     \set QUIET_ORIGINAL :QUIET
