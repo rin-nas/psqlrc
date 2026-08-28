@@ -61,7 +61,7 @@ select
     ) as U&"ping\000Atime_diff",
 
     concat_ws('    ',
-        c.priority::text || ' ms',
+        lpad(c.priority::text, 3, ' ') || ' ms',
         case when c.max_replicas = 2147483647 then '∞' else c.max_replicas::text end
     ) as U&"priority\000Amax_replicas",
 
@@ -86,14 +86,14 @@ select
               )
     end as U&"lag_size\000Asend+write+flush+replay=total"
 
-from pro.pg_cluster_topology as t
-join biha.nodes_v      as n on n.host = t.host
-left join biha.nodes_v as pn on pn.host = t.parent_host
-join biha.status_v     as s on n.id = s.id
+from biha.status_v     as s
+join biha.nodes_v      as n on n.id = s.id
 join biha.config()     as c on c.id = s.id
 join biha.monitoring() as m on m.id = s.id
-cross join pro.interval_pretty(t.ping_latency) as ping_latency_pretty
-cross join pro.interval_pretty(greatest(t.ping_time_diff, t.ping_time_diff * -1)) as ping_time_diff_pretty
+left join pro.pg_cluster_topology as t  on t.host = n.host
+left join biha.nodes_v            as pn on pn.host = t.parent_host
+left join pro.interval_pretty(t.ping_latency) as ping_latency_pretty on true
+left join pro.interval_pretty(greatest(t.ping_time_diff, t.ping_time_diff * -1)) as ping_time_diff_pretty on true
 order by n.id;
 
 \unset title
