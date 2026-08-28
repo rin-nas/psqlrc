@@ -75,7 +75,7 @@
     \echo :hint'Попытайтесь ещё раз, подсказка: ':bc_hint:reset
 \endif
 
-\include ~/psqlrc/game_bc.psql
+\include ~/psqlrc/game_BC.psql
 
 /*
 Кол-во размещений без повторений (комбинаторика):
