@@ -503,24 +503,32 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiH
 └────────────────┴─────────────────────────────────┘
 
                                                                                        BiHA cluster state and config
-┌──────┬──────┬────────────┬────────────┬────────────┬──────────────┬─────────┬────────────────┬──────────────┬──────────┬───────────┬────────────┬───────────────────┬───────────────┬────────────────────┐
-│ id ↓ │ term │    host    │ biha_state │  pg_state  │ referee_mode │ last_hb │ hb_send_period │  pref_roles  │ priority │  nquorum  │  minnodes  │ sync_standbys_min │ can_be_leader │ no_wal_on_follower │
-│      │      │    name    │ last_known │ conn_state │ service_mode │ online  │  hb_max_lost   │ max_replicas │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │     (timeout)      │
-├──────┼──────┼────────────┼────────────┼────────────┼──────────────┼─────────┼────────────────┼──────────────┼──────────┼───────────┼────────────┼───────────────────┼───────────────┼────────────────────┤
-│  1   │   34 │ dprs-ent-1 │ FOLLOWER   │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ L            │ 100 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │            │ ACTIVE     │ f            │ t       │ 10             │            2 │          │           │            │                   │ t             │                    │
-│      │      │            │            │            │              │         │                │              │          │           │            │                   │               │                    │
-│  2   │   34 │ dprs-ent-2 │ LEADER_RW  │            │ regular      │ 820ms   │ 1000 ms        │ L            │ 300 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │            │            │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
-│      │      │            │            │            │              │         │                │              │          │           │            │                   │               │                    │
-│  3   │   34 │ dprs-ent-3 │ FOLLOWER   │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ L            │ 200 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │            │ ACTIVE     │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
-│      │      │            │            │            │              │         │                │              │          │           │            │                   │               │                    │
-│  4   │   34 │ dprs-ent-4 │ FOLLOWER   │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ FL           │ 400 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │            │ ACTIVE     │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
-│      │      │            │            │            │              │         │                │              │          │           │            │                   │               │                    │
-└──────┴──────┴────────────┴────────────┴────────────┴──────────────┴─────────┴────────────────┴──────────────┴──────────┴───────────┴────────────┴───────────────────┴───────────────┴────────────────────┘
+┌──────┬──────┬────────────┬──────────────┬────────────┬──────────────┬─────────┬────────────────┬──────────────┬──────────┬───────────┬────────────┬───────────────────┬───────────────┬────────────────────┐
+│ id ↓ │ term │    host    │  biha_state  │  pg_state  │ referee_mode │ last_hb │ hb_send_period │  pref_roles  │ priority │  nquorum  │  minnodes  │ sync_standbys_min │ can_be_leader │ no_wal_on_follower │
+│      │      │    name    │  last_known  │ conn_state │ service_mode │ online  │  hb_max_lost   │ max_replicas │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │     (timeout)      │
+├──────┼──────┼────────────┼──────────────┼────────────┼──────────────┼─────────┼────────────────┼──────────────┼──────────┼───────────┼────────────┼───────────────────┼───────────────┼────────────────────┤
+│  1   │   34 │ dprs-ent-1 │ 🟢 FOLLOWER  │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ L            │ 100 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │ ACTIVE     │ f            │ t       │ 10             │            2 │          │           │            │                   │ t             │                    │
+│      │      │            │              │            │              │         │                │              │          │           │            │                   │               │                    │
+│  2   │   34 │ dprs-ent-2 │ 🟢 LEADER_RW │            │ regular      │ 820ms   │ 1000 ms        │ L            │ 300 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │            │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
+│      │      │            │              │            │              │         │                │              │          │           │            │                   │               │                    │
+│  3   │   34 │ dprs-ent-3 │ 🟢 FOLLOWER  │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ L            │ 200 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │ ACTIVE     │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
+│      │      │            │              │            │              │         │                │              │          │           │            │                   │               │                    │
+│  4   │   34 │ dprs-ent-4 │ 🟢 FOLLOWER  │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ FL           │ 400 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │ ACTIVE     │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
+│      │      │            │              │            │              │         │                │              │          │           │            │                   │               │                    │
+└──────┴──────┴────────────┴──────────────┴────────────┴──────────────┴─────────┴────────────────┴──────────────┴──────────┴───────────┴────────────┴───────────────────┴───────────────┴────────────────────┘
 ```
+Цветной круглый индикатор состояния BiHA:
+* 🟡 PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE
+* ⭕ LEADER_RO
+* 🟢 LEADER_RW, FOLLOWER, FRONT_FOLLOWER
+* 🔵 REFEREE
+* 🔴 NODE_ERROR
+* ⚪ UNKNOWN
+
 </details>
 
 <details>
