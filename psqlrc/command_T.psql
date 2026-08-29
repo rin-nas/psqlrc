@@ -50,8 +50,8 @@ select
     ) as U&"mode ↑\000Apriority",
 
     concat_ws(E'\n',
-        state,      -- startup / catchup / streaming / backup / stopping
-        pause_state -- not paused / pause requested / paused
+        case when state        != 'streaming' then '⚠️' else '' end || state,      -- startup / catchup / streaming / backup / stopping
+        case when pause_state != 'not paused' then '⚠️' else '' end || pause_state -- not paused / pause requested / paused
     ) as "state ↓",
 
     case when is_primary
