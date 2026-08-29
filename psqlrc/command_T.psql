@@ -26,7 +26,7 @@ select
 
     concat_ws(E'\n',
         case when is_primary then 'primary' else 'replica' end,
-        trim((regexp_match(pg_version, ' \d+(?:\.\d+)+'))[1]) -- X.Y[.Z]
+        case when pg_version != lag(pg_version) over() then '⚠️' else '' end || pg_version_dot
     ) as U&"role\000Aversion",
 
     concat_ws(E'\n',

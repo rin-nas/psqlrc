@@ -273,7 +273,7 @@ select
     p.port,
     p.last_lsn, p.receive_uptime, p.reply_ago,
     p.started_at, p.start_uptime, p.loaded_at, p.load_uptime,
-    p.pause_state, p.pg_version,
+    p.pause_state, p.pg_version, trim((regexp_match(p.pg_version, ' \d+(?:\.\d+)+'))[1]) as pg_version_dot, -- X.Y[.Z]
     p.guc_primary, p.guc_replica, p.guc_biha,
     p.ping_latency, p.ping_time_diff,
     (p.pg_sr).*, (p.pg_rs).*
