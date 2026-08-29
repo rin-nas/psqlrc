@@ -52,7 +52,7 @@ select
     \endif
 
     n.id as "id ↓",
-    s.state,
+    e.symbol || ' ' || s.state as state,
     sync_state as mode,
 
     concat(
@@ -94,6 +94,15 @@ left join pro.pg_cluster_topology as t  on t.host = n.host
 left join biha.nodes_v            as pn on pn.host = t.parent_host
 left join pro.interval_pretty(t.ping_latency) as ping_latency_pretty on true
 left join pro.interval_pretty(greatest(t.ping_time_diff, t.ping_time_diff * -1)) as ping_time_diff_pretty on true
+cross join coalesce(
+   case when s.state = 'LEADER_RO' then '⭕' -- hollow red circle
+        when s.state in ('LEADER_RW', 'FOLLOWER', 'FRONT_FOLLOWER') then '🟢' -- green circle
+        when s.state = 'REFEREE' then '🔵' -- blue circle
+        when s.state = 'NODE_ERROR' then '🔴' -- red circle
+        when s.state = 'UNKNOWN' then '⚪' -- white circle
+        else '🟡' -- (PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE) yellow circle
+   end
+) e(symbol)
 order by n.id;
 
 \unset title
