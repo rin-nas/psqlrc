@@ -56,8 +56,8 @@ select
     sync_state as mode,
 
     concat(
-        ping_latency_pretty,
-        lpad(ping_time_diff_pretty, 9 - length(ping_latency_pretty), ' ')
+        case when ping_latency       > '1s'::interval then '⚠️' else '' end || ping_latency_pretty,
+        case when abs_ping_time_diff > '1s'::interval then '⚠️' else '' end || lpad(ping_time_diff_pretty, 9 - length(ping_latency_pretty), ' ')
     ) as U&"ping\000Atime_diff",
 
     concat_ws('    ',
@@ -93,7 +93,8 @@ join biha.monitoring() as m on m.id = s.id
 left join pro.pg_cluster_topology as t  on t.host = n.host
 left join biha.nodes_v            as pn on pn.host = t.parent_host
 left join pro.interval_pretty(t.ping_latency) as ping_latency_pretty on true
-left join pro.interval_pretty(greatest(t.ping_time_diff, t.ping_time_diff * -1)) as ping_time_diff_pretty on true
+left join greatest(t.ping_time_diff, t.ping_time_diff * -1) as p(abs_ping_time_diff) on true
+left join pro.interval_pretty(p.abs_ping_time_diff) as ping_time_diff_pretty on true
 cross join coalesce(
    case when s.state = 'LEADER_RO' then '⭕' -- hollow red circle
         when s.state in ('LEADER_RW', 'FOLLOWER', 'FRONT_FOLLOWER') then '🟢' -- green circle

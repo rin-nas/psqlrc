@@ -40,8 +40,8 @@ select
     ) as U&"host\000Aaddr",
 
     concat_ws(E'\n',
-        pro.interval_pretty(ping_latency),
-        lpad(pro.interval_pretty(greatest(ping_time_diff, ping_time_diff * -1)), 9, ' ')
+        case when ping_latency       > '1s'::interval then '⚠️' else '' end || pro.interval_pretty(ping_latency),
+        case when abs_ping_time_diff > '1s'::interval then '⚠️' else '' end || lpad(pro.interval_pretty(abs_ping_time_diff), 9, ' ')
     ) as U&"ping\000Atime_diff",
 
     concat_ws(E'\n',
@@ -101,6 +101,7 @@ select
     ) as U&"slot_type\000Aactive temp"
 
 from pro.pg_cluster_topology as t
+cross join greatest(t.ping_time_diff, t.ping_time_diff * -1) as p(abs_ping_time_diff)
 order by t.level, t.sync_state desc, t.state;
 
 \unset title
