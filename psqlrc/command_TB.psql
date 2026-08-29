@@ -56,8 +56,8 @@ select
     sync_state as mode,
 
     concat(
-        case when ping_latency       > '1s'::interval then '⚠️' else '' end || ping_latency_pretty,
-        case when abs_ping_time_diff > '1s'::interval then '⚠️' else '' end || lpad(ping_time_diff_pretty, 9 - length(ping_latency_pretty), ' ')
+        case when ping_latency       > '1s'::interval then '⚠️ ' else '' end || ping_latency_pretty,
+        case when abs_ping_time_diff > '1s'::interval then '⚠️ ' else '' end || lpad(ping_time_diff_pretty, 9 - length(ping_latency_pretty), ' ')
     ) as U&"ping\000Atime_diff",
 
     concat_ws('    ',
@@ -82,7 +82,7 @@ select
                   ' + ' || pro.size_pretty(sent_lsn  - write_lsn),  -- data receiving WAL stream on replica from network by walreciever
                   ' + ' || pro.size_pretty(write_lsn - flush_lsn),  -- data writing WAL on disk on replica by walreciever
                   ' + ' || pro.size_pretty(flush_lsn - replay_lsn), -- data applying (replaying) WAL as a recovery process
-                  ' = ' || case when (last_lsn  - replay_lsn) > 1024*1024*100 then '⚠️' else '' end
+                  ' = ' || case when (last_lsn  - replay_lsn) > 1024*1024*100 then '⚠️ ' else '' end
                         || pro.size_pretty(last_lsn  - replay_lsn)  -- total
               )
     end as U&"lag_size\000Asend+write+flush+replay=total"
