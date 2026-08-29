@@ -62,14 +62,15 @@ select
                   ' + ' || pro.size_pretty(sent_lsn  - write_lsn),  -- data receiving WAL stream on replica from network by walreciever
                   ' + ' || pro.size_pretty(write_lsn - flush_lsn),  -- data writing WAL on disk on replica by walreciever
                   ' + ' || pro.size_pretty(flush_lsn - replay_lsn), -- data applying (replaying) WAL as a recovery process
-                  ' = ' || pro.size_pretty(last_lsn  - replay_lsn)  -- total
+                  ' = ' || case when (last_lsn  - replay_lsn) > 1024*1024*100 then '⚠️' else '' end
+                        || pro.size_pretty(last_lsn  - replay_lsn)  -- total
               )
     end as U&"lag_size\000Asend+write+flush+replay=total",
 
     concat_ws(' < ',
         pro.interval_pretty(write_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (but not yet flushed it or applied it)
         pro.interval_pretty(flush_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (but not yet applied it)
-        pro.interval_pretty(replay_lag) -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it
+        case when replay_lag > '1m'::interval then '⚠️' else '' end || pro.interval_pretty(replay_lag) -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it
     ) as U&"lag_time\000Awrite<flush<replay",
 
     concat_ws(E'\n',
