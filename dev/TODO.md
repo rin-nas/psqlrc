@@ -85,6 +85,7 @@ FROM pg_statio_user_tables;
 # Ссылки
 
 1. [How to use variables in psql scripts](https://postgres.ai/docs/postgres-howtos/development-tools/psql/how-to-use-variables-in-psql-scripts)
+1. [Морской бой в PostgreSQL](https://habr.com/ru/companies/selectel/articles/519010/)
 
 ## Цвета:
 
