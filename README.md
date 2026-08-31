@@ -117,7 +117,7 @@ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and con
 
 ## Инсталляция, обновление, удаление
 
-### Инсталляция
+### ✅ Инсталляция
 ```bash
 sudo su - postgres
 
@@ -136,7 +136,7 @@ psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql biha_db  # для BiHA, при
 # 4) при необходимости, проверьте возможность удалённой аутентификации для пользователя postgres на каждом сервере кластера (см. файлы "~/.pgpass" и "pg_hba.conf")
 ```
 
-### Обновление на новую версию
+### 🆙 Обновление на новую версию
 
 ```bash
 sudo su - postgres
@@ -154,7 +154,7 @@ psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql postgres
 psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql biha_db  # для BiHA, при наличии
 ```
 
-### Удаление
+### ❌ Удаление
 
 ```bash
 sudo su - postgres
