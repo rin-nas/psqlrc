@@ -40,8 +40,8 @@ select
     ) as U&"host\000Aaddr",
 
     concat_ws(E'\n',
-        case when ping_latency       > '1s'::interval then '⚠️ ' else '' end || pro.interval_pretty(ping_latency),
-        case when abs_ping_time_diff > '1s'::interval then '⚠️ ' else '' end || lpad(pro.interval_pretty(abs_ping_time_diff), 9, ' ')
+        case when ping_latency    > '100ms'::interval then '⚠️ ' else '' end || pro.interval_pretty(ping_latency),
+        case when abs_ping_time_diff > '1s'::interval then '⚠️ ' else '' end || lpad(pro.interval_pretty(abs_ping_time_diff), length('time_diff'), ' ')
     ) as U&"ping\000Atime_diff",
 
     concat_ws(E'\n',

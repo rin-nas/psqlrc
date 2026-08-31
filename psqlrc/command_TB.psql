@@ -52,12 +52,14 @@ select
     \endif
 
     n.id as "id ↓",
-    e.symbol || ' ' || s.state as state,
+
+    state_symbol || ' ' || s.state as state,
+
     sync_state as mode,
 
-    concat(
-        case when ping_latency       > '1s'::interval then '⚠️ ' else '' end || ping_latency_pretty,
-        case when abs_ping_time_diff > '1s'::interval then '⚠️ ' else '' end || lpad(ping_time_diff_pretty, 9 - length(ping_latency_pretty), ' ')
+    concat_ws(' ',
+        ping_latency_pretty,
+        repeat(' ', length('time_diff') - length(ping_latency_pretty || ping_time_diff_pretty) - 1) || ping_time_diff_pretty
     ) as U&"ping\000Atime_diff",
 
     concat_ws('    ',
@@ -82,7 +84,7 @@ select
                   ' + ' || pro.size_pretty(sent_lsn  - write_lsn),  -- data receiving WAL stream on replica from network by walreciever
                   ' + ' || pro.size_pretty(write_lsn - flush_lsn),  -- data writing WAL on disk on replica by walreciever
                   ' + ' || pro.size_pretty(flush_lsn - replay_lsn), -- data applying (replaying) WAL as a recovery process
-                  ' = ' || case when (last_lsn  - replay_lsn) > 1024*1024*100 then '⚠️ ' else '' end
+                  ' = ' || case when (last_lsn - replay_lsn) > 1024*1024*100 then '⚠️ ' else '' end
                         || pro.size_pretty(last_lsn  - replay_lsn)  -- total
               )
     end as U&"lag_size\000Asend+write+flush+replay=total"
@@ -93,9 +95,13 @@ join biha.config()     as c on c.id = s.id
 join biha.monitoring() as m on m.id = s.id
 left join pro.pg_cluster_topology as t  on t.host = n.host
 left join biha.nodes_v            as pn on pn.host = t.parent_host
-left join pro.interval_pretty(t.ping_latency) as ping_latency_pretty on true
+left join coalesce(
+    case when t.ping_latency > '100ms'::interval then '⚠️ ' else '' end || pro.interval_pretty(t.ping_latency)
+) as ping_latency_pretty on true
 left join greatest(t.ping_time_diff, t.ping_time_diff * -1) as p(abs_ping_time_diff) on true
-left join pro.interval_pretty(p.abs_ping_time_diff) as ping_time_diff_pretty on true
+left join coalesce(
+    case when abs_ping_time_diff > '1s'::interval then '⚠️ ' else '' end || pro.interval_pretty(p.abs_ping_time_diff)
+) as ping_time_diff_pretty on true
 cross join coalesce(
    case when s.state = 'LEADER_RO' then '⭕' -- hollow red circle
         when s.state in ('LEADER_RW', 'FOLLOWER', 'FRONT_FOLLOWER') then '🟢' -- green circle
@@ -104,7 +110,7 @@ cross join coalesce(
         when s.state = 'UNKNOWN' then '⚪' -- white circle
         else '🟡' -- (PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE) yellow circle
    end
-) e(symbol)
+) state_symbol
 order by n.id;
 
 \unset title
