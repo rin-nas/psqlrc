@@ -70,7 +70,7 @@ select
     concat_ws(' < ',
         pro.interval_pretty(write_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (but not yet flushed it or applied it)
         pro.interval_pretty(flush_lag), -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (but not yet applied it)
-        case when replay_lag > '1m'::interval then '⚠️ ' else '' end || pro.interval_pretty(replay_lag) -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it
+        case when replay_lag > '30s'::interval then '⚠️ ' else '' end || pro.interval_pretty(replay_lag) -- time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it
     ) as U&"lag_time\000Awrite<flush<replay",
 
     concat_ws(E'\n',

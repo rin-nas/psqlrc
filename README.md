@@ -98,7 +98,7 @@ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and con
 
 1. если `ping_latency` > 100ms
 1. если `ping_time_diff` > 1s
-1. если отставание реплики > 100 MB или 1 минуты
+1. если отставание реплики > 100 MB или 30s
 1. если `state` отличается от значения "streaming"
 1. если `pause_state` отличается от значения "not paused"
 1. если версии узлов отличаются
