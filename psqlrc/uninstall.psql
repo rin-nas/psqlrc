@@ -1,2 +1,0 @@
--- все объекты хранятся в одной схеме "pro"
-drop schema if exists pro cascade;

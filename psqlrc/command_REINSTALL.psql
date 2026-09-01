@@ -12,7 +12,9 @@
 \endif
 
 START TRANSACTION;
-    \include ~/psqlrc/uninstall.psql
+    DROP SCHEMA IF EXISTS pro CASCADE;
+    -- DROP USER IF EXISTS psqlrc_user; -- NOT DROP!
+
     \include ~/psqlrc/install.psql
 COMMIT;
 
