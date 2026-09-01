@@ -26,7 +26,7 @@ $$;
 Поведение ожидаемое согласно документации: https://postgrespro.ru/docs/postgresql/current/contrib-dblink-connect
 */
 comment on function pro.dblink_u(connection_str text, sql text, record_definition text)
-    is 'Аналог функции dblink(), но для не суперпользователя позволяет не указывать пароль в строке подключения, а брать его из файла "~postgres/.pgpass"';
+    is 'Аналог функции dblink(), но для не суперпользователя позволяет не указывать пароль в строке подключения, а брать его из файла "~/.pgpass"';
 
 -- TEST
 -- select * from pro.dblink_u('user=psqlrc_user host=192.168.20.152 port=5432 dbname=postgres', 'select 1', 'f int') as s(f int);

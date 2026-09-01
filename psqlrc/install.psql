@@ -1,43 +1,48 @@
--- выполнять под суперпользователем postgres  TODO - добавить здесь проверку
+-- Global objects
 
--- Objects global
+SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = 'psqlrc_user') AS psqlrc_user_exists \gset
 
-/*
-DO $$
-BEGIN
-    CREATE USER psqlrc_user WITH PASSWORD 'E74rPpWtbnVR2WvZgfMF7TduA'; -- IF NOT EXISTS does not support!
-    GRANT pg_monitor TO psqlrc_user; -- for extension pg_buffercache
-EXCEPTION
-    WHEN duplicate_object THEN RAISE NOTICE 'User "psqlrc_user" already exists, skipping';
-END
-$$;
-*/
+\if :psqlrc_user_exists
+    \echo 'User "psqlrc_user" already exists, skipping'
+\else
+    \echo 'Create user "psqlrc_user"'
+    CREATE USER psqlrc_user;
+\endif
 
 ------------------------------------------------------------------------------------------------------------------------
--- Objects in current database
+-- Current database objects
 
-CREATE SCHEMA pro /*AUTHORIZATION psqlrc_user*/;
+CREATE SCHEMA pro AUTHORIZATION postgres;
 
 CREATE EXTENSION dblink SCHEMA pro;
---ALTER EXTENSION dblink OWNER TO psqlrc_user; -- not supported
-
-\include ~/psqlrc/install/os_home_dir.sql
---alter function pro.os_home_dir(user_name text) owner to postgres;
-
-\include ~/psqlrc/install/read_pgpass.sql
---alter function pro.read_pgpass(filename text) owner to postgres;
+--ALTER EXTENSION dblink OWNER TO psqlrc_user; -- command is not support
 
 \include ~/psqlrc/install/ping.sql
---ALTER FUNCTION pro.ping(connection_str text) OWNER TO psqlrc_user;
+ALTER FUNCTION pro.ping(connection_str text) OWNER TO postgres;
 
 \include ~/psqlrc/install/interval_pretty.sql
---ALTER FUNCTION pro.interval_pretty(interval) OWNER TO psqlrc_user;
+ALTER FUNCTION pro.interval_pretty(interval) OWNER TO postgres;
 
 \include ~/psqlrc/install/size_pretty.sql
---ALTER FUNCTION pro.size_pretty(bigint) OWNER TO psqlrc_user;
---ALTER FUNCTION pro.size_pretty(numeric) OWNER TO psqlrc_user;
+ALTER FUNCTION pro.size_pretty(bigint) OWNER TO postgres;
+ALTER FUNCTION pro.size_pretty(numeric) OWNER TO postgres;
+
+\include ~/psqlrc/install/dblink_u.sql
+ALTER FUNCTION pro.dblink_u(connection_str text, sql text, record_definition text) OWNER TO postgres;
 
 \include ~/psqlrc/install/cluster_topology.sql
---ALTER VIEW pro.cluster_topology OWNER TO psqlrc_user;
+ALTER VIEW pro.cluster_topology OWNER TO postgres;
+
+------------------------------------------------------------------------------------------------------------------------
+-- Grant permissions to database objects
+GRANT pg_monitor TO psqlrc_user; -- for extension pg_buffercache
+GRANT USAGE ON SCHEMA pro TO psqlrc_user;
+GRANT SELECT ON pro.cluster_topology TO psqlrc_user;
 
 --GRANT SELECT ON pro.cluster_topology TO psqlrc_user;
+
+\if :psqlrc_user_exists
+\else
+    \echo :hint'Please, for database user "psqlrc_user" set password and save it in file "~/.pgpass" on all servers of database cluster.':reset
+    \password psqlrc_user
+\endif
