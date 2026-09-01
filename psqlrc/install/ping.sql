@@ -9,6 +9,7 @@ create function pro.ping(
     immutable
     returns null on null input
     parallel safe
+    SECURITY DEFINER -- so that the invoker user does not have access to dblink()
     language sql
     set search_path = ''
 begin atomic
