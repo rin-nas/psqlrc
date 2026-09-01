@@ -159,7 +159,7 @@ select
     \pset footer off
 \else
 
-    \echo '~/.psqlrc version: '`cat $(ls -v ~/psqlrc/*) | cksum | grep -oP '^\S+' | xargs printf '%x'`'  https://github.com/rin-nas/psqlrc'
+    \echo '~/.psqlrc version: '`cat $(find ~/psqlrc/ -type f | sort) | cksum | grep -oP '^\S+' | xargs printf '%x'`'  https://github.com/rin-nas/psqlrc'
 
     \include ~/psqlrc/info.psql
 
