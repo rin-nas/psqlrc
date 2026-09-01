@@ -16,4 +16,4 @@ begin atomic
     where split_part(t.line, ':', 1) = os_home_dir.user_name;
 end;
 
-comment on function public.os_home_dir() is 'Get OS home directory';
+comment on function pro.os_home_dir(user_name text) is 'Get OS home directory';

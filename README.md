@@ -95,7 +95,7 @@ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and con
 Поэтому перед «проблемными» значениями показывается знак предупреждения ⚠️.
 
 <details>
-<summary>Примеры для команды :T (показать/скрыть)</summary>
+<summary>Условия отображения предупреждения ⚠️ с примером для команды :T (показать/скрыть)</summary>
 
 1. если `ping_latency` > 100ms
 1. если `ping_time_diff` > 1s
