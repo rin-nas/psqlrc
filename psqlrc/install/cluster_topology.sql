@@ -1,9 +1,12 @@
+-- DROP VIEW pro.cluster_topology;
+
 CREATE VIEW pro.cluster_topology AS
+with recursive
 -- Шаг 1. Движемся от листа к корню с целью получить мастер.
-with recursive m as (
+m as (
     select not pg_is_in_recovery()                                      as is_primary,
-           regexp_replace(t.primary_conninfo, '\m(application_name|connect_timeout)=\S*', '', 'g')
-               || ' application_name=dblink_topology connect_timeout=5' as conninfo,
+           regexp_replace(t.primary_conninfo, '\m(user|application_name|connect_timeout)=\S*', '', 'g')
+               || ' user=psqlrc_user application_name=dblink_topology connect_timeout=5' as conninfo,
            coalesce(inet_server_addr(), '127.0.0.1'::inet)              as addr,
            coalesce(inet_server_port(), current_setting('port')::int)   as port,
            0                                                            as level
@@ -12,18 +15,18 @@ with recursive m as (
     select s.*,
            m.level - 1
     from m,
-         pro.dblink(  -- в случае недоступности сетевого соединения dblink() возвратит ошибку
+         pro.dblink_u(  -- в случае недоступности сетевого соединения dblink() возвратит ошибку
              m.conninfo,
              $sql$
                  select
                      not pg_is_in_recovery(),
-                     regexp_replace(t.primary_conninfo, '\m(application_name|connect_timeout)=\S*', '', 'g')
-                          || ' application_name=dblink_topology connect_timeout=5',
+                     regexp_replace(t.primary_conninfo, '\m(user|application_name|connect_timeout)=\S*', '', 'g')
+                          || ' user=psqlrc_user application_name=dblink_topology connect_timeout=5',
                      inet_server_addr(),
                      inet_server_port()
                  from nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo)
              $sql$,
-             true --fail_on_error
+             'is_primary bool, conninfo text, addr inet, port int'
          ) as s (is_primary bool, conninfo text, addr inet, port int)
     where not m.is_primary and m.conninfo is not null
 )
@@ -55,8 +58,8 @@ with recursive m as (
            s.receive_uptime,
            s.reply_ago
     from r,
-         pro.dblink(
-            format('user=psqlrc_user password=E74rPpWtbnVR2WvZgfMF7TduA host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
+         pro.dblink_u(
+            format('user=psqlrc_user host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
             $sql$
                 select w.last_lsn,
                        pg_sr,
@@ -67,7 +70,13 @@ with recursive m as (
                 left join pg_replication_slots as pg_rs on pg_sr.pid = pg_rs.active_pid  -- https://postgrespro.ru/docs/postgresql/current/view-pg-replication-slots
                 cross join coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
             $sql$,
-            true --fail_on_error
+            $$
+                   last_lsn       pg_lsn,
+                   pg_sr          pg_stat_replication,
+                   pg_rs          pg_replication_slots,
+                   receive_uptime interval,
+                   reply_ago      interval
+            $$
            ) as s (last_lsn       pg_lsn,
                    pg_sr          pg_stat_replication,
                    pg_rs          pg_replication_slots,
@@ -79,8 +88,8 @@ with recursive m as (
 , p as (
     select r.*, s.*
     from r
-    left join pro.dblink(
-           format('user=psqlrc_user password=E74rPpWtbnVR2WvZgfMF7TduA host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
+    left join pro.dblink_u(
+           format('user=psqlrc_user host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
            $sql$
                with guc as (
                    select
@@ -128,7 +137,20 @@ with recursive m as (
                         || ' application_name=dblink_topology_ping connect_timeout=5'
                     ) as ping
            $sql$,
-           true --fail_on_error
+           $$
+                  started_at   timestamptz,
+                  start_uptime interval,
+                  loaded_at    timestamptz,
+                  load_uptime  interval,
+                  pause_state  text,
+                  pg_version   text,
+                  guc_primary  jsonb,
+                  guc_replica  jsonb,
+                  guc_biha     jsonb,
+                  ping_remote_addr inet,
+                  ping_latency   interval,
+                  ping_time_diff interval
+           $$
           ) as s (started_at   timestamptz,
                   start_uptime interval,
                   loaded_at    timestamptz,
@@ -139,8 +161,8 @@ with recursive m as (
                   guc_replica  jsonb,
                   guc_biha     jsonb,
                   ping_remote_addr inet,
-                  ping_latency     interval,
-                  ping_time_diff   interval
+                  ping_latency   interval,
+                  ping_time_diff interval
           ) on true
 )
 -- Шаг 4. Финальная сборка колонок.
