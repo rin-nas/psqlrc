@@ -44,5 +44,10 @@ GRANT SELECT ON pro.cluster_topology TO psqlrc_user;
 \if :psqlrc_user_exists
 \else
     \echo :hint'Please, for database user "psqlrc_user" set password and save it in file "~/.pgpass" on all servers of database cluster.':reset
+    /*
+    Указывая команде "ALTER USER user_name WITH PASSWORD 'new_password'" незашифрованный пароль, следует проявлять осторожность.
+    Пароль будет передаваться на сервер открытым текстом и может также записаться в историю команд клиента или в протокол работы сервера.
+    В psql есть команда \password, с помощью которой можно сменить пароль в хешированном виде, не рискуя его рассекретить.
+    */
     \password psqlrc_user
 \endif
