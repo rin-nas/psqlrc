@@ -1,10 +1,10 @@
 -- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/dblink_u.sql
 create function pro.dblink_u(connection_str text, sql text, record_definition text)
     returns setof record
-    immutable
+    volatile -- !!!
     returns null on null input
     parallel safe
-    SECURITY DEFINER -- so that the invoker user does not have access to dblink()
+    SECURITY DEFINER
     language plpgsql
     set search_path = 'pg_catalog, pg_temp' -- prevent SQL injection and privilege escalation attacks
 as $$

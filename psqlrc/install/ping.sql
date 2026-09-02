@@ -6,10 +6,10 @@ create function pro.ping(
     time_diff   out interval
 )
     returns record
-    immutable
+    volatile -- !!!
     returns null on null input
     parallel safe
-    SECURITY DEFINER 
+    SECURITY DEFINER
     language sql
     set search_path = 'pg_catalog, pg_temp' -- prevent SQL injection and privilege escalation attacks
 begin atomic

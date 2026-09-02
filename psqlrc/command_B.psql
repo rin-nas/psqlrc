@@ -6,7 +6,7 @@
 
 \if :schema_pro_exists
 \else
-    \echo :hint'type ":INSTALL" and check (if necessary) remote authentification possibility for user postgres in every server of cluster (see files "~/.pgpass" and "':hba_file'")':reset
+    \echo :hint'type ":INSTALL"':reset
     \quit
 \endif
 
