@@ -1,4 +1,4 @@
--- Global objects
+\echo :head'Create database objects':reset
 
 SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = 'psqlrc_user') AS psqlrc_user_exists \gset
 
@@ -9,41 +9,48 @@ SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = 'psqlrc_user') AS psqlrc_use
     CREATE USER psqlrc_user;
 \endif
 
-------------------------------------------------------------------------------------------------------------------------
--- Current database objects
-
-CREATE SCHEMA pro AUTHORIZATION postgres;
-
+CREATE SCHEMA pro;
 CREATE EXTENSION dblink SCHEMA pro;
---ALTER EXTENSION dblink OWNER TO psqlrc_user; -- command is not support
-
 \include ~/psqlrc/install/ping.sql
-ALTER FUNCTION pro.ping(connection_str text) OWNER TO postgres;
-
 \include ~/psqlrc/install/interval_pretty.sql
-ALTER FUNCTION pro.interval_pretty(interval) OWNER TO postgres;
-
 \include ~/psqlrc/install/size_pretty.sql
+\include ~/psqlrc/install/cluster_topology.sql
+
+
+\echo :head'Set owner to database objects':reset
+
+ALTER SCHEMA pro OWNER TO postgres;
+--ALTER EXTENSION dblink OWNER TO psqlrc_user; -- command does not exists
+ALTER FUNCTION pro.ping(connection_str text) OWNER TO postgres;
+ALTER FUNCTION pro.interval_pretty(interval) OWNER TO postgres;
 ALTER FUNCTION pro.size_pretty(bigint) OWNER TO postgres;
 ALTER FUNCTION pro.size_pretty(numeric) OWNER TO postgres;
-
-\include ~/psqlrc/install/dblink_u.sql
-ALTER FUNCTION pro.dblink_u(connection_str text, sql text, record_definition text) OWNER TO postgres;
-
-\include ~/psqlrc/install/cluster_topology.sql
+ALTER FUNCTION pro.cluster_topology() OWNER TO postgres;
 ALTER VIEW pro.cluster_topology OWNER TO postgres;
 
-------------------------------------------------------------------------------------------------------------------------
--- Grant permissions to database objects
-GRANT pg_monitor TO psqlrc_user; -- for extension pg_buffercache
-GRANT USAGE ON SCHEMA pro TO psqlrc_user;
-GRANT SELECT ON pro.cluster_topology TO psqlrc_user;
 
---GRANT SELECT ON pro.cluster_topology TO psqlrc_user;
+\echo :head'Revoke permissions from database objects':reset
+-- https://postgrespro.ru/docs/postgresql/current/ddl-priv
+REVOKE ALL ON SCHEMA pro FROM PUBLIC;
+REVOKE ALL ON ALL TABLES IN SCHEMA pro FROM PUBLIC; -- and VIEWS too
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA pro FROM PUBLIC;
+REVOKE ALL ON ALL ROUTINES IN SCHEMA pro FROM PUBLIC; -- ROUTINES = FUNCTIONS and PROCEDURES
+
+
+\echo :head'Grant permissions to database objects':reset
+-- https://postgrespro.ru/docs/postgresql/current/sql-createfunction#SQL-CREATEFUNCTION-SECURITY
+GRANT USAGE ON SCHEMA pro TO psqlrc_user;
+GRANT EXECUTE ON FUNCTION pro.ping(connection_str text) TO psqlrc_user;
+GRANT EXECUTE ON FUNCTION pro.interval_pretty(interval) TO psqlrc_user;
+GRANT EXECUTE ON FUNCTION pro.size_pretty(bigint) TO psqlrc_user;
+GRANT EXECUTE ON FUNCTION pro.size_pretty(numeric) TO psqlrc_user;
+GRANT EXECUTE ON FUNCTION pro.cluster_topology() TO psqlrc_user;
+GRANT pg_monitor TO psqlrc_user; -- for extensions, like pg_buffercache
+
 
 \if :psqlrc_user_exists
 \else
-    \echo :hint'Please, for database user "psqlrc_user" set password and save it in file "~/.pgpass" on all servers of database cluster.':reset
+    \echo :head'Set password for user "psqlrc_user"':reset
     /*
     Указывая команде "ALTER USER user_name WITH PASSWORD 'new_password'" незашифрованный пароль, следует проявлять осторожность.
     Пароль будет передаваться на сервер открытым текстом и может также записаться в историю команд клиента или в протокол работы сервера.
@@ -51,3 +58,6 @@ GRANT SELECT ON pro.cluster_topology TO psqlrc_user;
     */
     \password psqlrc_user
 \endif
+\echo :hint'For user "psqlrc_user", do it on all servers of database cluster:':reset
+\echo :hint'1. Save password in file "~/.pgpass"':reset
+\echo :hint'2. Check (if necessary) remote authentification possibility (see file "':hba_file'")':reset

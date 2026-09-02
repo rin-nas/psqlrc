@@ -101,7 +101,7 @@ select
         concat(active, ' ', temporary)
     ) as U&"slot_type\000Aactive temp"
 
-from pro.cluster_topology as t
+from pro.cluster_topology() as t
 cross join greatest(t.ping_time_diff, t.ping_time_diff * -1) as p(abs_ping_time_diff)
 order by t.level, t.sync_state desc, t.state;
 

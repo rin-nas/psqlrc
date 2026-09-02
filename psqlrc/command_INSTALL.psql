@@ -22,8 +22,8 @@ COMMIT;
 Потому что во VIEW используется внешнее подключение через dblink().
 Поэтому тест пока закомментирован.
 
--- select * from pro.cluster_topology; -- для отладки
-select count(*) > 0 as test_passed from pro.cluster_topology \gset
+-- select * from pro.cluster_topology(); -- для отладки
+select count(*) > 0 as test_passed from pro.cluster_topology() \gset
 
 \if :test_passed
     \echo :hint'Test passed':reset

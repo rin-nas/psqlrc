@@ -1,6 +1,6 @@
 -- DROP VIEW pro.cluster_topology;
 
-CREATE VIEW pro.cluster_topology AS
+CREATE VIEW pro.cluster_topology WITH (security_invoker = on) AS
 with recursive
 -- Шаг 1. Движемся от листа к корню с целью получить мастер.
 m as (
@@ -15,7 +15,7 @@ m as (
     select s.*,
            m.level - 1
     from m,
-         pro.dblink_u(  -- в случае недоступности сетевого соединения dblink() возвратит ошибку
+         pro.dblink(  -- в случае недоступности сетевого соединения dblink() возвратит ошибку
              m.conninfo,
              $sql$
                  select
@@ -26,7 +26,7 @@ m as (
                      inet_server_port()
                  from nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo)
              $sql$,
-             'is_primary bool, conninfo text, addr inet, port int'
+             true --fail_on_error
          ) as s (is_primary bool, conninfo text, addr inet, port int)
     where not m.is_primary and m.conninfo is not null
 )
@@ -58,7 +58,7 @@ m as (
            s.receive_uptime,
            s.reply_ago
     from r,
-         pro.dblink_u(
+         pro.dblink(
             format('user=psqlrc_user host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
             $sql$
                 select w.last_lsn,
@@ -70,13 +70,7 @@ m as (
                 left join pg_replication_slots as pg_rs on pg_sr.pid = pg_rs.active_pid  -- https://postgrespro.ru/docs/postgresql/current/view-pg-replication-slots
                 cross join coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
             $sql$,
-            $$
-                   last_lsn       pg_lsn,
-                   pg_sr          pg_stat_replication,
-                   pg_rs          pg_replication_slots,
-                   receive_uptime interval,
-                   reply_ago      interval
-            $$
+            true --fail_on_error
            ) as s (last_lsn       pg_lsn,
                    pg_sr          pg_stat_replication,
                    pg_rs          pg_replication_slots,
@@ -88,7 +82,7 @@ m as (
 , p as (
     select r.*, s.*
     from r
-    left join pro.dblink_u(
+    left join pro.dblink(
            format('user=psqlrc_user host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
            $sql$
                with guc as (
@@ -137,20 +131,7 @@ m as (
                         || ' application_name=dblink_topology_ping connect_timeout=5'
                     ) as ping
            $sql$,
-           $$
-                  started_at   timestamptz,
-                  start_uptime interval,
-                  loaded_at    timestamptz,
-                  load_uptime  interval,
-                  pause_state  text,
-                  pg_version   text,
-                  guc_primary  jsonb,
-                  guc_replica  jsonb,
-                  guc_biha     jsonb,
-                  ping_remote_addr inet,
-                  ping_latency   interval,
-                  ping_time_diff interval
-           $$
+           true --fail_on_error
           ) as s (started_at   timestamptz,
                   start_uptime interval,
                   loaded_at    timestamptz,
@@ -195,3 +176,17 @@ select
 from p;
 
 COMMENT ON VIEW pro.cluster_topology IS 'Cluster topology. Returns servers: master and dependent replicas, including cascaded ones.';
+
+
+-- wrapper for view "pro.cluster_topology" due "SECURITY DEFINER" reason
+create function pro.cluster_topology()
+    returns setof pro.cluster_topology
+    volatile -- !!!
+    returns null on null input
+    parallel safe
+    SECURITY DEFINER
+    language sql
+    set search_path = 'pg_catalog, pg_temp' -- prevent SQL injection and privilege escalation attacks
+begin atomic
+    table pro.cluster_topology;
+end;

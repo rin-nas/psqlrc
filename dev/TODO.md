@@ -1,5 +1,21 @@
 # Идеи для доработок
 
+* https://habr.com/ru/companies/postgrespro/articles/992426/#commit_b3ce55f41 psql: путь поиска в приглашении
+* 2026-08-27 21:26:54+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
+  Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
+  =# \dx
+  List of installed extensions
+  ┌────────────────┬─────────┬─────────────────┬────────────┬──────────────────────────────────────────────────────────────┐
+  │      Name      │ Version │ Default version │   Schema   │                         Description                          │
+  ├────────────────┼─────────┼─────────────────┼────────────┼──────────────────────────────────────────────────────────────┤
+  │ biha           │ 1.7     │ 1.8             │ biha       │ BiHA                                                         │
+  │ dblink         │ 1.2     │ 1.2             │ pro        │ connect to other PostgreSQL databases from within a database │
+  │ pg_buffercache │ 1.6     │ 1.6             │ public     │ examine the shared buffer cache                              │
+  │ plpgsql        │ 1.0.1   │ 1.0.1           │ pg_catalog │ PL/pgSQL procedural language                                 │
+  │ tablefunc      │ 1.0     │ 1.0             │ public     │ functions that manipulate whole tables, including crosstab   │
+  └────────────────┴─────────┴─────────────────┴────────────┴──────────────────────────────────────────────────────────────┘
+  (5 rows)
+* 
 * :BB - добавить колонку "works on leader only"?
 * BiHA - Показать уведомление, когда для двух узлов без рефери есть риск split-brain?
 * https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don't_use_trust_authentication_over_TCP/IP_(host,_hostssl)
