@@ -11,7 +11,7 @@ create function pro.ping(
     parallel safe
     SECURITY DEFINER 
     language sql
-    set search_path = ''
+    set search_path = 'pg_catalog, pg_temp' -- prevent SQL injection and privilege escalation attacks
 begin atomic
     select s.remote_addr,
            d3.latency,
