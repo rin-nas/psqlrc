@@ -13,6 +13,7 @@
 
 START TRANSACTION;
     DROP SCHEMA IF EXISTS pro CASCADE;
+    -- DROP ROLE IF EXISTS psqlrc_role; -- It cannot be deleted during reinstallation
     -- DROP USER IF EXISTS psqlrc_user; -- It cannot be deleted during reinstallation
 
     \include ~/psqlrc/install.psql
