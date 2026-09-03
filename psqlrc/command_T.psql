@@ -6,7 +6,8 @@
 
 \if :schema_pro_exists
 \else
-    \echo :hint'type ":INSTALL"':reset
+    \echo :error'schema "pro" does not exists':reset
+    \echo :hint'HINT: type ":INSTALL"':reset
     \quit
 \endif
 

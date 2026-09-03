@@ -1,5 +1,3 @@
--- DROP VIEW pro.cluster_topology;
-
 CREATE VIEW pro.cluster_topology WITH (security_invoker = on) AS
 with recursive
 -- Шаг 1. Движемся от листа к корню с целью получить мастер.
@@ -178,7 +176,7 @@ from p;
 COMMENT ON VIEW pro.cluster_topology IS 'Cluster topology. Returns servers: master and dependent replicas, including cascaded ones.';
 
 
--- wrapper for view "pro.cluster_topology" due "SECURITY DEFINER" reason
+------------------------------------------------------------------------------------------------------------------------
 create function pro.cluster_topology()
     returns setof pro.cluster_topology
     volatile -- !!!
@@ -190,3 +188,5 @@ create function pro.cluster_topology()
 begin atomic
     table pro.cluster_topology;
 end;
+
+comment on function pro.cluster_topology() is 'Wrapper for view "pro.cluster_topology" due "SECURITY DEFINER" reason';

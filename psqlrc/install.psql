@@ -29,15 +29,15 @@ ALTER FUNCTION pro.cluster_topology() OWNER TO postgres;
 ALTER VIEW pro.cluster_topology OWNER TO postgres;
 
 
-\echo :head'Revoke permissions from database objects':reset
--- https://postgrespro.ru/docs/postgresql/current/ddl-priv
+\echo :head'Revoke privileges from database objects':reset
+-- https://postgrespro.ru/docs/postgresql/current/ddl-priv (see PUBLIC)
 REVOKE ALL ON SCHEMA pro FROM PUBLIC;
-REVOKE ALL ON ALL TABLES IN SCHEMA pro FROM PUBLIC; -- and VIEWS too
+REVOKE ALL ON ALL TABLES    IN SCHEMA pro FROM PUBLIC; -- and VIEWS too
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA pro FROM PUBLIC;
-REVOKE ALL ON ALL ROUTINES IN SCHEMA pro FROM PUBLIC; -- ROUTINES = FUNCTIONS and PROCEDURES
+REVOKE ALL ON ALL ROUTINES  IN SCHEMA pro FROM PUBLIC; -- ROUTINES = FUNCTIONS = PROCEDURES
 
 
-\echo :head'Grant permissions to database objects':reset
+\echo :head'Grant privileges to database objects':reset
 -- https://postgrespro.ru/docs/postgresql/current/sql-createfunction#SQL-CREATEFUNCTION-SECURITY
 GRANT USAGE ON SCHEMA pro TO psqlrc_user;
 GRANT EXECUTE ON FUNCTION pro.ping(connection_str text) TO psqlrc_user;
@@ -45,7 +45,7 @@ GRANT EXECUTE ON FUNCTION pro.interval_pretty(interval) TO psqlrc_user;
 GRANT EXECUTE ON FUNCTION pro.size_pretty(bigint) TO psqlrc_user;
 GRANT EXECUTE ON FUNCTION pro.size_pretty(numeric) TO psqlrc_user;
 GRANT EXECUTE ON FUNCTION pro.cluster_topology() TO psqlrc_user;
-GRANT pg_monitor TO psqlrc_user; -- for extensions, like pg_buffercache
+GRANT pg_monitor TO psqlrc_user; -- for extensions too, like pg_buffercache
 
 
 \if :psqlrc_user_exists

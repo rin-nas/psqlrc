@@ -6,12 +6,13 @@
 
 \if :schema_pro_exists
 \else
-    \echo :hint'type ":INSTALL"':reset
+    \echo :error'schema "pro" does not exists':reset
+    \echo :hint'HINT: type ":INSTALL"':reset
     \quit
 \endif
 
 \if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
-    \echo :error'please, connect to database "biha_db"':reset
+    \echo :error'connect to database "biha_db" expected':reset
     \echo :hint'HINT: type "\\c biha_db"':reset
     \quit
 \endif
@@ -19,6 +20,7 @@
 
 \include ~/psqlrc/quiet_in.psql
 
+    -- https://postgrespro.ru/docs/enterprise/current/biha-administration#BIHA-SERVICE-MODE
     select exists (
         select
         from biha.config() as c

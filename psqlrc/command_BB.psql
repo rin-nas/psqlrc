@@ -1,7 +1,7 @@
 -- BiHA шпаргалка: сопоставление параметров конфигурации с функциями управления
 
 \if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
-    \echo :error'please, connect to database "biha_db"':reset
+    \echo :error'connect to database "biha_db" expected':reset
     \echo :hint'HINT: type "\\c biha_db"':reset
     \quit
 \endif

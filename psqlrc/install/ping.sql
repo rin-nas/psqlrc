@@ -9,7 +9,7 @@ create function pro.ping(
     volatile -- !!!
     returns null on null input
     parallel safe
-    SECURITY DEFINER
+    SECURITY DEFINER -- due dblink() restriction reason: avoid pass password in connection string, read it from file "~/.pgpass"
     language sql
     set search_path = 'pg_catalog, pg_temp' -- prevent SQL injection and privilege escalation attacks
 begin atomic
