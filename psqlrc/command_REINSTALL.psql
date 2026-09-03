@@ -11,13 +11,34 @@
     \quit
 \endif
 
+\include ~/psqlrc/quiet_in.psql
+    select exists (select from pg_catalog.pg_database where datname = 'biha_db') as biha_db_exists \gset
+\include ~/psqlrc/quiet_out.psql
+
+\set DBNAME_ORIGINAL :DBNAME
+
+\if :biha_db_exists
+    \if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
+        \connect biha_db
+    \endif
+    START TRANSACTION;
+        DROP SCHEMA IF EXISTS pro CASCADE;
+        \include ~/psqlrc/install.psql
+    COMMIT;
+\endif
+
+\if `test ':DBNAME' != 'postgres' && echo 1 || echo 0`
+    \connect postgres
+\endif
+
 START TRANSACTION;
     DROP SCHEMA IF EXISTS pro CASCADE;
-    -- DROP ROLE IF EXISTS psqlrc_role; -- It cannot be deleted during reinstallation
-    -- DROP USER IF EXISTS psqlrc_user; -- It cannot be deleted during reinstallation
-
     \include ~/psqlrc/install.psql
 COMMIT;
+
+\if `test ':DBNAME' != ':DBNAME_ORIGINAL' && echo 1 || echo 0`
+    \connect :DBNAME_ORIGINAL
+\endif
 
 \if :ERROR
     \echo :error'Reinstall fail':reset

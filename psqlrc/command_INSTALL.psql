@@ -11,26 +11,36 @@
     \quit
 \endif
 
+\include ~/psqlrc/quiet_in.psql
+    select exists (select from pg_catalog.pg_database where datname = 'biha_db') as biha_db_exists \gset
+\include ~/psqlrc/quiet_out.psql
+
+\set DBNAME_ORIGINAL :DBNAME
+
+\if :biha_db_exists
+    \if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
+        \connect biha_db
+    \endif
+    START TRANSACTION;
+        \include ~/psqlrc/install.psql
+    COMMIT;
+\endif
+
+\if `test ':DBNAME' != 'postgres' && echo 1 || echo 0`
+    \connect postgres
+\endif
+
 START TRANSACTION;
     \include ~/psqlrc/install.psql
 COMMIT;
 
-/*
-Запрос внутри транзакции выводит ошибку:
-    psql:/home/postgres/psqlrc/install.psql:236: ERROR:  schema "pro" does not exist
-    CONTEXT:  while executing query on unnamed dblink connection
-Потому что во VIEW используется внешнее подключение через dblink().
-Поэтому тест пока закомментирован.
-
--- select * from pro.cluster_topology(); -- для отладки
-select count(*) > 0 as test_passed from pro.cluster_topology() \gset
-
-\if :test_passed
-    \echo :hint'Test passed':reset
-\else
-    \echo :warn'Test failed':reset
+\if `test ':DBNAME' != ':DBNAME_ORIGINAL' && echo 1 || echo 0`
+    \connect :DBNAME_ORIGINAL
 \endif
-*/
+
+\echo :hint'For user "psqlrc_user", do it on all servers of database cluster:':reset
+\echo :hint'1. Save password in file "~/.pgpass"':reset
+\echo :hint'2. Check (if necessary) remote authentification possibility (see file "':hba_file'")':reset
 
 \if :ERROR
     \echo :error'Install fail':reset
