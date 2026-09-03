@@ -55,6 +55,8 @@ psql -v pro=0 -q
 1. `psql -v pro=1` — с вычислением размера директорий для локальных подключений (медленно при большом количестве файлов), игнорируется с флагом `-q`
 1. `psql -v pro=0` — без вычисления размера директорий (быстро) и секции **`# OS`**
 
+Т.к. применяется опция `pro`, поведение уже ранее созданных скриптов для `psql` не меняется, явно указывать флаг `-X` (`--no-psqlrc`) не нужно.
+
 **Встраивание в `bash` скрипты на примере выполнения коротких команд:**
 ```bash
 psql -v pro=0 -q -f ~/psqlrc/command_T.psql -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" | sed 's/[↵¤]/ /g'
@@ -121,7 +123,7 @@ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and con
 ```bash
 sudo su - postgres
 
-# 1) из репозитория скопируйте папку psqlrc в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы 
+# 1) из репозитория скопируйте папку "psqlrc" в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы
 sudo chown -R postgres: ~/psqlrc
 sudo chmod -R 600 ~/psqlrc
 sudo chmod 700 ~/psqlrc
@@ -129,11 +131,8 @@ sudo chmod 700 ~/psqlrc
 # 2) создайте символическую ссылку
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
 
-# 3) добавьте служебные объекты в схему "pro"
-psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql postgres
-psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql biha_db  # для BiHA, при наличии
-
-# 4) при необходимости, проверьте возможность удалённой аутентификации для пользователя postgres на каждом сервере кластера (см. файлы "~/.pgpass" и "pg_hba.conf")
+# 3) добавьте служебные объекты в базу "postgres" в схему "pro" (при наличии BiHA объекты автоматически добавятся ещё в базу "biha_db")
+psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql
 ```
 
 ### 🆙 Обновление на новую версию
@@ -141,17 +140,16 @@ psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql biha_db  # для BiHA, при
 ```bash
 sudo su - postgres
 
-# 1) переименуйте старую папку psqlrc
+# 1) переименуйте старую папку "psqlrc"
 mv ~/psqlrc ~/psqlrc.$(date +%Y-%m-%d.%H%M%S)
 
-# 2) из репозитория скопируйте папку psqlrc в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы 
+# 2) из репозитория скопируйте папку "psqlrc" в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы 
 sudo chown -R postgres: ~/psqlrc
 sudo chmod -R 600 ~/psqlrc
 sudo chmod 700 ~/psqlrc
 
-# 3) обновите служебные объекты в схеме "pro"
-psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql postgres
-psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql biha_db  # для BiHA, при наличии
+# 3) обновите служебные объекты в базе "postgres" в схеме "pro" (при наличии BiHA объекты автоматически добавятся ещё в базу "biha_db")
+psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql
 ```
 
 ### ❌ Удаление
@@ -159,12 +157,11 @@ psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql biha_db  # для BiHA, пр
 ```bash
 sudo su - postgres
 
-# 1) удалите служебные объекты в схеме "pro"
-psql -v pro=0 -q -f ~/psqlrc/command_UNINSTALL.psql postgres
-psql -v pro=0 -q -f ~/psqlrc/command_UNINSTALL.psql biha_db  # для BiHA, при наличии
+# 1) удалите служебные объекты в базе "postgres" в схеме "pro" (при наличии BiHA объекты автоматически удалятся ещё из базы "biha_db")
+psql -v pro=0 -q -f ~/psqlrc/command_UNINSTALL.psql
 
-# 2) удалите папку psqlrc и символическую ссылку
-rm -R ~/psqlrc && rm ~/.psqlrc 
+# 2) удалите папку "psqlrc" и символическую ссылку
+rm -R ~/psqlrc && rm ~/.psqlrc
 ```
 
 ## Что отображается при запуске `psql`
