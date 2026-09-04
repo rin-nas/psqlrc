@@ -1,13 +1,13 @@
 -- короткие команды для DBA
 
-\set H  '\\include ~/psqlrc/command_H.psql'
-\set W  '\\include ~/psqlrc/command_W.psql'
-\set A  '\\include ~/psqlrc/command_A.psql'
-\set T  '\\include ~/psqlrc/command_T.psql'
-\set B  '\\include ~/psqlrc/command_B.psql'
-\set BB '\\include ~/psqlrc/command_BB.psql'
-\set TB '\\include ~/psqlrc/command_TB.psql'
+\set H  '\\include ~/psqlrc/commands/H.psql'
+\set W  '\\include ~/psqlrc/commands/W.psql'
+\set A  '\\include ~/psqlrc/commands/A.psql'
+\set T  '\\include ~/psqlrc/commands/T.psql'
+\set B  '\\include ~/psqlrc/commands/B.psql'
+\set BB '\\include ~/psqlrc/commands/BB.psql'
+\set TB '\\include ~/psqlrc/commands/TB.psql'
 
-\set INSTALL   '\\include ~/psqlrc/command_INSTALL.psql'
-\set REINSTALL '\\include ~/psqlrc/command_REINSTALL.psql'
-\set UNINSTALL '\\include ~/psqlrc/command_UNINSTALL.psql'
+\set INSTALL   '\\include ~/psqlrc/commands/INSTALL.psql'
+\set REINSTALL '\\include ~/psqlrc/commands/REINSTALL.psql'
+\set UNINSTALL '\\include ~/psqlrc/commands/UNINSTALL.psql'

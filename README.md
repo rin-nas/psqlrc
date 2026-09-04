@@ -64,9 +64,9 @@ psql -v pro=0 -q
 ### Встраивание в `bash` скрипты на примере выполнения коротких команд
 
 ```bash
-psql -v pro=0 -q -f ~/psqlrc/command_T.psql -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" | sed 's/[↵¤]/ /g'
+psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" | sed 's/[↵¤]/ /g'
 
-psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and config" biha_db | sed 's/[↵¤]/ /g'
+psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -P title="BiHA cluster state and config" biha_db | sed 's/[↵¤]/ /g'
 ```
 
 
@@ -152,7 +152,7 @@ sudo chmod 700 ~/psqlrc
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
 
 # 3) добавьте служебные объекты в базу "postgres" в схему "pro" (при наличии BiHA объекты автоматически добавятся ещё в базу "biha_db")
-psql -v pro=0 -q -f ~/psqlrc/command_INSTALL.psql
+psql -v pro=0 -q -f ~/psqlrc/commands/INSTALL.psql
 ```
 
 ### 🆙 Обновление на новую версию
@@ -171,7 +171,7 @@ sudo chmod -R 600 ~/psqlrc
 sudo chmod 700 ~/psqlrc
 
 # 3) обновите служебные объекты в базе "postgres" в схеме "pro" (при наличии BiHA объекты автоматически добавятся ещё в базу "biha_db")
-psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql
+psql -v pro=0 -q -f ~/psqlrc/commands/REINSTALL.psql
 ```
 
 ### ❌ Удаление
@@ -180,7 +180,7 @@ psql -v pro=0 -q -f ~/psqlrc/command_REINSTALL.psql
 sudo su - postgres
 
 # 1) удалите служебные объекты в базе "postgres" в схеме "pro" (при наличии BiHA объекты автоматически удалятся ещё из базы "biha_db")
-psql -v pro=0 -q -f ~/psqlrc/command_UNINSTALL.psql
+psql -v pro=0 -q -f ~/psqlrc/commands/UNINSTALL.psql
 
 # 2) удалите папку "psqlrc" и символическую ссылку
 rm -R ~/psqlrc && rm ~/.psqlrc
@@ -503,7 +503,7 @@ Time: 1.478 ms
 <summary>:T (показать/скрыть)</summary>
 
 ```
-postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/command_T.psql -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" | sed 's/[↵¤]/ /g'
+postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" | sed 's/[↵¤]/ /g'
                                                                                       Cluster topology at (2026-08-22 19:47:37+00)
 ┌─────────┬─────────┬────────────────┬────────────────┬───────────┬──────────┬────────────┬─────────────────────────────────┬────────────────────┬───────────┬──────────────┬───────────────┬─────────────┬─────────────┐
 │ level ↓ │  role   │  parent_host   │      host      │   ping    │  mode ↑  │  state ↓   │            lag_size             │      lag_time      │ reply_ago │ start_uptime │ hold_wal_size │  slot_name  │  slot_type  │
@@ -529,7 +529,7 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/command_T.psql -P title="Clu
 <summary>:B (показать/скрыть)</summary>
 
 ```
-postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/command_B.psql -P title="BiHA cluster state and config" biha_db | sed 's/[↵¤]/ /g'
+postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -P title="BiHA cluster state and config" biha_db | sed 's/[↵¤]/ /g'
            BiHA cluster state and config
 ┌────────────────┬─────────────────────────────────┐
 │    function    │             return              │

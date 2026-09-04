@@ -8,8 +8,8 @@ psql -v pro=color biha_db
 #-----------------------------------------------------------------------------------------------------------------------
 # встраивание в bash скрипты
 
-psql -v pro=0 -q -f ~/psqlrc/command_W.psql biha_db | sed 's/[↵¤]/ /g'
-psql -v pro=0 -q -f ~/psqlrc/command_A.psql biha_db | sed 's/[↵¤]/ /g'
-psql -v pro=0 -q -f ~/psqlrc/command_T.psql biha_db | sed 's/[↵¤]/ /g'
-psql -v pro=0 -q -f ~/psqlrc/command_B.psql biha_db | sed 's/[↵¤]/ /g'
-psql -v pro=0 -q -f ~/psqlrc/command_BB.psql biha_db | sed 's/[↵¤]/ /g'
+psql -v pro=0 -q -f ~/psqlrc/commands/W.psql biha_db | sed 's/[↵¤]/ /g'
+psql -v pro=0 -q -f ~/psqlrc/commands/A.psql biha_db | sed 's/[↵¤]/ /g'
+psql -v pro=0 -q -f ~/psqlrc/commands/T.psql biha_db | sed 's/[↵¤]/ /g'
+psql -v pro=0 -q -f ~/psqlrc/commands/B.psql biha_db | sed 's/[↵¤]/ /g'
+psql -v pro=0 -q -f ~/psqlrc/commands/BB.psql biha_db | sed 's/[↵¤]/ /g'
