@@ -1,14 +1,15 @@
-\echo :head'Create database objects':reset
-
 \include ~/psqlrc/quiet_in.psql
     SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = 'psqlrc_role') AS psqlrc_role_exists \gset
 \include ~/psqlrc/quiet_out.psql
 
 \if :psqlrc_role_exists
 \else
+    \echo :head'Create global objects':reset
     CREATE ROLE psqlrc_role;
     CREATE USER psqlrc_user;
 \endif
+
+\echo :head'Create database objects':reset
 
 CREATE SCHEMA pro;
 CREATE EXTENSION dblink SCHEMA pro;

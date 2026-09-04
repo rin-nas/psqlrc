@@ -21,6 +21,9 @@
     \if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
         \connect biha_db
     \endif
+
+    \echo
+    \echo :head'Database "':DBNAME'"':reset
     START TRANSACTION;
         DROP SCHEMA IF EXISTS pro CASCADE;
         \include ~/psqlrc/install.psql
@@ -31,6 +34,8 @@
     \connect postgres
 \endif
 
+\echo
+\echo :head'Database "':DBNAME'"':reset
 START TRANSACTION;
     DROP SCHEMA IF EXISTS pro CASCADE;
     \include ~/psqlrc/install.psql

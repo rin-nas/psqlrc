@@ -21,6 +21,9 @@
     \if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
         \connect biha_db
     \endif
+
+    \echo
+    \echo :head'Database "':DBNAME'"':reset
     DROP SCHEMA IF EXISTS pro CASCADE;
 \endif
 
@@ -28,9 +31,12 @@
     \connect postgres
 \endif
 
+\echo
+\echo :head'Database "':DBNAME'"':reset
 DROP SCHEMA IF EXISTS pro CASCADE;
 
--- global objects
+\echo
+\echo :head'Global objects':reset
 START TRANSACTION;
     DROP ROLE IF EXISTS psqlrc_role;
     DROP USER IF EXISTS psqlrc_user;
