@@ -96,13 +96,21 @@ join biha.nodes_v      as n on n.id = s.id
 join biha.config()     as c on c.id = s.id
 join biha.monitoring() as m on m.id = s.id
 left join pro.cluster_topology() as t  on t.host = n.host
-left join biha.nodes_v            as pn on pn.host = t.parent_host
+left join biha.nodes_v           as pn on pn.host = t.parent_host
 left join coalesce(
-    case when t.ping_latency > '100ms'::interval then '⚠️ ' else '' end || pro.interval_pretty(t.ping_latency)
+    case when t.ping_latency < '50ms'::interval then '🟢' -- green circle
+         when t.ping_latency < '100ms'::interval then '🟡' -- yellow circle
+         else '🔴' -- red circle
+    end
+    || ' ' || pro.interval_pretty(t.ping_latency)
 ) as ping_latency_pretty on true
 left join greatest(t.ping_time_diff, t.ping_time_diff * -1) as p(abs_ping_time_diff) on true
 left join coalesce(
-    case when abs_ping_time_diff > '1s'::interval then '⚠️ ' else '' end || pro.interval_pretty(p.abs_ping_time_diff)
+    case when abs_ping_time_diff < '50ms'::interval then '🟢' -- green circle
+         when abs_ping_time_diff < '100ms'::interval then '🟡' -- yellow circle
+         else '🔴' -- red circle
+    end
+    || ' ' || pro.interval_pretty(p.abs_ping_time_diff)
 ) as ping_time_diff_pretty on true
 cross join coalesce(
    case when s.state = 'LEADER_RO' then '⭕' -- hollow red circle
@@ -112,7 +120,7 @@ cross join coalesce(
         when s.state = 'UNKNOWN' then '⚪' -- white circle
         else '🟡' -- (PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE) yellow circle
    end
-) state_symbol
+) as state_symbol
 order by n.id;
 
 \unset title
