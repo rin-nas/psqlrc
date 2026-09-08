@@ -128,6 +128,11 @@ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="
 
 ### ✅ Инсталляция
 
+Что происходит в СУБД при инсталляции?
+1. Создаётся роль `psqlrc_role` и пользователь `psqlrc_user`. 
+1. В базу `postgres` и `biha_db` (при наличии [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference)) в схему `pro` устанавливаются расширение `dblink`, создаётся несколько функций и представление.
+1. Настраиваются права доступа к объектам СУБД и членство в ролях. 
+
 ```bash
 sudo su - postgres
 
@@ -139,7 +144,7 @@ sudo chmod 700 ~/psqlrc
 # 2) создайте символическую ссылку
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
 
-# 3) добавьте служебные объекты в базу "postgres" в схему "pro" (при наличии BiHA объекты автоматически добавятся ещё в базу "biha_db")
+# 3) выполните команду инсталляции
 psql -v pro=0 -q -f ~/psqlrc/commands/INSTALL.psql
 ```
 
@@ -158,7 +163,7 @@ sudo chown -R postgres: ~/psqlrc
 sudo chmod -R 600 ~/psqlrc
 sudo chmod 700 ~/psqlrc
 
-# 3) обновите служебные объекты в базе "postgres" в схеме "pro" (при наличии BiHA объекты автоматически добавятся ещё в базу "biha_db")
+# 3) выполните команду обновления
 psql -v pro=0 -q -f ~/psqlrc/commands/REINSTALL.psql
 ```
 
@@ -167,7 +172,7 @@ psql -v pro=0 -q -f ~/psqlrc/commands/REINSTALL.psql
 ```bash
 sudo su - postgres
 
-# 1) удалите служебные объекты в базе "postgres" в схеме "pro" (при наличии BiHA объекты автоматически удалятся ещё из базы "biha_db")
+# 1) выполните команду удаления
 psql -v pro=0 -q -f ~/psqlrc/commands/UNINSTALL.psql
 
 # 2) удалите папку "psqlrc" и символическую ссылку
