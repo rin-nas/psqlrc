@@ -131,7 +131,7 @@ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="
 Что происходит в СУБД при инсталляции?
 1. Создаётся роль `psqlrc_role` и пользователь `psqlrc_user`. 
 1. В базу `postgres` и `biha_db` (при наличии [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference)) в схему `pro` устанавливаются расширение `dblink`, создаётся несколько функций и представление.
-1. Настраиваются права доступа к объектам СУБД и членство в ролях. 
+1. Настраиваются права доступа к созданным объектам СУБД и членство в ролях. 
 
 ```bash
 sudo su - postgres
@@ -532,6 +532,8 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psql_user
 <details>
 <summary>:B (показать/скрыть)</summary>
 
+Если [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference) находится в сервисном режиме, то перед таблицей будет показано предупреждение об этом.  
+
 ```
 postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="BiHA cluster state and config" biha_db | sed 's/[↵¤]/ /g'
            BiHA cluster state and config
@@ -561,6 +563,8 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_repl
 │      │      │            │              │            │              │         │                │              │          │           │            │                   │               │                    │
 └──────┴──────┴────────────┴──────────────┴────────────┴──────────────┴─────────┴────────────────┴──────────────┴──────────┴───────────┴────────────┴───────────────────┴───────────────┴────────────────────┘
 ```
+Если для BiHA настроены функции обратного вызова (callbacks), то под таблицей будет показана соответствующая таблица. 
+
 Цветной круглый индикатор состояния узлов BiHA (`biha_state`):
 * 🟡 PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE
 * ⭕ LEADER_RO
