@@ -53,7 +53,9 @@ GRANT psqlrc_role TO psqlrc_user;
 \if `test ':DBNAME' = 'biha_db' && echo 1 || echo 0`
     -- https://postgrespro.ru/docs/enterprise/current/biha-administration#BIHA-ROLES
     GRANT psqlrc_role TO biha_replication_user;
-    GRANT biha_cluster_management_role TO psqlrc_user;
+    -- fix for 'BIHA_CLUSTER_MANAGEMENT_ROLE' vs 'biha_cluster_management_role'
+    select rolname from pg_roles where lower(rolname) = 'biha_cluster_management_role' \gset
+    GRANT :"rolname" TO psqlrc_user;
 \endif
 
 \if :psqlrc_role_exists
