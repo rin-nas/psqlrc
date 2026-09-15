@@ -64,7 +64,7 @@ psql -v pro=0 -q
 ### Встраивание в `bash` скрипты на примере выполнения коротких команд
 
 ```bash
-psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" | sed 's/[↵¤]/ /g'
+psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds))" psqlrc_db | sed 's/[↵¤]/ /g'
 
 psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="BiHA cluster state and config" biha_db | sed 's/[↵¤]/ /g'
 ```
@@ -118,7 +118,7 @@ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="
 
 Что происходит в СУБД при инсталляции?
 1. Создаётся роль `psqlrc_role` и пользователь `psqlrc_user`. 
-1. В базу `postgres` и `biha_db` (при наличии [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference)) в схему `pro` устанавливаются расширение `dblink`, создаётся несколько функций и представление.
+1. В базу `psqlrc_db` и `biha_db` (при наличии [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference)) в схему `pro` устанавливаются расширение `dblink`, создаётся несколько функций и представление.
 1. Настраиваются права доступа к созданным объектам СУБД и членство в ролях. 
 
 ```bash
@@ -484,7 +484,7 @@ Time: 1.478 ms
 <summary>:T (показать/скрыть)</summary>
 
 ```
-postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psql_user -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" | sed 's/[↵¤]/ /g'
+postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" psqlrc_db | sed 's/[↵¤]/ /g'
                                                                                       Cluster topology at (2026-08-22 19:47:37+00)
 ┌─────────┬─────────┬────────────────┬────────────────┬───────────┬──────────┬────────────┬─────────────────────────────────┬────────────────────┬───────────┬──────────────┬───────────────┬─────────────┬─────────────┐
 │ level ↓ │  role   │  parent_host   │      host      │   ping    │  mode ↑  │  state ↓   │            lag_size             │      lag_time      │ reply_ago │ start_uptime │ hold_wal_size │  slot_name  │  slot_type  │
