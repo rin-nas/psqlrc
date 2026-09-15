@@ -1,0 +1,17 @@
+\include ~/psqlrc/quiet_in.psql
+    select exists (select from pg_catalog.pg_database where datname = 'psqlrc_db') as psqlrc_db_exists \gset
+\include ~/psqlrc/quiet_out.psql
+
+\if :psqlrc_db_exists
+\else
+    \echo :error'database "psqlrc_db" does not exist':reset
+    \echo :hint'HINT: type ":INSTALL"':reset
+    \quit
+\endif
+
+\set DBNAME_ORIGINAL :DBNAME
+\if `test ':DBNAME' != 'psqlrc_db' && echo 1 || echo 0`
+    \include ~/psqlrc/quiet_in.psql
+        \connect psqlrc_db
+    \include ~/psqlrc/quiet_out.psql
+\endif

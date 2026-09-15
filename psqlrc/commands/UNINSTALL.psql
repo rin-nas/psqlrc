@@ -17,23 +17,21 @@
 
 \set DBNAME_ORIGINAL :DBNAME
 
-\if :biha_db_exists
-    \if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
-        \connect biha_db
-    \endif
+\connect postgres
+\echo
+\echo :head'Database "':DBNAME'"':reset
+DROP SCHEMA IF EXISTS pro CASCADE; -- old version of psqlrc
 
+\echo
+\echo :head'Database "psqlrc_db"':reset
+DROP DATABASE IF EXISTS psqlrc_db WITH (FORCE);
+
+\if :biha_db_exists
+    \connect biha_db
     \echo
     \echo :head'Database "':DBNAME'"':reset
     DROP SCHEMA IF EXISTS pro CASCADE;
 \endif
-
-\if `test ':DBNAME' != 'postgres' && echo 1 || echo 0`
-    \connect postgres
-\endif
-
-\echo
-\echo :head'Database "':DBNAME'"':reset
-DROP SCHEMA IF EXISTS pro CASCADE;
 
 \echo
 \echo :head'Global objects':reset

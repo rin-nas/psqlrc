@@ -1,16 +1,6 @@
 -- Топология кластера СУБД. Возвращает серверы: мастер и зависимые реплики, включая каскадные.
 
-\include ~/psqlrc/quiet_in.psql
-    select exists (select from pg_catalog.pg_namespace where nspname = 'pro') as schema_pro_exists \gset
-\include ~/psqlrc/quiet_out.psql
-
-\if :schema_pro_exists
-\else
-    \echo :error'schema "pro" does not exists':reset
-    \echo :hint'HINT: type ":INSTALL"':reset
-    \quit
-\endif
-
+\include ~/psqlrc/connect_psqlrc_db.psql
 
 \set title 'Cluster topology'
 \include ~/psqlrc/title.psql
@@ -108,3 +98,5 @@ order by t.level, t.sync_state desc, t.state;
 
 \unset title
 \include ~/psqlrc/title.psql
+
+\include ~/psqlrc/connect_restore.psql

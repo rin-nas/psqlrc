@@ -1,4 +1,4 @@
-CREATE VIEW pro.cluster_topology WITH (security_invoker = on) AS
+    CREATE VIEW pro.cluster_topology WITH (security_invoker = on) AS
 with recursive
 -- Шаг 1. Движемся от листа к корню с целью получить мастер.
 m as (
@@ -57,7 +57,7 @@ m as (
            s.reply_ago
     from r,
          pro.dblink(
-            format('user=psqlrc_user host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
+            format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=dblink_topology connect_timeout=5', r.addr, r.port),
             $sql$
                 select w.last_lsn,
                        pg_sr,
@@ -81,7 +81,7 @@ m as (
     select r.*, s.*
     from r
     left join pro.dblink(
-           format('user=psqlrc_user host=%s port=%s dbname=postgres application_name=dblink_topology connect_timeout=5', r.addr, r.port),
+           format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=dblink_topology connect_timeout=5', r.addr, r.port),
            $sql$
                with guc as (
                    select

@@ -1,13 +1,21 @@
 \include ~/psqlrc/quiet_in.psql
     SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = 'psqlrc_role') AS psqlrc_role_exists \gset
+    SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = 'psqlrc_user') AS psqlrc_user_exists \gset
 \include ~/psqlrc/quiet_out.psql
+
+
+\echo :head'Create global objects (if necessary)':reset
 
 \if :psqlrc_role_exists
 \else
-    \echo :head'Create global objects':reset
     CREATE ROLE psqlrc_role;
+\endif
+
+\if :psqlrc_user_exists
+\else
     CREATE USER psqlrc_user;
 \endif
+
 
 \echo :head'Create database objects':reset
 
@@ -22,7 +30,7 @@ CREATE EXTENSION dblink SCHEMA pro;
 \echo :head'Set owner to database objects':reset
 
 ALTER SCHEMA pro OWNER TO postgres;
---ALTER EXTENSION dblink OWNER TO postgres; -- command does not exists
+--ALTER EXTENSION dblink OWNER TO postgres; -- command does not exist
 ALTER FUNCTION pro.ping(connection_str text) OWNER TO postgres;
 ALTER FUNCTION pro.interval_pretty(interval) OWNER TO postgres;
 ALTER FUNCTION pro.size_pretty(bigint) OWNER TO postgres;
@@ -33,14 +41,20 @@ ALTER VIEW pro.cluster_topology OWNER TO postgres;
 
 \echo :head'Revoke privileges from database objects':reset
 -- https://postgrespro.ru/docs/postgresql/current/ddl-priv (see PUBLIC)
-REVOKE ALL ON SCHEMA pro FROM PUBLIC;
+-- https://postgrespro.ru/docs/postgresql/current/sql-revoke
+\if `test ':DBNAME' = 'psqlrc_db' && echo 1 || echo 0`
+    REVOKE ALL ON DATABASE :"DBNAME" FROM PUBLIC; -- отнимаем привилегии CREATE, CONNECT, TEMPORARY
+\endif
+REVOKE ALL ON SCHEMA pro FROM PUBLIC; -- отнимаем привилегии CREATE, USAGE
 REVOKE ALL ON ALL TABLES    IN SCHEMA pro FROM PUBLIC; -- and VIEWS too
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA pro FROM PUBLIC;
 REVOKE ALL ON ALL ROUTINES  IN SCHEMA pro FROM PUBLIC; -- ROUTINES = FUNCTIONS = PROCEDURES
 
 
 \echo :head'Grant privileges to database objects':reset
--- https://postgrespro.ru/docs/postgresql/current/sql-createfunction#SQL-CREATEFUNCTION-SECURITY
+-- https://postgrespro.ru/docs/postgresql/current/ddl-priv
+-- https://postgrespro.ru/docs/postgresql/current/sql-grant
+GRANT CONNECT ON DATABASE psqlrc_db TO psqlrc_role;
 GRANT USAGE ON SCHEMA pro TO psqlrc_role;
 GRANT EXECUTE ON FUNCTION pro.ping(connection_str text) TO psqlrc_role;
 GRANT EXECUTE ON FUNCTION pro.interval_pretty(interval) TO psqlrc_role;
@@ -58,7 +72,7 @@ GRANT psqlrc_role TO psqlrc_user;
     GRANT :"rolname" TO psqlrc_user;
 \endif
 
-\if :psqlrc_role_exists
+\if :psqlrc_user_exists
 \else
     \echo :head'Set password':reset
     /*

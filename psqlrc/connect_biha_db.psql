@@ -1,0 +1,30 @@
+\include ~/psqlrc/quiet_in.psql
+    select exists (select from pg_catalog.pg_database where datname = 'biha_db') as biha_db_exists \gset
+\include ~/psqlrc/quiet_out.psql
+
+\if :biha_db_exists
+\else
+    \echo :error'database "biha_db" does not exist':reset
+    \quit
+\endif
+
+\set DBNAME_ORIGINAL :DBNAME
+
+\if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
+    \include ~/psqlrc/quiet_in.psql
+        \connect biha_db
+    \include ~/psqlrc/quiet_out.psql
+\endif
+
+------------------------------------------------------------------------------------------------------------------------
+\include ~/psqlrc/quiet_in.psql
+    select exists (select from pg_catalog.pg_namespace where nspname = 'pro') as schema_pro_exists \gset
+\include ~/psqlrc/quiet_out.psql
+
+\if :schema_pro_exists
+\else
+    \echo :error'schema "pro" does not exist':reset
+    \echo :hint'HINT: type ":INSTALL"':reset
+    \include ~/psqlrc/connect_restore.psql
+    \quit
+\endif

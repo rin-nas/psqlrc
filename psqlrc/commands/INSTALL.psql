@@ -12,25 +12,32 @@
 \endif
 
 \include ~/psqlrc/quiet_in.psql
-    select exists (select from pg_catalog.pg_namespace where nspname = 'pro') as schema_pro_exists \gset
-\include ~/psqlrc/quiet_out.psql
-
-\if :schema_pro_exists
-    \echo :warn'schema "pro" already exists':reset
-    \quit
-\endif
-
-\include ~/psqlrc/quiet_in.psql
+    select exists (select from pg_catalog.pg_database where datname = 'psqlrc_db') as psqlrc_db_exists \gset
     select exists (select from pg_catalog.pg_database where datname = 'biha_db') as biha_db_exists \gset
 \include ~/psqlrc/quiet_out.psql
 
+\if :psqlrc_db_exists
+    \echo :warn'database "psqlrc_db" already exists':reset
+    \quit
+\endif
+
 \set DBNAME_ORIGINAL :DBNAME
 
-\if :biha_db_exists
-    \if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
-        \connect biha_db
-    \endif
+/*
+В одну и туже базу невозможно установить одно и то же расширение в разные схемы, будет ошибка.
+Другие расширения (например, "pgpro_pwr") тоже могут установить зависимое расширение "dblink" в базу "postgres".
+Чтобы не было конфликтов при установке расширения "dblink", используем отдельную базу "psqlrc_db".
+*/
+CREATE DATABASE psqlrc_db;
+\connect psqlrc_db
+\echo
+\echo :head'Database "':DBNAME'"':reset
+START TRANSACTION;
+    \include ~/psqlrc/install.psql
+COMMIT;
 
+\if :biha_db_exists
+    \connect biha_db
     \echo
     \echo :head'Database "':DBNAME'"':reset
     START TRANSACTION;
@@ -38,19 +45,7 @@
     COMMIT;
 \endif
 
-\if `test ':DBNAME' != 'postgres' && echo 1 || echo 0`
-    \connect postgres
-\endif
-
-\echo
-\echo :head'Database "':DBNAME'"':reset
-START TRANSACTION;
-    \include ~/psqlrc/install.psql
-COMMIT;
-
-\if `test ':DBNAME' != ':DBNAME_ORIGINAL' && echo 1 || echo 0`
-    \connect :DBNAME_ORIGINAL
-\endif
+\connect :DBNAME_ORIGINAL
 
 \echo :hint'For user "psqlrc_user", do it on all servers of database cluster:':reset
 \echo :hint'1. Save password in file "~/.pgpass"':reset

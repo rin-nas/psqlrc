@@ -1,22 +1,6 @@
 --  BiHA: состояние и конфигурация узлов кластера
 
-\include ~/psqlrc/quiet_in.psql
-    select exists (select from pg_catalog.pg_namespace where nspname = 'pro') as schema_pro_exists \gset
-\include ~/psqlrc/quiet_out.psql
-
-\if :schema_pro_exists
-\else
-    \echo :error'schema "pro" does not exists':reset
-    \echo :hint'HINT: type ":INSTALL"':reset
-    \quit
-\endif
-
-\if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
-    \echo :error'connect to database "biha_db" expected':reset
-    \echo :hint'HINT: type "\\c biha_db"':reset
-    \quit
-\endif
-
+\include ~/psqlrc/connect_biha_db.psql
 
 \include ~/psqlrc/quiet_in.psql
 
@@ -147,3 +131,5 @@ ORDER BY s.id;
 
 \unset title
 \include ~/psqlrc/title.psql
+
+\include ~/psqlrc/connect_restore.psql

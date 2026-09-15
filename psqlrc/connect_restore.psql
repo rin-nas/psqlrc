@@ -1,0 +1,7 @@
+\if :{?DBNAME_ORIGINAL}
+    \if `test ':DBNAME' != ':DBNAME_ORIGINAL' && echo 1 || echo 0`
+        \include ~/psqlrc/quiet_in.psql
+            \connect :DBNAME_ORIGINAL
+        \include ~/psqlrc/quiet_out.psql
+    \endif
+\endif

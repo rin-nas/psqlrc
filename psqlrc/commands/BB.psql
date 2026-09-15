@@ -1,11 +1,6 @@
 -- BiHA шпаргалка: сопоставление параметров конфигурации с функциями управления
 
-\if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
-    \echo :error'connect to database "biha_db" expected':reset
-    \echo :hint'HINT: type "\\c biha_db"':reset
-    \quit
-\endif
-
+\include ~/psqlrc/connect_biha_db.psql
 
 \set title 'BiHA cheat sheet: config settings to management functions mapping'
 \include ~/psqlrc/title.psql
@@ -80,3 +75,5 @@ order by t.name;
 
 \unset title
 \include ~/psqlrc/title.psql
+
+\include ~/psqlrc/connect_restore.psql
