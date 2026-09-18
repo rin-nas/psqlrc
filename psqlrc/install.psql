@@ -1,66 +1,34 @@
 \include ~/psqlrc/quiet_in.psql
     SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = 'psqlrc_role') AS psqlrc_role_exists \gset
     SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = 'psqlrc_user') AS psqlrc_user_exists \gset
+    select exists (select from pg_namespace where nspname = 'pro') as schema_pro_exists \gset
 \include ~/psqlrc/quiet_out.psql
 
-
-\echo :head'Create global objects (if necessary)':reset
+------------------------------------------------------------------------------------------------------------------------
+\echo :head'Create global objects':reset
 
 \if :psqlrc_role_exists
+    \echo :warn'role "psqlrc_role" already exists, skipped':reset
 \else
     CREATE ROLE psqlrc_role;
 \endif
 
 \if :psqlrc_user_exists
+    \echo :warn'user "psqlrc_user" already exists, skipped':reset
 \else
     CREATE USER psqlrc_user;
+    \echo :head'Set password':reset
+    /*
+    Указывая команде "ALTER USER user_name WITH PASSWORD 'new_password'" незашифрованный пароль, следует проявлять осторожность.
+    Пароль будет передаваться на сервер открытым текстом и может также записаться в историю команд клиента или в протокол работы сервера.
+    В psql есть команда \password, с помощью которой можно сменить пароль в хешированном виде, не рискуя его рассекретить.
+    */
+    \password psqlrc_user
 \endif
 
+------------------------------------------------------------------------------------------------------------------------
+\echo :head'Grant privileges to global objects':reset
 
-\echo :head'Create database objects':reset
-
-CREATE SCHEMA pro;
-CREATE EXTENSION dblink SCHEMA pro;
-\include ~/psqlrc/install/ping.sql
-\include ~/psqlrc/install/interval_pretty.sql
-\include ~/psqlrc/install/size_pretty.sql
-\include ~/psqlrc/install/cluster_topology.sql
-
-
-\echo :head'Set owner to database objects':reset
-
-ALTER SCHEMA pro OWNER TO postgres;
---ALTER EXTENSION dblink OWNER TO postgres; -- command does not exist
-ALTER FUNCTION pro.ping(connection_str text) OWNER TO postgres;
-ALTER FUNCTION pro.interval_pretty(interval) OWNER TO postgres;
-ALTER FUNCTION pro.size_pretty(bigint) OWNER TO postgres;
-ALTER FUNCTION pro.size_pretty(numeric) OWNER TO postgres;
-ALTER FUNCTION pro.cluster_topology() OWNER TO postgres;
-ALTER VIEW pro.cluster_topology OWNER TO postgres;
-
-
-\echo :head'Revoke privileges from database objects':reset
--- https://postgrespro.ru/docs/postgresql/current/ddl-priv (see PUBLIC)
--- https://postgrespro.ru/docs/postgresql/current/sql-revoke
-\if `test ':DBNAME' = 'psqlrc_db' && echo 1 || echo 0`
-    REVOKE ALL ON DATABASE :"DBNAME" FROM PUBLIC; -- отнимаем привилегии CREATE, CONNECT, TEMPORARY
-\endif
-REVOKE ALL ON SCHEMA pro FROM PUBLIC; -- отнимаем привилегии CREATE, USAGE
-REVOKE ALL ON ALL TABLES    IN SCHEMA pro FROM PUBLIC; -- and VIEWS too
-REVOKE ALL ON ALL SEQUENCES IN SCHEMA pro FROM PUBLIC;
-REVOKE ALL ON ALL ROUTINES  IN SCHEMA pro FROM PUBLIC; -- ROUTINES = FUNCTIONS = PROCEDURES
-
-
-\echo :head'Grant privileges to database objects':reset
--- https://postgrespro.ru/docs/postgresql/current/ddl-priv
--- https://postgrespro.ru/docs/postgresql/current/sql-grant
-GRANT CONNECT ON DATABASE psqlrc_db TO psqlrc_role;
-GRANT USAGE ON SCHEMA pro TO psqlrc_role;
-GRANT EXECUTE ON FUNCTION pro.ping(connection_str text) TO psqlrc_role;
-GRANT EXECUTE ON FUNCTION pro.interval_pretty(interval) TO psqlrc_role;
-GRANT EXECUTE ON FUNCTION pro.size_pretty(bigint) TO psqlrc_role;
-GRANT EXECUTE ON FUNCTION pro.size_pretty(numeric) TO psqlrc_role;
-GRANT EXECUTE ON FUNCTION pro.cluster_topology() TO psqlrc_role;
 GRANT pg_monitor  TO psqlrc_role; -- for extensions too, like pg_buffercache
 GRANT psqlrc_role TO psqlrc_user;
 
@@ -72,13 +40,53 @@ GRANT psqlrc_role TO psqlrc_user;
     GRANT :"rolname" TO psqlrc_user;
 \endif
 
-\if :psqlrc_user_exists
-\else
-    \echo :head'Set password':reset
-    /*
-    Указывая команде "ALTER USER user_name WITH PASSWORD 'new_password'" незашифрованный пароль, следует проявлять осторожность.
-    Пароль будет передаваться на сервер открытым текстом и может также записаться в историю команд клиента или в протокол работы сервера.
-    В psql есть команда \password, с помощью которой можно сменить пароль в хешированном виде, не рискуя его рассекретить.
-    */
-    \password psqlrc_user
+------------------------------------------------------------------------------------------------------------------------
+\echo :head'Create database objects':reset
+
+\if :schema_pro_exists
+    \echo :warn'schema "pro" already exists, skipped':reset
+    \quit
 \endif
+
+CREATE SCHEMA pro;
+CREATE EXTENSION dblink SCHEMA pro;
+\include ~/psqlrc/install/ping.sql
+\include ~/psqlrc/install/interval_pretty.sql
+\include ~/psqlrc/install/size_pretty.sql
+\include ~/psqlrc/install/cluster_topology.sql
+
+------------------------------------------------------------------------------------------------------------------------
+\echo :head'Set owner to database objects':reset
+
+ALTER SCHEMA pro OWNER TO postgres;
+--ALTER EXTENSION dblink OWNER TO postgres; -- command does not exist
+ALTER FUNCTION pro.ping(connection_str text) OWNER TO postgres;
+ALTER FUNCTION pro.interval_pretty(interval) OWNER TO postgres;
+ALTER FUNCTION pro.size_pretty(bigint) OWNER TO postgres;
+ALTER FUNCTION pro.size_pretty(numeric) OWNER TO postgres;
+ALTER FUNCTION pro.cluster_topology() OWNER TO postgres;
+ALTER VIEW pro.cluster_topology OWNER TO postgres;
+
+------------------------------------------------------------------------------------------------------------------------
+\echo :head'Revoke privileges from database objects':reset
+-- https://postgrespro.ru/docs/postgresql/current/ddl-priv (see PUBLIC)
+-- https://postgrespro.ru/docs/postgresql/current/sql-revoke
+\if `test ':DBNAME' = 'psqlrc_db' && echo 1 || echo 0`
+    REVOKE ALL ON DATABASE :"DBNAME" FROM PUBLIC; -- отнимаем привилегии CREATE, CONNECT, TEMPORARY
+\endif
+REVOKE ALL ON SCHEMA pro FROM PUBLIC; -- отнимаем привилегии CREATE, USAGE
+REVOKE ALL ON ALL TABLES    IN SCHEMA pro FROM PUBLIC; -- and VIEWS too
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA pro FROM PUBLIC;
+REVOKE ALL ON ALL ROUTINES  IN SCHEMA pro FROM PUBLIC; -- ROUTINES = FUNCTIONS = PROCEDURES
+
+------------------------------------------------------------------------------------------------------------------------
+\echo :head'Grant privileges to database objects':reset
+-- https://postgrespro.ru/docs/postgresql/current/ddl-priv
+-- https://postgrespro.ru/docs/postgresql/current/sql-grant
+GRANT CONNECT ON DATABASE psqlrc_db TO psqlrc_role;
+GRANT USAGE ON SCHEMA pro TO psqlrc_role;
+GRANT EXECUTE ON FUNCTION pro.ping(connection_str text) TO psqlrc_role;
+GRANT EXECUTE ON FUNCTION pro.interval_pretty(interval) TO psqlrc_role;
+GRANT EXECUTE ON FUNCTION pro.size_pretty(bigint) TO psqlrc_role;
+GRANT EXECUTE ON FUNCTION pro.size_pretty(numeric) TO psqlrc_role;
+GRANT EXECUTE ON FUNCTION pro.cluster_topology() TO psqlrc_role;

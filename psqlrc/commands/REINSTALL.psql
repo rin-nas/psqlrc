@@ -12,29 +12,23 @@
 \endif
 
 \include ~/psqlrc/quiet_in.psql
-    select exists (select from pg_catalog.pg_database where datname = 'psqlrc_db') as psqlrc_db_exists \gset
-    select exists (select from pg_catalog.pg_database where datname = 'biha_db') as biha_db_exists \gset
+    select exists (select from pg_database where datname = 'biha_db') as biha_db_exists \gset
 \include ~/psqlrc/quiet_out.psql
-
-\if :psqlrc_db_exists
-\else
-    \echo :warn'database "psqlrc_db" does not exist':reset
-    \echo :hint'HINT: type ":INSTALL"':reset
-    \quit
-\endif
 
 \set DBNAME_ORIGINAL :DBNAME
 
+-- old version of psqlrc
 \connect postgres
 \echo
 \echo :head'Database "':DBNAME'"':reset
-DROP SCHEMA IF EXISTS pro CASCADE; -- old version of psqlrc
+DROP SCHEMA IF EXISTS pro CASCADE;
 
+DROP DATABASE IF EXISTS psqlrc_db WITH (FORCE);
+CREATE DATABASE psqlrc_db;
 \connect psqlrc_db
 \echo
 \echo :head'Database "':DBNAME'"':reset
 START TRANSACTION;
-    DROP SCHEMA IF EXISTS pro CASCADE;
     \include ~/psqlrc/install.psql
 COMMIT;
 

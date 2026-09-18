@@ -1,5 +1,5 @@
 \include ~/psqlrc/quiet_in.psql
-    select exists (select from pg_catalog.pg_database where datname = 'biha_db') as biha_db_exists \gset
+    select exists (select from pg_database where datname = 'biha_db') as biha_db_exists \gset
 \include ~/psqlrc/quiet_out.psql
 
 \if :biha_db_exists
@@ -20,7 +20,7 @@
 
 ------------------------------------------------------------------------------------------------------------------------
 \include ~/psqlrc/quiet_in.psql
-    select exists (select from pg_catalog.pg_namespace where nspname = 'pro') as schema_pro_exists \gset
+    select exists (select from pg_namespace where nspname = 'pro') as schema_pro_exists \gset
 \include ~/psqlrc/quiet_out.psql
 
 \if :schema_pro_exists
