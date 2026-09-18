@@ -1,6 +1,10 @@
 -- Топология кластера СУБД. Возвращает серверы: мастер и зависимые реплики, включая каскадные.
 
 \include ~/psqlrc/connect_psqlrc_db.psql
+\if :{?QUIT}
+    \unset QUIT
+    \quit
+\endif
 
 \set title 'Cluster topology'
 \include ~/psqlrc/title.psql

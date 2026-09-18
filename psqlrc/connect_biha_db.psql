@@ -5,6 +5,8 @@
 \if :biha_db_exists
 \else
     \echo :error'database "biha_db" does not exist':reset
+    -- при использовании \quit в скрипте прекращается только выполнение этого скрипта, поэтому делаем выход ещё из родительского скрипта
+    \set QUIT 1
     \quit
 \endif
 
@@ -26,5 +28,7 @@
     \echo :error'schema "pro" does not exist':reset
     \echo :hint'HINT: type ":INSTALL"':reset
     \include ~/psqlrc/connect_restore.psql
+    -- при использовании \quit в скрипте прекращается только выполнение этого скрипта, поэтому делаем выход ещё из родительского скрипта
+    \set QUIT 1
     \quit
 \endif

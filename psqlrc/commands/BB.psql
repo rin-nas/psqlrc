@@ -1,6 +1,11 @@
 -- BiHA шпаргалка: сопоставление параметров конфигурации с функциями управления
 
 \include ~/psqlrc/connect_biha_db.psql
+\if :{?QUIT}
+    \unset QUIT
+    \quit
+\endif
+
 
 \set title 'BiHA cheat sheet: config settings to management functions mapping'
 \include ~/psqlrc/title.psql

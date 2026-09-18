@@ -1,6 +1,11 @@
 --  BiHA: состояние и конфигурация узлов кластера
 
 \include ~/psqlrc/connect_biha_db.psql
+\if :{?QUIT}
+    \unset QUIT
+    \quit
+\endif
+
 
 \include ~/psqlrc/quiet_in.psql
 

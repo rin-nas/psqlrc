@@ -6,6 +6,8 @@
 \else
     \echo :error'database "psqlrc_db" does not exist':reset
     \echo :hint'HINT: type ":INSTALL"':reset
+    -- при использовании \quit в скрипте прекращается только выполнение этого скрипта, поэтому делаем выход ещё из родительского скрипта
+    \set QUIT 1
     \quit
 \endif
 

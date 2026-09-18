@@ -98,10 +98,18 @@ round(
 FROM pg_statio_user_tables;
 ```
 
+# Юникод
+
+Unicode Character U+FE0F is Variation Selector-16 (VS16), a special hidden code that tells your device to show a character as a colorful emoji instead of plain text
+
+⚠️    U+26A0 U+FE0F    UTF8: 0xE2 0x9A 0xA0
+
 # Ссылки
 
 1. [How to use variables in psql scripts](https://postgres.ai/docs/postgres-howtos/development-tools/psql/how-to-use-variables-in-psql-scripts)
 1. [Морской бой в PostgreSQL](https://habr.com/ru/companies/selectel/articles/519010/)
+1. https://stackoverflow.com/questions/8343250/how-can-i-get-position-of-cursor-in-terminal
+1. https://unix.stackexchange.com/questions/184345/detect-how-much-of-unicode-my-terminal-supports-even-through-screen
 
 ## Цвета:
 

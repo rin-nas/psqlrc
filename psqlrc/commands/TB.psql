@@ -1,6 +1,11 @@
 --  BiHA: топология, состояние и конфигурация узлов кластера (в одной компактной таблице)
 
 \include ~/psqlrc/connect_biha_db.psql
+\if :{?QUIT}
+    \unset QUIT
+    \quit
+\endif
+
 
 \include ~/psqlrc/quiet_in.psql
 
@@ -105,7 +110,9 @@ cross join coalesce(
         else '🟡' -- (PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE) yellow circle
    end
 ) as state_symbol
-order by n.id;
+order by n.id
+-- к сожалению, с этой командой (вместо ";") не работает пейджер
+\g | sed 's/[↵¤]/ /g'
 
 \unset title
 \include ~/psqlrc/title.psql
