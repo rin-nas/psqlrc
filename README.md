@@ -491,7 +491,7 @@ Time: 1.478 ms
 <summary>:T (показать/скрыть)</summary>
 
 ```
-postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" psqlrc_db | sed 's/∅/ /g'
+postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" psqlrc_db | sed 's/[∅¤]/ /g'
                                                                                       Cluster topology at (2026-08-22 19:47:37+00)
 ┌─────────┬─────────┬────────────────┬────────────────┬───────────┬──────────┬────────────┬─────────────────────────────────┬────────────────────┬───────────┬──────────────┬───────────────┬─────────────┬─────────────┐
 │ level ↓ │  role   │  parent_host   │      host      │   ping    │  mode ↑  │  state ↓   │            lag_size             │      lag_time      │ reply_ago │ start_uptime │ hold_wal_size │  slot_name  │  slot_type  │
@@ -539,7 +539,7 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_us
 Если [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference) находится в сервисном режиме, то перед таблицей будет показано предупреждение об этом.  
 
 ```
-postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="BiHA cluster state and config" biha_db | sed 's/∅/ /g'
+postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="BiHA cluster state and config" biha_db | sed 's/[∅¤]/ /g'
            BiHA cluster state and config
 ┌────────────────┬─────────────────────────────────┐
 │    function    │             return              │
