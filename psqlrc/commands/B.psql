@@ -114,12 +114,12 @@ JOIN biha.config()     AS c ON c.id = s.id
 JOIN biha.monitoring() AS m ON m.id = s.id
 --LEFT JOIN pg_stat_replication AS r ON r.application_name = CONCAT('biha_node_', s.id)
 CROSS JOIN coalesce(
-   case when s.state = 'LEADER_RO' then '⭕' -- hollow red circle
-        when s.state in ('LEADER_RW', 'FOLLOWER', 'FRONT_FOLLOWER') then '🟢' -- green circle
-        when s.state = 'REFEREE' then '🔵' -- blue circle
-        when s.state = 'NODE_ERROR' then '🔴' -- red circle
-        when s.state = 'UNKNOWN' then '⚪' -- white circle
-        else '🟡' -- (PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE) yellow circle
+   case when s.state = 'LEADER_RO'  then :'symbol_hollow_red'
+        when s.state in ('LEADER_RW', 'FOLLOWER', 'FRONT_FOLLOWER') then :'symbol_green'
+        when s.state = 'REFEREE'    then :'symbol_blue'
+        when s.state = 'NODE_ERROR' then :'symbol_red'
+        when s.state = 'UNKNOWN'    then :'symbol_white'
+        else /* PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE */ :'symbol_yellow'
    end
 ) e(symbol)
 ORDER BY s.id;

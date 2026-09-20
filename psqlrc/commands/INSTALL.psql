@@ -19,7 +19,7 @@
 \set DBNAME_ORIGINAL :DBNAME
 
 \if :psqlrc_db_exists
-    \echo :warn'database "psqlrc_db" already exists, skipped':reset
+    \echo :warn'database "psqlrc_db" already exists':reset
 \else
     /*
     В одну и туже базу невозможно установить одно и то же расширение в разные схемы, будет ошибка.
@@ -27,13 +27,13 @@
     Чтобы не было конфликтов при установке расширения "dblink", используем отдельную базу "psqlrc_db".
     */
     CREATE DATABASE psqlrc_db;
-    \connect psqlrc_db
-    \echo
-    \echo :head'Database "':DBNAME'"':reset
-    START TRANSACTION;
-        \include ~/psqlrc/install.psql
-    COMMIT;
 \endif
+\connect psqlrc_db
+\echo
+\echo :head'Database "':DBNAME'"':reset
+START TRANSACTION;
+    \include ~/psqlrc/install.psql
+COMMIT;
 
 \if :biha_db_exists
     \connect biha_db

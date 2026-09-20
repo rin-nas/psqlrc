@@ -78,22 +78,54 @@
 -- например, при каскадном удалении перечисляются все другие неявно удаляемые объекты СУБД
 \set VERBOSITY verbose
 
+-- отображаем стандартизированные графические знаки (эмодзи)
+\if :{?emoji}
+    -- psql запущен с флагом -v pro=
+\else
+    \set emoji 1
+\endif
+
 -- отображаем в таблицах рамки с непрерывными линиями
 \pset linestyle unicode
-
--- отображаем значения NULL
--- https://unicode.org/charts/PDF/U0080.pdf ('¤' код U+00A4)
-\pset null '¤'
--- юникод-символ '∅' в Putty отображается некорректно из-за его отсутствия в моноширинных шрифтах (Courier New) устаревших версий ОС Windows
--- шрифт с поддержкой разных юникод-символов (включая эмодзи) можно скачать с https://dejavu-fonts.github.io/
--- https://unicode.org/charts/PDF/U2200.pdf ('∅' код U+2205)
---\pset null '∅'
 
 -- рамки вокруг таблицы со всех сторон
 \pset border 2
 
 -- отображаем количество срок под таблицами
 \pset footer on
+
+/*
+В устаревших версиях ОС Windows некоторые юникод-символы в Putty отображается некорректно из-за их отсутствия в моноширинных шрифтах.
+Шрифты с поддержкой разных юникод-символов (включая эмодзи) можно скачать с https://dejavu-fonts.github.io/
+*/
+\if :emoji
+    -- отображаем значения NULL
+    -- https://unicode.org/charts/PDF/U2200.pdf (∅ U+2205)
+    \pset null '∅'
+
+    -- ⚠️ U+26A0 U+FE0F   UTF8: 0xE2 0x9A 0xA0
+    \set symbol_warning '⚠️'
+    \set symbol_red '🔴'
+    \set symbol_green '🟢'
+    \set symbol_yellow '🟡'
+    \set symbol_blue '🔵'
+    \set symbol_white '⚪'
+    \set symbol_hollow_red '⭕'
+\else
+    -- отображаем значения NULL
+    -- https://unicode.org/charts/PDF/U0080.pdf (¤ U+00A4)
+    \pset null '¤'
+
+    -- https://unicode.org/charts/PDF/U25A0.pdf (▲ U+25B2)
+    \set symbol_warning '▲'
+    \set symbol_red '❌'
+    \set symbol_green '✓'
+    \set symbol_yellow '▲'
+    \set symbol_blue '◆'
+    -- https://unicode.org/charts/PDF/U25A0.pdf (● U+25CF)
+    \set symbol_white '●'
+    \set symbol_hollow_red '○'
+\endif
 
 ------------------------------------------------------------------------------------------------------------------------
 -- настройки psql для редактора и пейджера
@@ -102,14 +134,14 @@
 \setenv PSQL_EDITOR 'nano'
 
 -- пейджер (если результат запроса не помещается на экране, он пропускается через эту программу)
+\pset pager always
 \set pspg_installed `command -v pspg > /dev/null 2>&1 && echo 1 || echo 0`
 \set less_installed `command -v less > /dev/null 2>&1 && echo 1 || echo 0`
 \if :pspg_installed
-    \pset expanded off
-    \setenv PSQL_PAGER       'pspg --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound'
-    \setenv PSQL_WATCH_PAGER 'pspg --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound --stream'
+    \setenv PSQL_PAGER       'sed -E -f ~/psqlrc/replaces.sed | pspg --quit-if-one-screen --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound'
+    \setenv PSQL_WATCH_PAGER 'sed -E -f ~/psqlrc/replaces.sed | pspg --quit-if-one-screen --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound --stream'
 \elif :less_installed
-    \setenv PSQL_PAGER 'less -iMFXSx4R'
+    \setenv PSQL_PAGER 'sed -E -f ~/psqlrc/replaces.sed | less -iMFXSx4R'
 \endif
 
 ------------------------------------------------------------------------------------------------------------------------

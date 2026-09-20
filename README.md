@@ -64,11 +64,13 @@ psql -v pro=0 -q
 ### Встраивание в `bash` скрипты на примере выполнения коротких команд
 
 ```bash
-psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds))" psqlrc_db | sed 's/[↵¤]/ /g'
+psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds))" psqlrc_db | sed -E -f ~/psqlrc/replaces.sed
 
-psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="BiHA cluster state and config" biha_db | sed 's/[↵¤]/ /g'
+psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="BiHA cluster state and config" biha_db
+
+psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db | sed -E -f ~/psqlrc/replaces.sed
 ```
-
+Необязательная команда `sed` применяется для цветного подкрашивания данных в таблицах. 
 
 ### Замечания по безопасности
 
@@ -92,6 +94,7 @@ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="
   Для каждой реплики имеется детализированная информация о размере и длительности отставания от зависимых серверов.
   Запускать лучше на мастере, но это не обязательно.
 * `:B` — [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference): состояние и конфигурация узлов кластера.
+* `:TB` — [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference): топология, состояние, конфигурация узлов кластера.
 * `:BB` — [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference) шпаргалка: сопоставление параметров конфигурации с функциями управления.
 
 Для выполнения команды просто введите её в приглашении `psql` и нажмите клавишу `Enter`.
@@ -296,7 +299,7 @@ Postgres Pro (enterprise) 17.9.2 c3d046b75bf  postgres@[local]:5432/demo
 ┌────────┬──────────┬────────┬──────────┬─────────────┬───────────────┬───────┬─────────────┐
 │ Schema │   Name   │  Type  │  Owner   │ Persistence │ Access method │ Size  │ Description │
 ├────────┼──────────┼────────┼──────────┼─────────────┼───────────────┼───────┼─────────────┤
-│ public │ my_table │ table  │ postgres │ permanent   │ heap          │ 16 kB │ ¤           │
+│ public │ my_table │ table  │ postgres │ permanent   │ heap          │ 16 kB │ ∅           │
 └────────┴──────────┴────────┴──────────┴─────────────┴───────────────┴───────┴─────────────┘
 (1 row)
 
@@ -429,13 +432,13 @@ Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
 │  6 │ current_database()    │ biha_db                                                                                                 │
 │  7 │ current_schema()      │ public                                                                                                  │
 │  8 │ current_schemas(true) │ {pg_catalog,public}                                                                                     │
-│  9 │ current_xact_id       │ ¤                                                                                                       │
-│ 10 │ current_xact_status   │ ¤                                                                                                       │
-│ 11 │ pg_current_logfile()  │ ¤                                                                                                       │
-│ 12 │ inet_client_addr()    │ ¤                                                                                                       │
-│ 13 │ inet_client_port()    │ ¤                                                                                                       │
-│ 14 │ inet_server_addr()    │ ¤                                                                                                       │
-│ 15 │ inet_server_port()    │ ¤                                                                                                       │
+│  9 │ current_xact_id       │ ∅                                                                                                       │
+│ 10 │ current_xact_status   │ ∅                                                                                                       │
+│ 11 │ pg_current_logfile()  │ ∅                                                                                                       │
+│ 12 │ inet_client_addr()    │ ∅                                                                                                       │
+│ 13 │ inet_client_port()    │ ∅                                                                                                       │
+│ 14 │ inet_server_addr()    │ ∅                                                                                                       │
+│ 15 │ inet_server_port()    │ ∅                                                                                                       │
 │ 16 │ pg_jit_available()    │ false                                                                                                   │
 │ 17 │ pg_numa_available()   │ true                                                                                                    │
 │ 18 │ version()             │ PostgreSQL 18.4 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0, 64-bit │
@@ -458,23 +461,23 @@ Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
 =# :A
                                                     Stat activity groups counts (at 2026-08-18 11:54:30+00)
 ┌──────────────────────────────┬────────────┬─────────┬───────────────────────┬───────────────────┬─────────────────────┬───────────────┬─────────────────────┐
-│        backend_type ↓        │ database ↓ │ state ↓ │        user ↓         │ wait_event_type ↓ │    wait_event ↓     │ count_total ↓ │ count_state_changed↵│
+│        backend_type ↓        │ database ↓ │ state ↓ │        user ↓         │ wait_event_type ↓ │    wait_event ↓     │ count_total ↓ │ count_state_changed │
 │                              │            │         │                       │                   │                     │               │  > 1s/5s/1m/1h ago  │
 ├──────────────────────────────┼────────────┼─────────┼───────────────────────┼───────────────────┼─────────────────────┼───────────────┼─────────────────────┤
-│ BiHA pgc worker              │ biha_db    │ ¤       │ postgres              │ Extension         │ Extension           │             1 │   0   0   0   0     │
-│ BiHA worker                  │ biha_db    │ ¤       │ postgres              │ ¤                 │ ¤                   │             1 │   0   0   0   0     │
-│ CFS GC worker                │ ¤          │ idle    │ ¤                     │ Activity          │ CfsGcEnable         │             1 │   1   0   0   0     │
-│ autovacuum launcher          │ ¤          │ ¤       │ ¤                     │ Activity          │ AutovacuumMain      │             1 │   0   0   0   0     │
-│ background freezer           │ ¤          │ ¤       │ ¤                     │ Activity          │ BgfreezerMain       │             1 │   0   0   0   0     │
-│ background writer            │ ¤          │ ¤       │ ¤                     │ Activity          │ BgwriterHibernate   │             1 │   0   0   0   0     │
-│ cfs gc launcher              │ ¤          │ ¤       │ ¤                     │ Activity          │ CfsGcEnable         │             1 │   0   0   0   0     │
-│ checkpointer                 │ ¤          │ ¤       │ ¤                     │ Activity          │ CheckpointerMain    │             1 │   0   0   0   0     │
-│ client backend               │ biha_db    │ active  │ postgres              │ ¤                 │ ¤                   │             1 │   0   0   0   0     │
+│ BiHA pgc worker              │ biha_db    │ ∅       │ postgres              │ Extension         │ Extension           │             1 │   0   0   0   0     │
+│ BiHA worker                  │ biha_db    │ ∅       │ postgres              │ ∅                 │ ∅                   │             1 │   0   0   0   0     │
+│ CFS GC worker                │ ∅          │ idle    │ ∅                     │ Activity          │ CfsGcEnable         │             1 │   1   0   0   0     │
+│ autovacuum launcher          │ ∅          │ ∅       │ ∅                     │ Activity          │ AutovacuumMain      │             1 │   0   0   0   0     │
+│ background freezer           │ ∅          │ ∅       │ ∅                     │ Activity          │ BgfreezerMain       │             1 │   0   0   0   0     │
+│ background writer            │ ∅          │ ∅       │ ∅                     │ Activity          │ BgwriterHibernate   │             1 │   0   0   0   0     │
+│ cfs gc launcher              │ ∅          │ ∅       │ ∅                     │ Activity          │ CfsGcEnable         │             1 │   0   0   0   0     │
+│ checkpointer                 │ ∅          │ ∅       │ ∅                     │ Activity          │ CheckpointerMain    │             1 │   0   0   0   0     │
+│ client backend               │ biha_db    │ active  │ postgres              │ ∅                 │ ∅                   │             1 │   0   0   0   0     │
 │ client backend               │ biha_db    │ idle    │ postgres              │ Client            │ ClientRead          │             4 │   3   3   0   0     │
-│ io worker                    │ ¤          │ ¤       │ ¤                     │ Activity          │ IoWorkerMain        │             3 │   0   0   0   0     │
-│ logical replication launcher │ ¤          │ ¤       │ postgres              │ Activity          │ LogicalLauncherMain │             1 │   0   0   0   0     │
-│ walsender                    │ ¤          │ active  │ biha_replication_user │ Activity          │ WalSenderMain       │             2 │   2   2   2   2     │
-│ walwriter                    │ ¤          │ ¤       │ ¤                     │ Activity          │ WalWriterMain       │             1 │   0   0   0   0     │
+│ io worker                    │ ∅          │ ∅       │ ∅                     │ Activity          │ IoWorkerMain        │             3 │   0   0   0   0     │
+│ logical replication launcher │ ∅          │ ∅       │ postgres              │ Activity          │ LogicalLauncherMain │             1 │   0   0   0   0     │
+│ walsender                    │ ∅          │ active  │ biha_replication_user │ Activity          │ WalSenderMain       │             2 │   2   2   2   2     │
+│ walwriter                    │ ∅          │ ∅       │ ∅                     │ Activity          │ WalWriterMain       │             1 │   0   0   0   0     │
 └──────────────────────────────┴────────────┴─────────┴───────────────────────┴───────────────────┴─────────────────────┴───────────────┴─────────────────────┘
 (14 rows)
 
@@ -486,7 +489,7 @@ Time: 1.478 ms
 <summary>:T (показать/скрыть)</summary>
 
 ```
-postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" psqlrc_db | sed 's/[↵¤]/ /g'
+postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" psqlrc_db | sed 's/∅/ /g'
                                                                                       Cluster topology at (2026-08-22 19:47:37+00)
 ┌─────────┬─────────┬────────────────┬────────────────┬───────────┬──────────┬────────────┬─────────────────────────────────┬────────────────────┬───────────┬──────────────┬───────────────┬─────────────┬─────────────┐
 │ level ↓ │  role   │  parent_host   │      host      │   ping    │  mode ↑  │  state ↓   │            lag_size             │      lag_time      │ reply_ago │ start_uptime │ hold_wal_size │  slot_name  │  slot_type  │
@@ -534,7 +537,7 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_us
 Если [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference) находится в сервисном режиме, то перед таблицей будет показано предупреждение об этом.  
 
 ```
-postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="BiHA cluster state and config" biha_db | sed 's/[↵¤]/ /g'
+postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="BiHA cluster state and config" biha_db | sed 's/∅/ /g'
            BiHA cluster state and config
 ┌────────────────┬─────────────────────────────────┐
 │    function    │             return              │
@@ -575,6 +578,24 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_repl
 </details>
 
 <details>
+<summary>:TB (показать/скрыть)</summary>
+
+```
+postgres@dprs-ent-2:~$ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db | sed -E -f ~/psqlrc/replaces.sed
+                                                   BiHA topology, cluster state, config
+┌───────────┬──────┬─────────────┬────────┬─────────────┬──────────────┬──────────────────┬───────────────┬───────────────────────────────┐
+│ parent_id │ id ↓ │    state    │  mode  │    ping     │   priority   │    pref_roles    │ can_be_leader │           lag_size            │
+│           │      │             │        │  time_diff  │ max_replicas │ nquorum minnodes │   can_vote    │ send+write+flush+replay=total │
+├───────────┼──────┼─────────────┼────────┼─────────────┼──────────────┼──────────────────┼───────────────┼───────────────────────────────┤
+│         2 │    1 │ ✓ FOLLOWER  │ quorum │ ✓ 1ms ✓ 0   │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
+│         ¤ │    2 │ ✓ LEADER_RW │ ¤      │             │ 300 ms    ∞  │ L     2    2     │ t    t        │ ANY 1 (id=2,id=3,id=4,id=1)   │
+│         2 │    3 │ ✓ FOLLOWER  │ quorum │ ✓ 2ms ✓ 0   │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
+│         2 │    4 │ ✓ FOLLOWER  │ quorum │ ✓ 2ms ✓ 1ms │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
+└───────────┴──────┴─────────────┴────────┴─────────────┴──────────────┴──────────────────┴───────────────┴───────────────────────────────┘
+```
+</details>
+
+<details>
 <summary>:BB (показать/скрыть)</summary>
 
 ```
@@ -583,12 +604,12 @@ Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
 =# :BB
                            BiHA cheat sheet: config settings to management functions mapping (at 2026-08-18 11:51:52+00)
 ┌────┬────────────────────────────┬───────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┐
-│  # │       setting_name ↓       │                   setting_value                  ↵│                    management_functions                    │
+│  # │       setting_name ↓       │                   setting_value                   │                    management_functions                    │
 │    │                            │                   (curent node)                   │                                                            │
 ├────┼────────────────────────────┼───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│  1 │ *                          │ ./pg_biha/biha.conf                               │ biha.add_node(id int, parent_id int) bool                 ↵│
-│    │                            │                                                   │ biha.remove_node(id int) bool                             ↵│
-│    │                            │                                                   │ biha.set_leader(id int) bool                              ↵│
+│  1 │ *                          │ ./pg_biha/biha.conf                               │ biha.add_node(id int, parent_id int) bool                  │
+│    │                            │                                                   │ biha.remove_node(id int) bool                              │
+│    │                            │                                                   │ biha.set_leader(id int) bool                               │
 │    │                            │                                                   │ biha.reset_node_error() bool                               │
 │  2 │ *.can_be_leader            │ true                                              │ biha.set_can_be_leader(id int, can_be_leader bool) bool    │
 │  3 │ *.can_vote                 │ true                                              │ biha.set_can_vote(id int, can_vote bool) bool              │
@@ -599,33 +620,33 @@ Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
 │  8 │ *.preferred_roles          │ L                                                 │ biha.set_pref_roles(id int, value text) bool               │
 │  9 │ *.priority                 │ -1                                                │ biha.set_priority(id int, value int) bool                  │
 │ 10 │ *.service_mode             │ false                                             │ biha.service_mode(enable bool, force bool) bool            │
-│ 11 │ biha.asyncaction_timeout   │ 30000                                             │ ¤                                                          │
-│ 12 │ biha.autorewind            │ off                                               │ ¤                                                          │
-│ 13 │ biha.autowaltrim           │ on                                                │ ¤                                                          │
-│ 14 │ biha.callbacks_timeout     │ 10000                                             │ ¤                                                          │
-│ 15 │ biha.flw_ro                │ on                                                │ ¤                                                          │
+│ 11 │ biha.asyncaction_timeout   │ 30000                                             │ ∅                                                          │
+│ 12 │ biha.autorewind            │ off                                               │ ∅                                                          │
+│ 13 │ biha.autowaltrim           │ on                                                │ ∅                                                          │
+│ 14 │ biha.callbacks_timeout     │ 10000                                             │ ∅                                                          │
+│ 15 │ biha.flw_ro                │ on                                                │ ∅                                                          │
 │ 16 │ biha.heartbeat_max_lost    │ 10                                                │ biha.set_heartbeat_max_lost(int) bool                      │
 │ 17 │ biha.heartbeat_send_period │ 1000                                              │ biha.set_heartbeat_send_period(int) bool                   │
-│ 18 │ biha.host                  │ dprs-biha181-demo2-11                             │ ¤                                                          │
-│ 19 │ biha.id                    │ 1                                                 │ ¤                                                          │
-│ 20 │ biha.manage_slots_xmin     │ on                                                │ ¤                                                          │
+│ 18 │ biha.host                  │ dprs-biha181-demo2-11                             │ ∅                                                          │
+│ 19 │ biha.id                    │ 1                                                 │ ∅                                                          │
+│ 20 │ biha.manage_slots_xmin     │ on                                                │ ∅                                                          │
 │ 21 │ biha.no_wal_on_follower    │ 20000                                             │ biha.set_no_wal_on_follower(int) bool                      │
-│ 22 │ biha.port                  │ 5435                                              │ ¤                                                          │
-│ 23 │ biha.proxima_status        │ 0                                                 │ biha.enable_proxima() bool                                ↵│
+│ 22 │ biha.port                  │ 5435                                              │ ∅                                                          │
+│ 23 │ biha.proxima_status        │ 0                                                 │ biha.enable_proxima() bool                                 │
 │    │                            │                                                   │ biha.disable_proxima() bool                                │
-│ 24 │ biha.ssl_certificate       │ ./pg_biha/biha_pub_cert.pem                       │ ¤                                                          │
-│ 25 │ biha.ssl_mode              │ ¤                                                 │ ¤                                                          │
-│ 26 │ biha.ssl_private_key       │ ./pg_biha/biha_priv_key.pem                       │ ¤                                                          │
-│ 27 │ biha.use_ssl               │ off                                               │ ¤                                                          │
-│ 28 │ biha.user_biha_cert        │ ¤                                                 │ ¤                                                          │
-│ 29 │ biha.user_biha_key         │ ¤                                                 │ ¤                                                          │
-│ 30 │ biha.wal_validation        │ on                                                │ ¤                                                          │
-│ 31 │ biha.watchdog_timeout      │ 2                                                 │ ¤                                                          │
-│ 32 │ synchronous_standby_names  │ ANY 1 MIN 0 (biha_node_1,biha_node_2,biha_node_3) │ biha.get_ssn() text                                       ↵│
-│    │                            │                                                   │ biha.set_sync_standbys(ANY int) bool                      ↵│
-│    │                            │                                                   │ biha.set_sync_standbys_min(MIN int) bool /* -1 to off */  ↵│
-│    │                            │                                                   │ biha.set_ssn(VARIADIC ids int) bool                       ↵│
-│    │                            │                                                   │ biha.add_to_ssn(id int) returns bool                      ↵│
+│ 24 │ biha.ssl_certificate       │ ./pg_biha/biha_pub_cert.pem                       │ ∅                                                          │
+│ 25 │ biha.ssl_mode              │ ∅                                                 │ ∅                                                          │
+│ 26 │ biha.ssl_private_key       │ ./pg_biha/biha_priv_key.pem                       │ ∅                                                          │
+│ 27 │ biha.use_ssl               │ off                                               │ ∅                                                          │
+│ 28 │ biha.user_biha_cert        │ ∅                                                 │ ∅                                                          │
+│ 29 │ biha.user_biha_key         │ ∅                                                 │ ∅                                                          │
+│ 30 │ biha.wal_validation        │ on                                                │ ∅                                                          │
+│ 31 │ biha.watchdog_timeout      │ 2                                                 │ ∅                                                          │
+│ 32 │ synchronous_standby_names  │ ANY 1 MIN 0 (biha_node_1,biha_node_2,biha_node_3) │ biha.get_ssn() text                                        │
+│    │                            │                                                   │ biha.set_sync_standbys(ANY int) bool                       │
+│    │                            │                                                   │ biha.set_sync_standbys_min(MIN int) bool /* -1 to off */   │
+│    │                            │                                                   │ biha.set_ssn(VARIADIC ids int) bool                        │
+│    │                            │                                                   │ biha.add_to_ssn(id int) returns bool                       │
 │    │                            │                                                   │ biha.remove_from_ssn(id int) bool                          │
 └────┴────────────────────────────┴───────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┘
 (32 rows)

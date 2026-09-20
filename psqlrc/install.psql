@@ -8,13 +8,13 @@
 \echo :head'Create global objects':reset
 
 \if :psqlrc_role_exists
-    \echo :warn'role "psqlrc_role" already exists, skipped':reset
+    \echo :warn'role "psqlrc_role" already exists':reset
 \else
     CREATE ROLE psqlrc_role;
 \endif
 
 \if :psqlrc_user_exists
-    \echo :warn'user "psqlrc_user" already exists, skipped':reset
+    \echo :warn'user "psqlrc_user" already exists':reset
 \else
     CREATE USER psqlrc_user;
     \echo :head'Set password':reset

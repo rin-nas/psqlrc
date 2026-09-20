@@ -75,7 +75,7 @@ select
                   ' + ' || pro.size_pretty(sent_lsn  - write_lsn),  -- data receiving WAL stream on replica from network by walreciever
                   ' + ' || pro.size_pretty(write_lsn - flush_lsn),  -- data writing WAL on disk on replica by walreciever
                   ' + ' || pro.size_pretty(flush_lsn - replay_lsn), -- data applying (replaying) WAL as a recovery process
-                  ' = ' || case when (last_lsn - replay_lsn) > 1024*1024*100 then '⚠️ ' else '' end
+                  ' = ' || case when (last_lsn - replay_lsn) > 1024*1024*100 then :'symbol_warning' || ' ' else '' end
                         || pro.size_pretty(last_lsn  - replay_lsn)  -- total
               )
     end as U&"lag_size\000Asend+write+flush+replay=total"
@@ -87,32 +87,33 @@ join biha.monitoring() as m on m.id = s.id
 left join pro.cluster_topology() as t  on t.host = n.host
 left join biha.nodes_v           as pn on pn.host = t.parent_host
 left join coalesce(
-    case when t.ping_latency < '50ms'::interval then '🟢' -- green circle
-         when t.ping_latency < '100ms'::interval then '🟡' -- yellow circle
-         else '🔴' -- red circle
+    case when t.ping_latency < '50ms'::interval then :'symbol_green'
+         when t.ping_latency < '100ms'::interval then :'symbol_yellow'
+         else :'symbol_red'
     end
     || ' ' || pro.interval_pretty(t.ping_latency)
 ) as ping_latency_pretty on true
 left join greatest(t.ping_time_diff, t.ping_time_diff * -1) as p(abs_ping_time_diff) on true
 left join coalesce(
-    case when abs_ping_time_diff < '50ms'::interval then '🟢' -- green circle
-         when abs_ping_time_diff < '100ms'::interval then '🟡' -- yellow circle
-         else '🔴' -- red circle
+    case when abs_ping_time_diff < '50ms'::interval then :'symbol_green'
+         when abs_ping_time_diff < '100ms'::interval then :'symbol_yellow'
+         else :'symbol_red'
     end
     || ' ' || pro.interval_pretty(p.abs_ping_time_diff)
 ) as ping_time_diff_pretty on true
 cross join coalesce(
-   case when s.state = 'LEADER_RO' then '⭕' -- hollow red circle
-        when s.state in ('LEADER_RW', 'FOLLOWER', 'FRONT_FOLLOWER') then '🟢' -- green circle
-        when s.state = 'REFEREE' then '🔵' -- blue circle
-        when s.state = 'NODE_ERROR' then '🔴' -- red circle
-        when s.state = 'UNKNOWN' then '⚪' -- white circle
-        else '🟡' -- (PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE) yellow circle
+   case when s.state = 'LEADER_RO'  then :'symbol_hollow_red'
+        when s.state in ('LEADER_RW', 'FOLLOWER', 'FRONT_FOLLOWER') then :'symbol_green'
+        when s.state = 'REFEREE'    then :'symbol_blue'
+        when s.state = 'NODE_ERROR' then :'symbol_red'
+        when s.state = 'UNKNOWN'    then :'symbol_white'
+        else /* PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE */ :'symbol_yellow'
    end
 ) as state_symbol
 order by n.id
 -- к сожалению, с этой командой (вместо ";") не работает пейджер
-\g | sed 's/[↵¤]/ /g'
+--\g | sed -E -f ~/psqlrc/replaces.sed
+;
 
 \unset title
 \include ~/psqlrc/title.psql
