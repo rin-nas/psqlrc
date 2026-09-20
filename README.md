@@ -70,7 +70,7 @@ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="
 
 psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db | sed -E -f ~/psqlrc/replaces.sed
 ```
-Необязательная команда `sed` применяется для цветного подкрашивания данных в таблицах. 
+Необязательная команда `sed` применяется только для цветного подкрашивания данных в таблицах. 
 
 ### Замечания по безопасности
 
@@ -98,6 +98,8 @@ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_use
 * `:BB` — [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference) шпаргалка: сопоставление параметров конфигурации с функциями управления.
 
 Для выполнения команды просто введите её в приглашении `psql` и нажмите клавишу `Enter`.
+
+Если для выполнения короткой команды нужна другая база, то будет автоматическое временное переключение на эту базу с возвратом на исходную.    
 
 ### Предупреждения для значений с отклонениями от нормы
 
