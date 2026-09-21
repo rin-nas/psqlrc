@@ -118,7 +118,7 @@
 
     -- https://unicode.org/charts/PDF/U25A0.pdf (▲ U+25B2)
     \set symbol_warning '▲'
-    \set symbol_red '❌'
+    \set symbol_red '✕'
     \set symbol_green '✓'
     \set symbol_yellow '▲'
     \set symbol_blue '◆'
