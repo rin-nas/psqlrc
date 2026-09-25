@@ -34,12 +34,12 @@
 
 select
     \if :biha_column_deny_wal_sources_exists
-        concat_ws('    ',
-            lpad(coalesce(pn.id::text, ''), 2, ' '),
+        concat_ws('     ',
+            case when not t.is_primary then coalesce(pn.id::text, :'symbol_red') end,
             c.deny_wal_sources
         ) as U&"parent_id\000Adeny_wal_sources",
     \else
-        pn.id as parent_id,
+        case when not t.is_primary then coalesce(pn.id::text, :'symbol_red') end as parent_id,
     \endif
 
     n.id as "id ↓",
@@ -87,7 +87,7 @@ join biha.monitoring() as m on m.id = s.id
 left join pro.cluster_topology() as t  on t.host = n.host
 left join biha.nodes_v           as pn on pn.host = t.parent_host
 left join coalesce(
-    case when t.ping_latency < '50ms'::interval then :'symbol_green'
+    case when t.ping_latency <  '50ms'::interval then :'symbol_green'
          when t.ping_latency < '100ms'::interval then :'symbol_yellow'
          else :'symbol_red'
     end
@@ -95,7 +95,7 @@ left join coalesce(
 ) as ping_latency_pretty on true
 left join greatest(t.ping_time_diff, t.ping_time_diff * -1) as p(abs_ping_time_diff) on true
 left join coalesce(
-    case when abs_ping_time_diff < '50ms'::interval then :'symbol_green'
+    case when abs_ping_time_diff <  '50ms'::interval then :'symbol_green'
          when abs_ping_time_diff < '100ms'::interval then :'symbol_yellow'
          else :'symbol_red'
     end
