@@ -53,24 +53,27 @@ psql -v pro=1 'postgresql://postgres@host-1,host-2,host-3,host-4/postgres?target
 psql -v pro=0 -q
 ```
 
-Значения опции `pro`:
-
+Значения опции `-v pro`:
 1. `psql -v pro=1` — с вычислением размера директорий для локальных подключений (медленно при большом количестве файлов), игнорируется с флагом `-q`
 1. `psql -v pro=0` — без вычисления размера директорий (быстро) и секции **`# OS`**
 
-Т.к. применяется опция `pro`, поведение уже ранее созданных скриптов для `psql` не меняется, явно указывать параметр `-X` (`--no-psqlrc`) не нужно.
+Благодаря опции `-v pro`, поведение уже ранее созданных скриптов для `psql` не меняется, явно указывать параметр `-X` (`--no-psqlrc`) не нужно.
 
+Используйте опцию `-v emoji=0`, если терминал отображает символы [эмодзи](https://ru.wikipedia.org/wiki/%D0%AD%D0%BC%D0%BE%D0%B4%D0%B7%D0%B8) некорректно (заменяются прямоугольником, обрезаются, без цвета).
+В этом случае эмодзи будут заменены на другие альтернативные символы.
 
 ### Встраивание в `bash` скрипты на примере выполнения коротких команд
 
 ```bash
-psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds))" psqlrc_db | sed -E -f ~/psqlrc/replaces.sed
+psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds))" psqlrc_db
 
 psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="BiHA cluster state and config" biha_db
 
-psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db | sed -E -f ~/psqlrc/replaces.sed
+psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db
 ```
-Необязательная команда `sed` применяется только для цветного подкрашивания данных в таблицах. 
+Для привлечения внимания в таблицах некоторые символы могут выделяться цветом, особенно с опцией `-v emoji=0`.
+Но пейджер `pspg` удаляет цветовую раскраску, а `less` сохраняет.
+Если в ОС инсталлирован `pspg`, для цветного подкрашивания символов можно добавить в конец командной строки `| sed -E -f ~/psqlrc/replaces.sed`.
 
 ### Замечания по безопасности
 
