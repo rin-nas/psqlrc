@@ -1,32 +1,39 @@
-    CREATE VIEW pro.cluster_topology WITH (security_invoker = on) AS
+CREATE VIEW pro.cluster_topology WITH (security_invoker = on) AS
 with recursive
 -- Шаг 1. Движемся от листа к корню с целью получить мастер.
 m as (
     select not pg_is_in_recovery()                                      as is_primary,
-           regexp_replace(t.primary_conninfo, '\m(user|application_name|connect_timeout)=\S*', '', 'g')
-               || ' user=psqlrc_user application_name=dblink_topology connect_timeout=5' as conninfo,
+           q.conninfo,
            coalesce(inet_server_addr(), '127.0.0.1'::inet)              as addr,
            coalesce(inet_server_port(), current_setting('port')::int)   as port,
-           0                                                            as level
-    from nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo)
+           0                                                            as level,
+           array[q.conninfo]                                            as path
+    from nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo),
+         coalesce(regexp_replace(t.primary_conninfo, '\m(user|application_name|connect_timeout)=\S*', '', 'g')
+                  || ' user=psqlrc_user application_name=dblink_topology connect_timeout=1') as q(conninfo)
     union all
     select s.*,
-           m.level - 1
+           m.level - 1,
+           array_append(m.path, s.conninfo)
     from m,
          pro.dblink(  -- в случае недоступности сетевого соединения dblink() возвратит ошибку
              m.conninfo,
              $sql$
                  select
                      not pg_is_in_recovery(),
-                     regexp_replace(t.primary_conninfo, '\m(user|application_name|connect_timeout)=\S*', '', 'g')
-                          || ' user=psqlrc_user application_name=dblink_topology connect_timeout=5',
+                     q.conninfo,
                      inet_server_addr(),
                      inet_server_port()
-                 from nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo)
+                 from nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo),
+                      coalesce(regexp_replace(t.primary_conninfo, '\m(user|application_name|connect_timeout)=\S*', '', 'g')
+                               || ' user=psqlrc_user application_name=dblink_topology connect_timeout=1') q(conninfo)
              $sql$,
              true --fail_on_error
          ) as s (is_primary bool, conninfo text, addr inet, port int)
-    where not m.is_primary and m.conninfo is not null
+    where not m.is_primary
+      and m.conninfo is not null
+      and array_position(m.path, s.conninfo) is null -- защита от зацикливания с дубликатами
+      and abs(m.level) < 100 -- защита от зацикливания с бесконечной рекурсией
 )
 -- select * from m order by m.level desc; -- для отладки
 -- Шаг 2. Движемся от корня к листам с целью получить информацию о репликах.
