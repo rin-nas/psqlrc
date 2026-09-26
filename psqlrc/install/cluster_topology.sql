@@ -10,7 +10,7 @@ m as (
            array[q.conninfo]                                            as path
     from nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo),
          coalesce(regexp_replace(t.primary_conninfo, '\m(user|application_name|connect_timeout)=\S*', '', 'g')
-                  || ' user=psqlrc_user application_name=dblink_topology connect_timeout=1') as q(conninfo)
+                  || ' user=psqlrc_user application_name=cluster_topology_step1 connect_timeout=3') as q(conninfo)
     union all
     select s.*,
            m.level - 1,
@@ -26,7 +26,7 @@ m as (
                      inet_server_port()
                  from nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo),
                       coalesce(regexp_replace(t.primary_conninfo, '\m(user|application_name|connect_timeout)=\S*', '', 'g')
-                               || ' user=psqlrc_user application_name=dblink_topology connect_timeout=1') q(conninfo)
+                               || ' user=psqlrc_user application_name=cluster_topology_step1 connect_timeout=3') q(conninfo)
              $sql$,
              true --fail_on_error
          ) as s (is_primary bool, conninfo text, addr inet, port int)
@@ -64,7 +64,7 @@ m as (
            s.reply_ago
     from r,
          pro.dblink(
-            format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=dblink_topology connect_timeout=5', r.addr, r.port),
+            format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=cluster_topology_step2 connect_timeout=3', r.addr, r.port),
             $sql$
                 select w.last_lsn,
                        pg_sr,
@@ -88,7 +88,7 @@ m as (
     select r.*, s.*
     from r
     left join pro.dblink(
-           format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=dblink_topology connect_timeout=5', r.addr, r.port),
+           format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=cluster_topology_step3 connect_timeout=3', r.addr, r.port),
            $sql$
                with guc as (
                    select
@@ -133,7 +133,7 @@ m as (
                from guc,
                     pro.ping(
                         regexp_replace(guc.replica->>'primary_conninfo', '\m(application_name|connect_timeout)=\S*', '', 'g')
-                        || ' application_name=dblink_topology_ping connect_timeout=5'
+                        || ' application_name=cluster_topology_ping connect_timeout=3'
                     ) as ping
            $sql$,
            true --fail_on_error
