@@ -49,23 +49,26 @@ GRANT psqlrc_role TO psqlrc_user;
 \endif
 
 CREATE SCHEMA pro;
-CREATE EXTENSION dblink SCHEMA pro;
-\include ~/psqlrc/install/ping.sql
 \include ~/psqlrc/install/interval_pretty.sql
 \include ~/psqlrc/install/size_pretty.sql
+\include ~/psqlrc/install/getent_ahosts.sql
+\include ~/psqlrc/install/ping.sql
 \include ~/psqlrc/install/cluster_topology.sql
 
 ------------------------------------------------------------------------------------------------------------------------
 \echo :head'Set owner to database objects':reset
 
 ALTER SCHEMA pro OWNER TO postgres;
---ALTER EXTENSION dblink OWNER TO postgres; -- command does not exist
-ALTER FUNCTION pro.ping(connection_str text) OWNER TO postgres;
+--ALTER EXTENSION {ext_name} OWNER TO postgres; -- command does not implemented
 ALTER FUNCTION pro.interval_pretty(interval) OWNER TO postgres;
 ALTER FUNCTION pro.size_pretty(bigint) OWNER TO postgres;
 ALTER FUNCTION pro.size_pretty(numeric) OWNER TO postgres;
-ALTER FUNCTION pro.cluster_topology() OWNER TO postgres;
+ALTER SERVER file_srv OWNER TO postgres;
+ALTER FOREIGN TABLE pro.getent_ahosts OWNER TO postgres;
+ALTER FUNCTION pro.getent_ahosts() OWNER TO postgres;
+ALTER FUNCTION pro.ping(connection_str text) OWNER TO postgres;
 ALTER VIEW pro.cluster_topology OWNER TO postgres;
+ALTER FUNCTION pro.cluster_topology() OWNER TO postgres;
 
 ------------------------------------------------------------------------------------------------------------------------
 \echo :head'Revoke privileges from database objects':reset
@@ -85,6 +88,7 @@ REVOKE ALL ON ALL ROUTINES  IN SCHEMA pro FROM PUBLIC; -- ROUTINES = FUNCTIONS =
 -- https://postgrespro.ru/docs/postgresql/current/sql-grant
 GRANT CONNECT ON DATABASE psqlrc_db TO psqlrc_role;
 GRANT USAGE ON SCHEMA pro TO psqlrc_role;
+GRANT EXECUTE ON FUNCTION pro.getent_ahosts() TO psqlrc_role;
 GRANT EXECUTE ON FUNCTION pro.ping(connection_str text) TO psqlrc_role;
 GRANT EXECUTE ON FUNCTION pro.interval_pretty(interval) TO psqlrc_role;
 GRANT EXECUTE ON FUNCTION pro.size_pretty(bigint) TO psqlrc_role;

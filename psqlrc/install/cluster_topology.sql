@@ -102,7 +102,7 @@ m as (
       and abs(r.level) < 100 -- защита от зацикливания с бесконечной рекурсией
 )
 -- select * from r order by r.level; -- для отладки
--- Шаг 3. Собираем информацию со всех серверов, подключаясь к каждому из них
+-- Шаг 3. Собираем информацию со всех серверов, подключаясь к каждому из них.
 , p as (
     select r.*, d.*
     from r
@@ -128,9 +128,7 @@ m as (
                                                                                                        'wal_receiver_timeout',
                                                                                                        'wal_retrieve_retry_interval',
                                                                                                        'recovery_min_apply_delay',
-                                                                                                       'sync_replication_slots')) as replica,
-                       -- https://postgrespro.ru/docs/enterprise/current/biha-reference
-                       jsonb_object_agg_strict(right(name, -5), nullif(trim(setting), '')) filter (where name ~ '^biha\.[a-z]') as biha
+                                                                                                       'sync_replication_slots')) as replica
                    from pg_settings
                )
                select
@@ -145,7 +143,6 @@ m as (
                    ) as pg_version,
                    guc.primary as guc_primary,
                    guc.replica as guc_replica,
-                   guc.biha    as guc_biha,
                    ping.remote_addr as ping_remote_addr,
                    ping.latency     as ping_latency,
                    ping.time_diff   as ping_time_diff
@@ -164,40 +161,46 @@ m as (
                   pg_version   text,
                   guc_primary  jsonb,
                   guc_replica  jsonb,
-                  guc_biha     jsonb,
                   ping_remote_addr inet,
                   ping_latency   interval,
                   ping_time_diff interval
           ) on true
 )
 -- Шаг 4. Финальная сборка колонок.
+, h as (
+    select t.addr, t.host
+    from pro.getent_ahosts() as t
+    where t.is_canonical
+)
 select
     p.level, p.is_primary,
 
-    (regexp_match(p.guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1] as parent_host,
+    -- (regexp_match(p.guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1] as parent_host, --DEPRECATED
+    (select h.host from h where h.addr = p.ping_remote_addr limit 1) as parent_host,
 
-    -- p.parent_addr использовать нельзя, т.к. в значении может быть локальный IP 127.0.0.1,
-    -- если этот запрос выполняется на мастере с локальным подключением или по сокету, а нам нужен внешний IP
+    -- p.parent_addr использовать нельзя, т.к. в значении может быть локальный IP 127.0.0.1, если этот запрос
+    -- выполняется на узле с ролью "мастер" с локальным подключением или по сокету, а нам нужен внешний IP
     p.ping_remote_addr as parent_addr,
 
     coalesce(
-        (p.pg_sr).client_hostname, -- это поле будет не null только в случае соединений по IP и только при включённом режиме log_hostname
-        p.guc_biha->>'host' -- workaround
+        -- (p.pg_sr).client_hostname, -- это поле будет не null только в случае соединений по IP и только при включённом режиме log_hostname --DEPRECATED
+        (select h.host from h where h.addr = a.addr limit 1)
     ) as host,
 
-    coalesce(
-        (select pp.ping_remote_addr from p as pp where pp.level = 2 and p.is_primary limit 1),
-        p.addr
-    ) as addr,
-
+    a.addr,
     p.port,
     p.last_lsn, p.receive_uptime, p.reply_ago,
     p.started_at, p.start_uptime, p.loaded_at, p.load_uptime,
     p.pause_state, p.pg_version, trim((regexp_match(p.pg_version, ' \d+(?:\.\d+)+'))[1]) as pg_version_dot, -- X.Y[.Z]
-    p.guc_primary, p.guc_replica, p.guc_biha,
+    p.guc_primary, p.guc_replica,
     p.ping_latency, p.ping_time_diff,
     (p.pg_sr).*, (p.pg_rs).*
-from p;
+from p,
+     coalesce(
+         -- для узла с ролью "мастер" показываем внешний IP вместо локального IP 127.0.0.1
+         (select pp.ping_remote_addr from p as pp where pp.level = 2 and p.is_primary limit 1),
+         p.addr
+     ) as a(addr);
 
 COMMENT ON VIEW pro.cluster_topology IS 'Cluster topology. Returns servers: master and dependent replicas, including cascaded ones.';
 

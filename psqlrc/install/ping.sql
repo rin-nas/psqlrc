@@ -1,4 +1,9 @@
 -- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/ping.sql
+
+CREATE EXTENSION IF NOT EXISTS dblink SCHEMA pro;
+
+-- drop function if exists pro.ping(connection_str text);
+
 create function pro.ping(
     connection_str text,
     remote_addr out inet, -- для подключения по хосту узнаём его IP
