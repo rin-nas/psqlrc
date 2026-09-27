@@ -110,10 +110,7 @@ cross join coalesce(
         else /* PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE */ :'symbol_yellow'
    end
 ) as state_symbol
-order by n.id
--- к сожалению, с этой командой (вместо ";") не работает пейджер
---\g | sed -E -f ~/psqlrc/replaces.sed
-;
+order by n.id;
 
 \unset title
 \include ~/psqlrc/title.psql

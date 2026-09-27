@@ -133,6 +133,7 @@
 \setenv PSQL_EDITOR 'nano'
 
 -- пейджер (если результат запроса не помещается на экране, он пропускается через эту программу)
+-- в пайпе команда запуска пейджера pspg/less должна быть последней, иначе выполнение может зависнуть
 \pset pager always
 \set pspg_installed `command -v pspg > /dev/null 2>&1 && echo 1 || echo 0`
 \set less_installed `command -v less > /dev/null 2>&1 && echo 1 || echo 0`
