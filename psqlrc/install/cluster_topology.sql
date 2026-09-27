@@ -1,20 +1,28 @@
+--
+
+CREATE EXTENSION IF NOT EXISTS dblink SCHEMA pro;
+
+-- DROP VIEW IF EXISTS pro.cluster_topology;
+
 CREATE VIEW pro.cluster_topology WITH (security_invoker = on) AS
 with recursive
 -- Шаг 1. Движемся от листа к корню с целью получить мастер.
 m as (
-    select not pg_is_in_recovery()                                      as is_primary,
+    select not pg_is_in_recovery() as is_primary,
            q.conninfo,
-           coalesce(inet_server_addr(), '127.0.0.1'::inet)              as addr,
-           coalesce(inet_server_port(), current_setting('port')::int)   as port,
-           0                                                            as level,
-           array[q.conninfo]                                            as path
-    from nullif(trim(current_setting('primary_conninfo')), '') as t(primary_conninfo),
+           a.addr,
+           p.port,
+           0 as level,
+           array[concat_ws(':', a.addr, p.port)] as path
+    from nullif(trim(current_setting('primary_conninfo')), '')       as t(primary_conninfo),
          coalesce(regexp_replace(t.primary_conninfo, '\m(user|application_name|connect_timeout)=\S*', '', 'g')
-                  || ' user=psqlrc_user application_name=cluster_topology_step1 connect_timeout=3') as q(conninfo)
+                  || ' user=psqlrc_user application_name=cluster_topology_step1 connect_timeout=3') as q(conninfo),
+         coalesce(inet_server_addr(), '127.0.0.1'::inet)             as a(addr),
+         coalesce(inet_server_port(), current_setting('port')::int)  as p(port)
     union all
-    select s.*,
-           m.level - 1,
-           array_append(m.path, s.conninfo)
+    select d.*,
+           m.level - 1 as level,
+           array_append(m.path, hp.host_port) as path
     from m,
          pro.dblink(  -- в случае недоступности сетевого соединения dblink() возвратит ошибку
              m.conninfo,
@@ -29,15 +37,20 @@ m as (
                                || ' user=psqlrc_user application_name=cluster_topology_step1 connect_timeout=3') q(conninfo)
              $sql$,
              true --fail_on_error
-         ) as s (is_primary bool, conninfo text, addr inet, port int)
+         ) as d (is_primary bool,
+                 conninfo   text,
+                 addr       inet,
+                 port       int),
+         concat_ws(':', d.addr, d.port) as hp(host_port)
     where not m.is_primary
       and m.conninfo is not null
-      and array_position(m.path, s.conninfo) is null -- защита от зацикливания с дубликатами
+      and array_position(m.path, hp.host_port) is null -- защита от зацикливания с дубликатами
       and abs(m.level) < 100 -- защита от зацикливания с бесконечной рекурсией
 )
 -- select * from m order by m.level desc; -- для отладки
 -- Шаг 2. Движемся от корня к листам с целью получить информацию о репликах.
 , r as (
+    -- master
     (select 1                          as level,
             m.is_primary               as is_primary,
             null::inet                 as parent_addr,
@@ -47,21 +60,24 @@ m as (
             null::pg_stat_replication  as pg_sr,
             null::pg_replication_slots as pg_rs,
             null::interval             as receive_uptime,
-            null::interval             as reply_ago
+            null::interval             as reply_ago,
+            array[concat(m.addr, ':', m.port)] as path
     from m
     order by m.level
     limit 1)
     union all
+    --replicas
     select r.level + 1           as level,
            false                 as is_primary,
            r.addr                as parent_addr,
-           (s.pg_sr).client_addr as addr,
+           (d.pg_sr).client_addr as addr,
            r.port,
-           s.last_lsn,
-           s.pg_sr,
-           s.pg_rs,
-           s.receive_uptime,
-           s.reply_ago
+           d.last_lsn,
+           d.pg_sr,
+           d.pg_rs,
+           d.receive_uptime,
+           d.reply_ago,
+           array_append(r.path, hp.host_port) as path
     from r,
          pro.dblink(
             format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=cluster_topology_step2 connect_timeout=3', r.addr, r.port),
@@ -76,16 +92,19 @@ m as (
                 cross join coalesce(case when pg_is_in_recovery() then pg_last_wal_receive_lsn() else pg_current_wal_lsn() end) as w(last_lsn)
             $sql$,
             true --fail_on_error
-           ) as s (last_lsn       pg_lsn,
+           ) as d (last_lsn       pg_lsn,
                    pg_sr          pg_stat_replication,
                    pg_rs          pg_replication_slots,
                    receive_uptime interval,
-                   reply_ago      interval)
+                   reply_ago      interval),
+           concat_ws(':', (d.pg_sr).client_addr, r.port) as hp(host_port)
+    where array_position(r.path, hp.host_port) is null -- защита от зацикливания с дубликатами
+      and abs(r.level) < 100 -- защита от зацикливания с бесконечной рекурсией
 )
 -- select * from r order by r.level; -- для отладки
--- Шаг 3. Собираем информацию со всех серверов.
+-- Шаг 3. Собираем информацию со всех серверов, подключаясь к каждому из них
 , p as (
-    select r.*, s.*
+    select r.*, d.*
     from r
     left join pro.dblink(
            format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=cluster_topology_step3 connect_timeout=3', r.addr, r.port),
@@ -137,7 +156,7 @@ m as (
                     ) as ping
            $sql$,
            true --fail_on_error
-          ) as s (started_at   timestamptz,
+          ) as d (started_at   timestamptz,
                   start_uptime interval,
                   loaded_at    timestamptz,
                   load_uptime  interval,
