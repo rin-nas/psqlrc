@@ -13,13 +13,13 @@
         select
         from biha.config() as c
         where c.service_mode
-    ) as biha_service_mode \gset
+    ) as biha_service_mode
+    \gset
 
-    select exists (
-        select
-        from biha.config() as c
-        join json_each_text(row_to_json(c)) as j on j.key = 'deny_wal_sources'
-    ) as biha_column_deny_wal_sources_exists \gset
+    select string_agg(j.key, E'\n' order by j.key) as biha_config_columns
+    from (select * from biha.config() limit 1) as c
+    cross join json_each_text(row_to_json(c)) as j
+    \gset
 
     select count(*) > 0 as table_callbacks_filled from biha.callbacks \gset
 
@@ -44,10 +44,17 @@ SELECT
 
     s.term,
 
-    concat_ws(E'\n',
-        n.host,
-        nullif(c.name, n.host)
-    ) as U&"host\000Aname",
+    \if `echo ':biha_config_columns' | grep -qx 'biha_listen_addresses' && echo 1 || echo 0`
+        concat_ws(E'\n',
+            c.biha_listen_addresses,
+            nullif(c.name, c.biha_listen_addresses)
+        ) as U&"listen_addrs\000Aname",
+    \else
+        concat_ws(E'\n',
+            n.host,
+            nullif(c.name, n.host)
+        ) as U&"host\000Aname",
+    \endif
 
     concat_ws(E'\n',
         e.symbol || ' ' || s.state,
@@ -97,9 +104,8 @@ SELECT
         c.can_vote
     ) as U&"can_be_leader\000Acan_vote",
 
-    -- deny_wal_sources,  -- Postgres Pro (enterprise) 18.4.1 2a1f89e2632  ERROR:  column "deny_wal_sources" does not exist
-
-    \if :biha_column_deny_wal_sources_exists
+    -- Postgres Pro (enterprise) 18.4.1 2a1f89e2632  ERROR:  column "deny_wal_sources" does not exist
+    \if `echo ':biha_config_columns' | grep -qx 'deny_wal_sources' && echo 1 || echo 0`
         concat_ws(E'\n',
             c.no_wal_on_follower::text || ' ms',
             c.deny_wal_sources
