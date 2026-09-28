@@ -1,0 +1,16 @@
+\include ~/psqlrc/quiet_in.psql
+
+    -- https://postgrespro.ru/docs/enterprise/current/biha-administration#BIHA-SERVICE-MODE
+    select exists (
+        select
+        from biha.config() as c
+        where c.service_mode
+    ) as biha_service_mode
+    \gset
+
+    select string_agg(j.key, E'\n' order by j.key) as biha_config_columns
+    from (select * from biha.config() limit 1) as c
+    cross join json_each_text(row_to_json(c)) as j
+    \gset
+
+\include ~/psqlrc/quiet_out.psql

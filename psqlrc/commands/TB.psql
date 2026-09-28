@@ -6,24 +6,7 @@
     \quit
 \endif
 
-
-\include ~/psqlrc/quiet_in.psql
-
-    -- https://postgrespro.ru/docs/enterprise/current/biha-administration#BIHA-SERVICE-MODE
-    select exists (
-        select
-        from biha.config() as c
-        where c.service_mode
-    ) as biha_service_mode \gset
-
-    select exists (
-        select
-        from biha.config() as c
-        join json_each_text(row_to_json(c)) as j on j.key = 'deny_wal_sources'
-    ) as biha_column_deny_wal_sources_exists \gset
-
-\include ~/psqlrc/quiet_out.psql
-
+\include ~/psqlrc/biha_common.psql
 
 \if :biha_service_mode
     \echo :warn'WARNING: BiHA service mode ON (in all nodes)!':reset
@@ -33,7 +16,7 @@
 \include ~/psqlrc/title.psql
 
 select
-    \if :biha_column_deny_wal_sources_exists
+    \if `echo ':biha_config_columns' | grep -qx 'deny_wal_sources' && echo 1 || echo 0`
         concat_ws('     ',
             case when not t.is_primary then coalesce(pn.id::text, :'symbol_red') end,
             c.deny_wal_sources

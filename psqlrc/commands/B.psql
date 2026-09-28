@@ -6,25 +6,7 @@
     \quit
 \endif
 
-
-\include ~/psqlrc/quiet_in.psql
-
-    select exists (
-        select
-        from biha.config() as c
-        where c.service_mode
-    ) as biha_service_mode
-    \gset
-
-    select string_agg(j.key, E'\n' order by j.key) as biha_config_columns
-    from (select * from biha.config() limit 1) as c
-    cross join json_each_text(row_to_json(c)) as j
-    \gset
-
-    select count(*) > 0 as table_callbacks_filled from biha.callbacks \gset
-
-\include ~/psqlrc/quiet_out.psql
-
+\include ~/psqlrc/biha_common.psql
 
 \if :biha_service_mode
     \echo :warn'WARNING: BiHA service mode ON (in all nodes)!':reset
