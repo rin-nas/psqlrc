@@ -169,7 +169,7 @@ m as (
 -- Шаг 4. Финальная сборка колонок.
 , h as (
     select t.addr, t.host
-    from pro.getent_ahosts() as t
+    from pro.resolve_hosts() as t
     where t.is_canonical
 )
 select
