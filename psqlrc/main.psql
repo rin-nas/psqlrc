@@ -361,7 +361,7 @@ select
     \endif
 
     \if :{?log_directory}
-        \set str 'Log directory:         ':log_directory
+        \set str 'Log current file:      ':log_directory'/':log_filename
         \if :{?log_files_used_size}
             \set color :reset
             \if `test ':log_directory_used_percent' -gt 90 && echo 1 || echo 0`
@@ -369,7 +369,7 @@ select
             \elif `test ':log_directory_used_percent' -gt 80 && echo 1 || echo 0`
                 \set color :orange
             \endif
-            \set str :str:color' (size: ':log_files_used_size' files used, ':log_directory_free_size' free)':reset
+            \set str :str:color' (dir size: ':log_files_used_size' files used, ':log_directory_free_size' free)':reset
         \endif
         \echo :str
     \endif
@@ -492,7 +492,8 @@ select
         \endif
         select :'wal_directory_mounted_to' = :'data_directory_mounted_to' as flag \gset
         \if :flag
-            \echo :hint'HINT: wal directory "':wal_directory'" mount point is the same, that "':data_directory'". It is recommended to separate the mount points into different partitions with a dedicated quota of free space':reset
+            \echo :hint'HINT: wal directory "':wal_directory'" mount point is the same, that "':data_directory'".':reset
+            \echo :hint'      It is recommended to separate the mount points into different partitions with a dedicated quota of free space':reset
         \endif
     \endif
 
@@ -502,7 +503,8 @@ select
         \endif
         select :'log_directory_mounted_to' in (:'data_directory_mounted_to', :'wal_directory_mounted_to') as flag \gset
         \if :flag
-            \echo :warn'WARNING: log directory "':log_directory'" mount point is the same, that "':data_directory'" or "':wal_directory'". It is recommended to separate the mount points into different partitions with a dedicated quota of free space':reset
+            \echo :warn'WARNING: log directory "':log_directory'" mount point is the same, that "':data_directory'" or "':wal_directory'".':reset
+            \echo :warn'         It is recommended to separate the mount points into different partitions with a dedicated quota of free space':reset
         \endif
     \endif
 
