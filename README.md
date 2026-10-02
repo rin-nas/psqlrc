@@ -136,14 +136,16 @@ sudo su - postgres
 
 # 1) из репозитория скопируйте папку "psqlrc" в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы
 sudo chown -R postgres: ~/psqlrc
-sudo chmod -R 600 ~/psqlrc
-sudo chmod 700 ~/psqlrc
+sudo chmod -R 755 ~/psqlrc
 
 # 2) создайте символическую ссылку
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
 
 # 3) выполните команду инсталляции
 psql -v pro=0 -q -f ~/psqlrc/commands/INSTALL.psql
+
+# 4) добавьте в файл .pgpass для пользователя psqlrc_user пароль
+echo '*:*:*:psqlrc_user:my_secret' >> ~/.pgpass && chmod 600 ~/.pgpass
 ```
 
 ### 🆙 Обновление на новую версию
@@ -158,8 +160,7 @@ mv ~/psqlrc ~/psqlrc.$(date +%Y-%m-%d.%H%M%S)
 
 # 2) из репозитория скопируйте папку "psqlrc" в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы 
 sudo chown -R postgres: ~/psqlrc
-sudo chmod -R 600 ~/psqlrc
-sudo chmod 700 ~/psqlrc
+sudo chmod -R 755 ~/psqlrc
 
 # 3) выполните команду обновления
 psql -v pro=0 -q -f ~/psqlrc/commands/REINSTALL.psql
