@@ -39,7 +39,13 @@ SELECT
     \endif
 
     concat_ws(E'\n',
-        e.symbol || ' ' || s.state,
+        concat_ws(' ',
+            e.state_symbol,
+            s.state,
+            case c.mode when 'referee'          then '(no WAL)'
+                        when 'referee_with_wal' then '(with WAL)'
+            end
+        ),
         nullif(s.last_known_state, s.state)
     ) as U&"biha_state\000Alast_known",
 
@@ -50,11 +56,6 @@ SELECT
         ),
         n.state -- состояние соединения узла: ACTIVE/CONNECTING/IDLE/INIT/SSLCONNECT/SSLACCEPT
     ) as U&"pg_state\000Aconn_state",
-
-    concat_ws(E'\n',
-        c.mode, -- текущий режим работы узла: regular, referee, referee_with_wal.
-        c.service_mode
-    ) as U&"referee_mode\000Aservice_mode",
 
     concat_ws(E'\n',
         pro.interval_pretty(s.since_last_hb),
@@ -109,7 +110,7 @@ CROSS JOIN coalesce(
         when s.state = 'UNKNOWN'    then :'symbol_white'
         else /* PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE */ :'symbol_yellow'
    end
-) e(symbol)
+) e(state_symbol)
 ORDER BY s.id;
 
 -- показываем таблицу biha.callbacks только если она не пустая
