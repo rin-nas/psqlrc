@@ -8,6 +8,8 @@
 
 \include ~/psqlrc/biha_common.psql
 
+select count(*) > 0 as table_callbacks_filled from biha.callbacks \gset
+
 \if :biha_service_mode
     \echo :warn'WARNING: BiHA service mode ON (in all nodes)!':reset
 \endif
