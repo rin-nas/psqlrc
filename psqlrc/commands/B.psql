@@ -40,7 +40,7 @@ SELECT
 
     concat_ws(E'\n',
         concat_ws(' ',
-            e.state_symbol,
+            e1.state_symbol,
             s.state,
             case c.mode when 'referee'          then '(no WAL)'
                         when 'referee_with_wal' then '(with WAL)'
@@ -51,10 +51,10 @@ SELECT
 
     concat_ws(E'\n',
         concat_ws(' ',
-            m.pg_state, -- текущее состояние СУБД, возможные значения: Prestartup, Startup, Recovery, Recovery_Pause, Promoting, Promoted
+            e2.pg_state_symbol || ' ' || m.pg_state,
             m.startup_progress || '%' -- показывает прогресс запуска в процентах, когда значение pg_state — Startup.
         ),
-        n.state -- состояние соединения узла: ACTIVE/CONNECTING/IDLE/INIT/SSLCONNECT/SSLACCEPT
+        e3.state_symbol || ' ' || n.state
     ) as U&"pg_state\000Aconn_state",
 
     concat_ws(E'\n',
@@ -103,14 +103,25 @@ JOIN biha.config()     AS c ON c.id = s.id
 JOIN biha.monitoring() AS m ON m.id = s.id
 --LEFT JOIN pg_stat_replication AS r ON r.application_name = CONCAT('biha_node_', s.id)
 CROSS JOIN coalesce(
-   case when s.state = 'LEADER_RO'  then :'symbol_hollow_red'
-        when s.state in ('LEADER_RW', 'FOLLOWER', 'FRONT_FOLLOWER') then :'symbol_green'
-        when s.state = 'REFEREE'    then :'symbol_blue'
-        when s.state = 'NODE_ERROR' then :'symbol_red'
-        when s.state = 'UNKNOWN'    then :'symbol_white'
-        else /* PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE */ :'symbol_yellow'
-   end
-) e(state_symbol)
+    case when s.state = 'LEADER_RO'  then :'symbol_hollow_red'
+         when s.state in ('LEADER_RW', 'FOLLOWER', 'FRONT_FOLLOWER') then :'symbol_green'
+         when s.state = 'REFEREE'    then :'symbol_blue'
+         when s.state = 'NODE_ERROR' then :'symbol_red'
+         when s.state = 'UNKNOWN'    then :'symbol_white'
+         else /* PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE */ :'symbol_yellow' -- переходные статусы
+    end
+) e1(state_symbol)
+CROSS JOIN coalesce(
+    case when m.pg_state in ('Recovery', 'Promoted') then :'symbol_green' -- штатное состояние для реплики / мастера
+         when m.pg_state = 'Recovery_Pause'  then :'symbol_blue' -- штатное состояние для рефери
+         else /* Prestartup, Startup, Promoting */ :'symbol_yellow' -- переходные статусы
+    end
+) e2(pg_state_symbol)
+CROSS JOIN coalesce(
+    case when n.state in ('ACTIVE', 'IDLE') then :'symbol_green'
+         else /* INIT, CONNECTING, SSLCONNECT, SSLACCEPT */ :'symbol_yellow' -- переходные статусы
+    end
+) e3(state_symbol)
 ORDER BY s.id;
 
 -- показываем таблицу biha.callbacks только если она не пустая
