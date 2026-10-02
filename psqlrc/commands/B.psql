@@ -113,7 +113,7 @@ CROSS JOIN coalesce(
 ) e1(state_symbol)
 CROSS JOIN coalesce(
     case when m.pg_state in ('Recovery', 'Promoted') then :'symbol_green' -- штатное состояние для реплики / мастера
-         when m.pg_state = 'Recovery_Pause'  then :'symbol_blue' -- штатное состояние для рефери
+         when s.state = 'REFEREE' and m.pg_state = 'Recovery pause'  then :'symbol_blue' -- штатное состояние для рефери
          else /* Prestartup, Startup, Promoting */ :'symbol_yellow' -- переходные статусы
     end
 ) e2(pg_state_symbol)
