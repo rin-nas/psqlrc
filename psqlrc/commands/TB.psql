@@ -18,7 +18,7 @@
 select
     \if `echo ':biha_config_columns' | grep -qx 'deny_wal_sources' && echo 1 || echo 0`
         concat_ws('     ',
-            case when not t.is_primary then coalesce(pn.id::text, :'symbol_red') end,
+            case when not coalesce(t.is_primary, false) then coalesce(pn.id::text, :'symbol_red') end,
             c.deny_wal_sources
         ) as U&"parent_id\000Adeny_wal_sources",
     \else
