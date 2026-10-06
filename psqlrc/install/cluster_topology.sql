@@ -168,9 +168,10 @@ m as (
 )
 -- Шаг 4. Финальная сборка колонок.
 , h as (
-    select t.addr, t.host
+    select distinct
+           t.addr,
+           split_part(t.host, '.', 1) as host -- abc1.host.ru -> abc1
     from pro.resolve_hosts() as t
-    where t.is_canonical
 )
 select
     p.level, p.is_primary,
