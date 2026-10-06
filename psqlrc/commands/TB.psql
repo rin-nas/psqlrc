@@ -67,8 +67,8 @@ from biha.status_v     as s
 join biha.nodes_v      as n on n.id = s.id
 join biha.config()     as c on c.id = s.id
 join biha.monitoring() as m on m.id = s.id
-left join pro.cluster_topology() as t  on t.host = n.host
-left join biha.nodes_v           as pn on pn.host = t.parent_host
+left join pro.cluster_topology() as t  on  n.host IN (t.host,        host(t.addr))
+left join biha.nodes_v           as pn on pn.host IN (t.parent_host, host(t.parent_host))
 left join coalesce(
     case when t.ping_latency <  '50ms'::interval then :'symbol_green'
          when t.ping_latency < '100ms'::interval then :'symbol_yellow'
