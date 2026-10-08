@@ -13,4 +13,7 @@
     cross join json_each_text(row_to_json(c)) as j
     \gset
 
+    select count(*) > 0 as table_callbacks_filled from biha.callbacks
+    \gset
+
 \include ~/psqlrc/quiet_out.psql
