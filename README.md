@@ -573,13 +573,24 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_repl
 ```
 Если для BiHA настроены функции обратного вызова (callbacks), то под таблицей будет показана соответствующая таблица. 
 
-Цветной круглый индикатор состояния узлов BiHA (`biha_state`):
-* 🟡 PRESTARTUP, STARTUP, CSTATE_FORMING, FOLLOWER_OFFERED, CANDIDATE
-* ⭕ LEADER_RO
-* 🟢 LEADER_RW, FOLLOWER, FRONT_FOLLOWER
-* 🔵 REFEREE
-* 🔴 NODE_ERROR
-* ⚪ UNKNOWN
+**Цветные круглые индикаторы** 
+
+`biha_state`:
+* 🟡 `PRESTARTUP`, `STARTUP`, `CSTATE_FORMING`, `FOLLOWER_OFFERED`, `CANDIDATE` (переходные статусы)
+* ⭕ `LEADER_RO`
+* 🟢 `LEADER_RW`, `FOLLOWER`, `FRONT_FOLLOWER`
+* 🔵 `REFEREE`
+* 🔴 `NODE_ERROR`
+* ⚪ `UNKNOWN`
+
+`pg_state`:
+*  🟢 `Recovery`, `Promoted` (штатное состояние для реплики / мастера)
+*  🔵 `Recovery pause` (штатное состояние для рефери)
+*  🟡 `Prestartup`, `Startup`, `Promoting` (переходные статусы)
+
+`conn_state`:
+* 🟢 `ACTIVE`, `IDLE`
+* 🟡 `INIT`, `CONNECTING`, `SSLCONNECT`, `SSLACCEPT`
 
 </details>
 
