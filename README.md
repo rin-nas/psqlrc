@@ -495,7 +495,7 @@ Time: 1.478 ms
 <summary>:T (показать/скрыть)</summary>
 
 ```
-postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" psqlrc_db | sed 's/[∅¤]/ /g'
+postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user -P title="Cluster topology at ($(date --rfc-3339=seconds | sed 's/:00$//'))" psqlrc_db
                                                                                       Cluster topology at (2026-08-22 19:47:37+00)
 ┌─────────┬─────────┬────────────────┬────────────────┬───────────┬──────────┬────────────┬─────────────────────────────────┬────────────────────┬───────────┬──────────────┬───────────────┬─────────────┬─────────────┐
 │ level ↓ │  role   │  parent_host   │      host      │   ping    │  mode ↑  │  state ↓   │            lag_size             │      lag_time      │ reply_ago │ start_uptime │ hold_wal_size │  slot_name  │  slot_type  │
@@ -543,7 +543,7 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_us
 Если [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference) находится в сервисном режиме, то перед таблицей будет показано предупреждение об этом.  
 
 ```
-postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="BiHA cluster state and config" biha_db | sed 's/[∅¤]/ /g'
+postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="BiHA cluster state and config" biha_db'
            BiHA cluster state and config
 ┌────────────────┬─────────────────────────────────┐
 │    function    │             return              │
@@ -552,24 +552,24 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_repl
 │ biha.get_ssn() │ ANY 1 (biha_node_1,biha_node_2) │
 └────────────────┴─────────────────────────────────┘
 
-                                                                                       BiHA cluster state and config
-┌──────┬──────┬────────────┬──────────────┬────────────┬──────────────┬─────────┬────────────────┬──────────────┬──────────┬───────────┬────────────┬───────────────────┬───────────────┬────────────────────┐
-│ id ↓ │ term │    host    │  biha_state  │  pg_state  │ referee_mode │ last_hb │ hb_send_period │  pref_roles  │ priority │  nquorum  │  minnodes  │ sync_standbys_min │ can_be_leader │ no_wal_on_follower │
-│      │      │    name    │  last_known  │ conn_state │ service_mode │ online  │  hb_max_lost   │ max_replicas │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │     (timeout)      │
-├──────┼──────┼────────────┼──────────────┼────────────┼──────────────┼─────────┼────────────────┼──────────────┼──────────┼───────────┼────────────┼───────────────────┼───────────────┼────────────────────┤
-│  1   │   34 │ dprs-ent-1 │ 🟢 FOLLOWER  │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ L            │ 100 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │              │ ACTIVE     │ f            │ t       │ 10             │            2 │          │           │            │                   │ t             │                    │
-│      │      │            │              │            │              │         │                │              │          │           │            │                   │               │                    │
-│  2   │   34 │ dprs-ent-2 │ 🟢 LEADER_RW │            │ regular      │ 820ms   │ 1000 ms        │ L            │ 300 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │              │            │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
-│      │      │            │              │            │              │         │                │              │          │           │            │                   │               │                    │
-│  3   │   34 │ dprs-ent-3 │ 🟢 FOLLOWER  │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ L            │ 200 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │              │ ACTIVE     │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
-│      │      │            │              │            │              │         │                │              │          │           │            │                   │               │                    │
-│  4   │   34 │ dprs-ent-4 │ 🟢 FOLLOWER  │ Recovery   │ regular      │ 820ms   │ 1000 ms        │ FL           │ 400 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │              │ ACTIVE     │ f            │ t       │ 10             │              │          │           │            │                   │ t             │                    │
-│      │      │            │              │            │              │         │                │              │          │           │            │                   │               │                    │
-└──────┴──────┴────────────┴──────────────┴────────────┴──────────────┴─────────┴────────────────┴──────────────┴──────────┴───────────┴────────────┴───────────────────┴───────────────┴────────────────────┘
+                                                                               BiHA cluster state and config
+┌──────┬──────┬────────────┬──────────────┬─────────────┬─────────┬────────────────┬──────────────┬──────────┬───────────┬────────────┬───────────────────┬───────────────┬────────────────────┐
+│ id ↓ │ term │    host    │  biha_state  │  pg_state   │ last_hb │ hb_send_period │  pref_roles  │ priority │  nquorum  │  minnodes  │ sync_standbys_min │ can_be_leader │ no_wal_on_follower │
+│      │      │    name    │  last_known  │ conn_state  │ online  │  hb_max_lost   │ max_replicas │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │     (timeout)      │
+├──────┼──────┼────────────┼──────────────┼─────────────┼─────────┼────────────────┼──────────────┼──────────┼───────────┼────────────┼───────────────────┼───────────────┼────────────────────┤
+│  1   │   34 │ dprs-ent-1 │ 🟢 FOLLOWER  │ 🟢 Recovery │ 820ms   │ 1000 ms        │ L            │ 100 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │ 🟢 ACTIVE   │ t       │ 10             │            2 │          │           │            │                   │ t             │                    │
+│      │      │            │              │             │         │                │              │          │           │            │                   │               │                    │
+│  2   │   34 │ dprs-ent-2 │ 🟢 LEADER_RW │             │ 820ms   │ 1000 ms        │ L            │ 300 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │             │ t       │ 10             │              │          │           │            │                   │ t             │                    │
+│      │      │            │              │             │         │                │              │          │           │            │                   │               │                    │
+│  3   │   34 │ dprs-ent-3 │ 🟢 FOLLOWER  │ 🟢 Recovery │ 820ms   │ 1000 ms        │ L            │ 200 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │ 🟢 ACTIVE   │ t       │ 10             │              │          │           │            │                   │ t             │                    │
+│      │      │            │              │             │         │                │              │          │           │            │                   │               │                    │
+│  4   │   34 │ dprs-ent-4 │ 🟢 FOLLOWER  │ 🟢 Recovery │ 820ms   │ 1000 ms        │ FL           │ 400 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │ 🟢 ACTIVE   │ t       │ 10             │              │          │           │            │                   │ t             │                    │
+│      │      │            │              │             │         │                │              │          │           │            │                   │               │                    │
+└──────┴──────┴────────────┴──────────────┴─────────────┴─────────┴────────────────┴──────────────┴──────────┴───────────┴────────────┴───────────────────┴───────────────┴────────────────────┘
 ```
 Если для BiHA настроены функции обратного вызова (callbacks), то под таблицей будет показана соответствующая таблица. 
 
@@ -587,7 +587,7 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_repl
 <summary>:TB (показать/скрыть)</summary>
 
 ```
-postgres@dprs-ent-2:~$ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db | sed -E -f ~/psqlrc/replaces.sed
+postgres@dprs-ent-2:~$ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db
                                                    BiHA topology, cluster state, config
 ┌───────────┬──────┬─────────────┬────────┬─────────────┬──────────────┬──────────────────┬───────────────┬───────────────────────────────┐
 │ parent_id │ id ↓ │    state    │  mode  │    ping     │   priority   │    pref_roles    │ can_be_leader │           lag_size            │

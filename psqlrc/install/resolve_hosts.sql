@@ -1,4 +1,4 @@
---
+-- https://github.com/rin-nas/postgresql-patterns-library/blob/master/functions/resolve_hosts.sql
 
 CREATE EXTENSION IF NOT EXISTS file_fdw SCHEMA pro;
 CREATE SERVER IF NOT EXISTS file_srv FOREIGN DATA WRAPPER file_fdw;
