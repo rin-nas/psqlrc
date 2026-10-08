@@ -641,6 +641,8 @@ Time: 0.225 ms
 <details>
 <summary>:TB (показать/скрыть)</summary>
 
+Комбинация команд `:T` и `:B` для оперативного мониторинга.
+
 ```
 postgres@dprs-ent-2:~$ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db
                                                    BiHA topology, cluster state, config
