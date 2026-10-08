@@ -589,15 +589,15 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_repl
 ```
 postgres@dprs-ent-2:~$ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db
                                                    BiHA topology, cluster state, config
-┌───────────┬──────┬─────────────┬────────┬─────────────┬──────────────┬──────────────────┬───────────────┬───────────────────────────────┐
-│ parent_id │ id ↓ │    state    │  mode  │    ping     │   priority   │    pref_roles    │ can_be_leader │           lag_size            │
-│           │      │             │        │  time_diff  │ max_replicas │ nquorum minnodes │   can_vote    │ send+write+flush+replay=total │
-├───────────┼──────┼─────────────┼────────┼─────────────┼──────────────┼──────────────────┼───────────────┼───────────────────────────────┤
-│         2 │    1 │ ✓ FOLLOWER  │ quorum │ ✓ 1ms ✓ 0   │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
-│         ¤ │    2 │ ✓ LEADER_RW │ ¤      │             │ 300 ms    ∞  │ L     2    2     │ t    t        │ ANY 1 (id=2,id=3,id=4,id=1)   │
-│         2 │    3 │ ✓ FOLLOWER  │ quorum │ ✓ 2ms ✓ 0   │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
-│         2 │    4 │ ✓ FOLLOWER  │ quorum │ ✓ 2ms ✓ 1ms │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
-└───────────┴──────┴─────────────┴────────┴─────────────┴──────────────┴──────────────────┴───────────────┴───────────────────────────────┘
+┌──────────────────┬──────┬─────────────┬────────┬─────────────┬──────────────┬──────────────────┬───────────────┬───────────────────────────────┐
+│     parent_id    │ id ↓ │    state    │  mode  │    ping     │   priority   │    pref_roles    │ can_be_leader │           lag_size            │
+│ deny_wal_sources │      │             │        │  time_diff  │ max_replicas │ nquorum minnodes │   can_vote    │ send+write+flush+replay=total │
+├──────────────────┼──────┼─────────────┼────────┼─────────────┼──────────────┼──────────────────┼───────────────┼───────────────────────────────┤
+│ 2                │    1 │ ✓ FOLLOWER  │ quorum │ ✓ 1ms ✓ 0   │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
+│ ¤                │    2 │ ✓ LEADER_RW │ ¤      │             │ 300 ms    ∞  │ L     2    2     │ t    t        │ ANY 1 (id=2,id=3,id=4,id=1)   │
+│ 2                │    3 │ ✓ FOLLOWER  │ quorum │ ✓ 2ms ✓ 0   │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
+│ 2                │    4 │ ✓ FOLLOWER  │ quorum │ ✓ 2ms ✓ 1ms │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
+└──────────────────┴──────┴─────────────┴────────┴─────────────┴──────────────┴──────────────────┴───────────────┴───────────────────────────────┘
 ```
 </details>
 
