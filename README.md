@@ -127,7 +127,7 @@ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_use
 ### ✅ Инсталляция
 
 Что происходит в СУБД при инсталляции?
-1. Создаётся роль `psqlrc_role` и пользователь `psqlrc_user`. 
+1. Создаётся роль `psqlrc_role` и пользователь `psqlrc_user`, если они не существуют. 
 1. В базу `psqlrc_db` (и `biha_db`, при наличии [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference)) в схему `pro` устанавливаются расширения `dblink` и `file_fdw`, создаётся несколько объектов (функции, таблицы, представления).
 1. Настраиваются права доступа к созданным объектам СУБД и членство в ролях. 
 
