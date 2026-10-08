@@ -32,7 +32,7 @@ SELECT
         concat_ws(E'\n',
             c.biha_listen_addresses,
             nullif(c.name, c.biha_listen_addresses)
-        ) as U&"listen_addrs\000Aname",
+        ) as U&"host\000Aname",
     \else
         concat_ws(E'\n',
             n.host,

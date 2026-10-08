@@ -555,7 +555,7 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_repl
                                                                                BiHA cluster state and config
 ┌──────┬──────┬────────────┬──────────────┬─────────────┬─────────┬────────────────┬──────────────┬──────────┬───────────┬────────────┬───────────────────┬───────────────┬────────────────────┐
 │ id ↓ │ term │    host    │  biha_state  │  pg_state   │ last_hb │ hb_send_period │  pref_roles  │ priority │  nquorum  │  minnodes  │ sync_standbys_min │ can_be_leader │ no_wal_on_follower │
-│      │      │    name    │  last_known  │ conn_state  │ online  │  hb_max_lost   │ max_replicas │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │     (timeout)      │
+│      │      │    name    │  last_known  │ conn_state  │ online  │  hb_max_lost   │ max_replicas │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │  deny_wal_sources  │
 ├──────┼──────┼────────────┼──────────────┼─────────────┼─────────┼────────────────┼──────────────┼──────────┼───────────┼────────────┼───────────────────┼───────────────┼────────────────────┤
 │  1   │   34 │ dprs-ent-1 │ 🟢 FOLLOWER  │ 🟢 Recovery │ 820ms   │ 1000 ms        │ L            │ 100 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
 │      │      │            │              │ 🟢 ACTIVE   │ t       │ 10             │            2 │          │           │            │                   │ t             │                    │
