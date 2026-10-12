@@ -176,16 +176,18 @@ m as (
 select
     p.level, p.is_primary,
 
-    -- (regexp_match(p.guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1] as parent_host, --DEPRECATED
-    (select h.host from h where h.addr = p.ping_remote_addr limit 1) as parent_host,
+    coalesce(
+        (select h.host from h where h.addr = p.ping_remote_addr limit 1),
+        (regexp_match(p.guc_replica->>'primary_conninfo', '\mhost=(\S+)'))[1] -- нет гарантии, что будет хост, а не IP
+    ) as parent_host,
 
     -- p.parent_addr использовать нельзя, т.к. в значении может быть локальный IP 127.0.0.1, если этот запрос
     -- выполняется на узле с ролью "мастер" с локальным подключением или по сокету, а нам нужен внешний IP
     p.ping_remote_addr as parent_addr,
 
     coalesce(
-        -- (p.pg_sr).client_hostname, -- это поле будет не null только в случае соединений по IP и только при включённом режиме log_hostname --DEPRECATED
-        (select h.host from h where h.addr = a.addr limit 1)
+        (select h.host from h where h.addr = a.addr limit 1),
+        (p.pg_sr).client_hostname -- это поле будет не null только в случае соединений по IP и только при включённом режиме log_hostname
     ) as host,
 
     a.addr,
