@@ -1,3 +1,9 @@
+\if :{?hint}
+\else
+    \echo 'Файл "~postgres/.psqlrc" не загружен или не хватило прав доступа. Пройдите все шаги инсталляции с начала!'
+    \quit
+\endif
+
 \echo :hint'Uninstall...':reset
 
 \if :pg_is_in_recovery
