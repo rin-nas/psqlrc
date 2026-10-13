@@ -139,7 +139,7 @@ sudo chmod -R 755 ~/psqlrc
 # 2) создайте символическую ссылку
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
 
-# инсталляция на следующих шагах нужна только для выполнения коротких команд :T, :B, :TB
+# выполнение следующих шагов необходимо только для использования коротких команд :T, :B, :TB
 
 # 3) выполните команду инсталляции
 psql -v pro=0 -q -f ~/psqlrc/commands/INSTALL.psql
@@ -179,7 +179,7 @@ mv ~/psqlrc ~/psqlrc.$(date +%Y-%m-%d.%H%M%S)
 sudo chown -R postgres: ~/psqlrc
 sudo chmod -R 755 ~/psqlrc
 
-# 3) выполните команду обновления
+# 3) выполните команду обновления, если используете короткие команды :T, :B, :TB 
 psql -v pro=0 -q -f ~/psqlrc/commands/REINSTALL.psql
 ```
 
@@ -188,7 +188,7 @@ psql -v pro=0 -q -f ~/psqlrc/commands/REINSTALL.psql
 ```bash
 sudo su - postgres
 
-# 1) выполните команду удаления
+# 1) выполните команду удаления, если использовали короткие команды :T, :B, :TB
 psql -v pro=0 -q -f ~/psqlrc/commands/UNINSTALL.psql
 
 # 2) удалите папку "psqlrc" и символическую ссылку
