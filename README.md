@@ -139,7 +139,7 @@ sudo chmod -R 755 ~/psqlrc
 # 2) создайте символическую ссылку
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
 
-# инсталляция на последующих шагах нужна только для выполнения коротких команд :T, :B, :TB
+# инсталляция на следующих шагах нужна только для выполнения коротких команд :T, :B, :TB
 
 # 3) выполните команду инсталляции
 psql -v pro=0 -q -f ~/psqlrc/commands/INSTALL.psql
@@ -147,6 +147,23 @@ psql -v pro=0 -q -f ~/psqlrc/commands/INSTALL.psql
 # 4) добавьте в файл .pgpass для пользователя psqlrc_user пароль
 echo '*:*:*:psqlrc_user:my_secret' >> ~/.pgpass && chmod 600 ~/.pgpass
 ```
+
+Пример файла `pg_hba.conf` с простыми и понятными правилами доступа, которые подходят для тестовых сред.
+
+<details>
+<summary>pg_hba.conf (показать/скрыть)</summary>
+
+```
+# ВНИМАНИЕ! Любые изменения должны быть согласованы с DBA!
+# TYPE   DATABASE        USER    ADDRESS    METHOD
+
+local    all             all                peer
+local    replication     all                peer
+
+host     all             all     all        scram-sha-256
+host     replication     all     all        scram-sha-256
+```
+</details>
 
 ### 🆙 Обновление на новую версию
 
