@@ -137,11 +137,17 @@
 \pset pager always
 \set pspg_installed `command -v pspg > /dev/null 2>&1 && echo 1 || echo 0`
 \set less_installed `command -v less > /dev/null 2>&1 && echo 1 || echo 0`
+\set sed_installed  `command -v sed  > /dev/null 2>&1 && echo 1 || echo 0`
+\if :sed_installed
+    \set sed_command 'sed -E -f ~/psqlrc/replaces.sed | '
+\else
+    \set sed_command ''
+\endif
 \if :pspg_installed
-    \setenv PSQL_PAGER       'sed -E -f ~/psqlrc/replaces.sed | pspg --quit-if-one-screen --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound'
-    \setenv PSQL_WATCH_PAGER 'sed -E -f ~/psqlrc/replaces.sed | pspg --quit-if-one-screen --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound --stream'
+    \setenv PSQL_PAGER       :sed_command'pspg --quit-if-one-screen --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound'
+    \setenv PSQL_WATCH_PAGER :sed_command'pspg --quit-if-one-screen --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound --stream'
 \elif :less_installed
-    \setenv PSQL_PAGER 'sed -E -f ~/psqlrc/replaces.sed | less -iMFXSx4R'
+    \setenv PSQL_PAGER :sed_command'less -iMFXSx4R'
 \endif
 
 ------------------------------------------------------------------------------------------------------------------------
