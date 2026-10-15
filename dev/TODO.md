@@ -1,6 +1,33 @@
 # Идеи для доработок
 
-* https://habr.com/ru/companies/postgrespro/articles/992426/#commit_b3ce55f41 psql: путь поиска в приглашении
+
+## Считать размер папок через функции СУБД, потому что сейчас это работает только локально
+
+Пример
+
+```sql
+2026-10-15 20:11:55+03  postgres@prod-fps-11[172.26.106.114 172.185.2.60] /var/lib/postgresql
+Postgres Pro (enterprise) 18.6.1 62b5838ca4a  postgres@[local]:5432/psqlrc_db
+=# select sum(size) from pg_ls_logdir();
+┌───────────┐
+│    sum    │
+├───────────┤
+│ 305339579 │
+└───────────┘
+```
+
+## Показывать хвост файлов с логами, брать отсюда:
+  ```
+  postgres@prod-fpb-11:/pgdata/MR/keeper-fpb-mr-shard-1-1/postgres$ cat current_logfiles
+  csvlog /var/log/postgres/postgres-fpb-mr-shard-1-prod-fpb-11-keeper_1.csv
+  ```
+
+## psql: путь поиска в приглашении
+
+https://habr.com/ru/companies/postgrespro/articles/992426/#commit_b3ce55f41 
+
+## Выводить предупреждение в случае наличия более новой версии расширения 
+
 * 2026-08-27 21:26:54+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
   Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
   =# \dx
@@ -15,13 +42,16 @@
   │ tablefunc      │ 1.0     │ 1.0             │ public     │ functions that manipulate whole tables, including crosstab   │
   └────────────────┴─────────┴─────────────────┴────────────┴──────────────────────────────────────────────────────────────┘
   (5 rows)
-* 
+
+## Прочее
+
+* Документация: It is recommended to --- добавить причину performance/reliability reason
 * :BB - добавить колонку "works on leader only"?
 * BiHA - Показать уведомление, когда для двух узлов без рефери есть риск split-brain?
 * https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don't_use_trust_authentication_over_TCP/IP_(host,_hostssl)
 * https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don't_use_psql_-W_or_--password
 * `idle_in_transaction_session_timeout` - warn при отсутствии ограничения
-* Сделать функцию для выполнения SQL запросов на мастере и репликах?
+* Сделать функцию для выполнения SQL запросов на мастере, находясь на реплике?
   Например, так можно выполнить команды `SHOW` или `select * from pg_hba_file_rules order by rule_number;` или `select pg_reload_conf()`
 * Добавить проверку, что установлены права 600 на файл .pgpass (см. https://postgrespro.ru/docs/postgresql/current/libpq-pgpass)?
 * Добавить сколько времени назад были изменены файлы `config_file`, `hba_file`, `log_filename`, `~/.pgpass`?
@@ -31,10 +61,7 @@
 * wal_keep_size - Задаёт минимальный объём прошлых файлов WAL, который будет сохраняться в каталоге pg_wal, чтобы ведомый сервер мог выбрать их при потоковой репликации.
 * max_slot_wal_keep_size - Задаёт максимальный размер файлов WAL, который может оставаться в каталоге pg_wal для слотов репликации после выполнения контрольной точки.
 
-* [load /etc/hosts to postgres](https://www.google.com/search?client=ubuntu-sn&channel=fs&q=load+%2Fetc%2Fhosts+to+postgres)
-  \+ https://ask.postgrespro.ru/ "напиши на SQL или PL/pgSQL функцию для проверки синтаксиса файла /etc/hosts"
-
-Получить команду запуска `psql` с флагами:
+* Получить команду запуска `psql` с флагами:
 ```
 \echo `ps -o cmd= -p $(ps -o ppid= -p $$)`
 ```
@@ -98,7 +125,7 @@ round(
 FROM pg_statio_user_tables;
 ```
 
-# Юникод
+## Юникод
 
 ⚠️    U+26A0 U+FE0F    UTF8: 0xE2 0x9A 0xA0
 
@@ -113,7 +140,7 @@ Unicode Character U+FE0F is Variation Selector-16 (VS16), a special hidden code 
 1. https://www.reddit.com/r/bash/comments/139hvju/finding_the_current_cursor_position_in_bash/
 
 
-# Разное
+## Разное
 
 1. [How to use variables in psql scripts](https://postgres.ai/docs/postgres-howtos/development-tools/psql/how-to-use-variables-in-psql-scripts)
 1. [Морской бой в PostgreSQL](https://habr.com/ru/companies/selectel/articles/519010/)
