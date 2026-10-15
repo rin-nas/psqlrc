@@ -20,7 +20,7 @@
 \set title 'BiHA cluster state and config'
 \include ~/psqlrc/title.psql
 
-select 'now()' as function, now()::timestamptz(0)::text as return
+select 'pg_extensions' as name, (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension) as value
 union all
 select 'biha.get_ssn()', biha.get_ssn()
 union all
