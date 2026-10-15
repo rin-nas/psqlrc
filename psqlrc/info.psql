@@ -12,8 +12,10 @@ select
 
     (select nullif(trim(setting), '') from pg_settings where name = 'data_directory' limit 1) as data_directory,
     (select nullif(trim(setting), '') from pg_settings where name = 'logging_collector' limit 1) as logging_collector,
-    (select nullif(trim(setting), '') from pg_settings where name = 'log_directory' limit 1) as log_directory,
-    (select nullif(trim(setting), '') from pg_settings where name = 'log_filename' limit 1) as log_filename,
+    (select nullif(trim(setting), '') from pg_settings where name = 'log_directory' limit 1) as log_directory, -- например, "/var/log/postgres"
+    (select nullif(trim(setting), '') from pg_settings where name = 'log_destination' limit 1) as log_destination, -- stderr, csvlog, jsonlog
+    (select nullif(trim(setting), '') from pg_settings where name = 'log_filename' limit 1) as log_filename, -- шаблон типа "postgresql-%Y-%m-%d.log"
+    split_part(coalesce(pg_current_logfile('csvlog'), pg_current_logfile('stderr')), '/', -1) as current_logfile, -- настоящий файл типа "postgresql-2026-10-15.csv"
     (select nullif(trim(setting), '') from pg_settings where name = 'config_file' limit 1) as config_file,
     (select nullif(trim(setting), '') from pg_settings where name = 'hba_file' limit 1) as hba_file,
     (select pg_size_pretty(nullif(trim(setting), '')::numeric * 8192)    from pg_settings where name = 'shared_buffers'             limit 1) as shared_buffers,
