@@ -133,8 +133,8 @@ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_use
 sudo su - postgres
 
 # 1) из репозитория скопируйте папку "psqlrc" в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы
-sudo chown -R postgres: ~/psqlrc
-sudo chmod -R 755 ~/psqlrc
+sudo chown -R postgres: ~postgres/psqlrc
+sudo chmod -R 755 ~postgres/psqlrc
 
 # 2) создайте символическую ссылку
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
@@ -176,8 +176,8 @@ sudo su - postgres
 mv ~/psqlrc ~/psqlrc.$(date +%Y-%m-%d.%H%M%S)
 
 # 2) из репозитория скопируйте папку "psqlrc" в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы 
-sudo chown -R postgres: ~/psqlrc
-sudo chmod -R 755 ~/psqlrc
+sudo chown -R postgres: ~postgres/psqlrc
+sudo chmod -R 755 ~postgres/psqlrc
 
 # 3) выполните команду обновления, если используете короткие команды :T, :B, :TB 
 psql -v pro=0 -q -f ~/psqlrc/commands/REINSTALL.psql
