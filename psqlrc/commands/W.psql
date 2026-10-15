@@ -24,7 +24,8 @@ with t as (
            pg_numa_available()   as "pg_numa_available()",
            version()             as "version()",
            unicode_version()     as "unicode_version()",
-           icu_unicode_version() as "icu_unicode_version()"
+           icu_unicode_version() as "icu_unicode_version()",
+           (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension) as pg_extensions
 )
 select
     row_number() over () as " #",
