@@ -26,6 +26,12 @@ select 'biha.get_ssn()', biha.get_ssn()
 union all
 select E'biha.error_details()\n(curent node)', json_strip_nulls(to_json(e))::text from biha.error_details() as e where e.type != 'NO_ERROR';
 
+WITH resolve_hosts as (
+    select distinct
+           t.addr,
+           split_part(t.host, '.', 1) as host -- abc1.host.ru -> abc1
+    from pro.resolve_hosts() as t
+)
 SELECT
     concat(' ', s.id, E' \n\n') as "id ↓",
 
@@ -38,8 +44,8 @@ SELECT
         ) as U&"host\000Aname",
     \else
         concat_ws(E'\n',
-            n.host,
-            nullif(c.name, n.host)
+            z.host,
+            nullif(c.name, z.host)
         ) as U&"host\000Aname",
     \endif
 
@@ -106,6 +112,14 @@ FROM biha.status_v     AS s
 JOIN biha.nodes_v      AS n ON n.id = s.id
 JOIN biha.config()     AS c ON c.id = s.id
 JOIN biha.monitoring() AS m ON m.id = s.id
+\if `echo ':biha_config_columns' | grep -qx 'biha_listen_addresses' && echo 1 || echo 0`
+\else
+    -- обработка случая, когда в n.host находится IP вместо хоста
+    CROSS JOIN coalesce(
+        (select rh.host from resolve_hosts as rh where host(rh.addr) = n.host limit 1),
+        n.host
+    ) AS z(host)
+\endif
 --LEFT JOIN pg_stat_replication AS r ON r.application_name = CONCAT('biha_node_', s.id)
 CROSS JOIN coalesce(
     case when s.state = 'LEADER_RO'  then :'symbol_hollow_red'
