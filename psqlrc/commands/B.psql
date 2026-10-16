@@ -20,7 +20,9 @@
 \set title 'BiHA cluster state and config'
 \include ~/psqlrc/title.psql
 
-select 'pg_extensions' as name, (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension) as value
+select 'current_database()' as name, current_database()::text as value
+union all
+select 'pg_extensions', (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension)
 union all
 select 'biha.get_ssn()', biha.get_ssn()
 union all
