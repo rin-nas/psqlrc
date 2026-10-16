@@ -606,13 +606,13 @@ Time: 1.524 ms
 │ id ↓ │ term │    host     │     biha_state      │     pg_state      │ last_hb │ hb_send_period │  pref_roles  │ priority │  nquorum  │  minnodes  │ sync_standbys_min │ can_be_leader │ no_wal_on_follower │
 │      │      │    name     │     last_known      │    conn_state     │ online  │  hb_max_lost   │ max_replicas │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │  deny_wal_sources  │
 ├──────┼──────┼─────────────┼─────────────────────┼───────────────────┼─────────┼────────────────┼──────────────┼──────────┼───────────┼────────────┼───────────────────┼───────────────┼────────────────────┤
-│  1   │    1 │ sdm18-1     │ 🟢 LEADER_RW        │                   │ 220ms   │ 1000 ms        │ L            │ 10 ms    │         2 │          2 │                 1 │ t             │ 20000 ms           │
+│  1   │    1 │ sdm18-1     │ 🟢 LEADER_RW        │                   │ 220ms   │ 1000 ms        │ L            │ 10 s     │         2 │          2 │                 1 │ t             │ 20000 ms           │
 │      │      │ biha_node_1 │                     │                   │ t       │ 10             │            ∞ │          │           │            │                   │ t             │                    │
 │      │      │             │                     │                   │         │                │              │          │           │            │                   │               │                    │
-│  2   │    1 │ sdm18-4     │ 🟢 FOLLOWER         │ 🟢 Recovery       │ 220ms   │ 1000 ms        │ L            │ -1 ms    │         2 │          2 │                 1 │ t             │ 20000 ms           │
+│  2   │    1 │ sdm18-4     │ 🟢 FOLLOWER         │ 🟢 Recovery       │ 220ms   │ 1000 ms        │ L            │ -1 s     │         2 │          2 │                 1 │ t             │ 20000 ms           │
 │      │      │ biha_node_2 │                     │ 🟢 ACTIVE         │ t       │ 10             │            ∞ │          │           │            │                   │ t             │                    │
 │      │      │             │                     │                   │         │                │              │          │           │            │                   │               │                    │
-│  3   │    1 │ sdm1        │ 🔵 REFEREE (no WAL) │ 🔵 Recovery pause │ 220ms   │ 1000 ms        │ L            │ -1 ms    │         2 │          2 │                 1 │ t             │ 20000 ms           │
+│  3   │    1 │ sdm1        │ 🔵 REFEREE (no WAL) │ 🔵 Recovery pause │ 220ms   │ 1000 ms        │ L            │ -1 s     │         2 │          2 │                 1 │ t             │ 20000 ms           │
 │      │      │ biha_node_3 │                     │ 🟢 ACTIVE         │ t       │ 10             │            ∞ │          │           │            │                   │ t             │                    │
 │      │      │             │                     │                   │         │                │              │          │           │            │                   │               │                    │
 └──────┴──────┴─────────────┴─────────────────────┴───────────────────┴─────────┴────────────────┴──────────────┴──────────┴───────────┴────────────┴───────────────────┴───────────────┴────────────────────┘
@@ -664,10 +664,10 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql 
 │     parent_id    │ id ↓ │    state    │  mode  │    ping     │   priority   │    pref_roles    │ can_be_leader │           lag_size            │
 │ deny_wal_sources │      │             │        │  time_diff  │ max_replicas │ nquorum minnodes │   can_vote    │ send+write+flush+replay=total │
 ├──────────────────┼──────┼─────────────┼────────┼─────────────┼──────────────┼──────────────────┼───────────────┼───────────────────────────────┤
-│ 2                │    1 │ ✓ FOLLOWER  │ quorum │ ✓ 1ms ✓ 0   │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
-│ ¤                │    2 │ ✓ LEADER_RW │ ¤      │             │ 300 ms    ∞  │ L     2    2     │ t    t        │ ANY 1 (id=2,id=3,id=4,id=1)   │
-│ 2                │    3 │ ✓ FOLLOWER  │ quorum │ ✓ 2ms ✓ 0   │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
-│ 2                │    4 │ ✓ FOLLOWER  │ quorum │ ✓ 2ms ✓ 1ms │  -1 ms    ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
+│ 2                │    1 │ ✓ FOLLOWER  │ quorum │ ✓ 1ms ✓ 0   │  -1 s     ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
+│ ¤                │    2 │ ✓ LEADER_RW │ ¤      │             │ 300 s     ∞  │ L     2    2     │ t    t        │ ANY 1 (id=2,id=3,id=4,id=1)   │
+│ 2                │    3 │ ✓ FOLLOWER  │ quorum │ ✓ 2ms ✓ 0   │  -1 s     ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
+│ 2                │    4 │ ✓ FOLLOWER  │ quorum │ ✓ 2ms ✓ 1ms │  -1 s     ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │
 └──────────────────┴──────┴─────────────┴────────┴─────────────┴──────────────┴──────────────────┴───────────────┴───────────────────────────────┘
 ```
 

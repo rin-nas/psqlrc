@@ -85,7 +85,7 @@ SELECT
         lpad(case when c.max_replicas = 2147483647 then '∞' else c.max_replicas::text end, 12, ' ')
     ) as U&"pref_roles\000Amax_replicas",
 
-    c.priority::text || ' ms' as U&"priority\000A(delay)",
+    c.priority::text || ' s' as U&"priority\000A(delay)",
 
     c.nquorum as U&"nquorum\000A(on fail)", -- минимальное число узлов, которые должны проголосовать за нового лидера при отказе текущего лидера
 

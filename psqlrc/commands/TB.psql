@@ -42,7 +42,7 @@ select
     ) as U&"ping\000Atime_diff",
 
     concat_ws('    ',
-        lpad(c.priority::text, 3, ' ') || ' ms',
+        lpad(c.priority::text, 3, ' ') || ' s',
         case when c.max_replicas = 2147483647 then '∞' else c.max_replicas::text end
     ) as U&"priority\000Amax_replicas",
 
