@@ -130,13 +130,12 @@ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_use
 1. Настраиваются права доступа к созданным объектам СУБД и членство в ролях. 
 
 ```bash
-sudo su - postgres
-
 # 1) из репозитория скопируйте папку "psqlrc" в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы
 sudo chown -R postgres: ~postgres/psqlrc
 sudo chmod -R 755 ~postgres/psqlrc
 
 # 2) создайте символическую ссылку
+sudo su - postgres
 ln -sv ~/psqlrc/main.psql ~/.psqlrc
 
 # выполнение следующих шагов необходимо только для использования коротких команд :T, :B, :TB
@@ -170,25 +169,23 @@ host     replication     all     all        scram-sha-256
 Пересоздаётся полностью заново только схема `pro`, роль `psqlrc_role` и пользователь `psqlrc_user` остаются без изменений.   
 
 ```bash
-sudo su - postgres
-
 # 1) переименуйте старую папку "psqlrc"
-mv ~/psqlrc ~/psqlrc.$(date +%Y-%m-%d.%H%M%S)
+sudo mv ~postgres/psqlrc ~postgres/psqlrc.$(date +%Y-%m-%d.%H%M%S)
 
 # 2) из репозитория скопируйте папку "psqlrc" в домашнюю папку пользователя postgres, установите владельца и права на папку и файлы 
 sudo chown -R postgres: ~postgres/psqlrc
 sudo chmod -R 755 ~postgres/psqlrc
 
 # 3) выполните команду обновления, если используете короткие команды :T, :B, :TB 
+sudo su - postgres
 psql -v pro=0 -q -f ~/psqlrc/commands/REINSTALL.psql
 ```
 
 ### ❌ Удаление
 
 ```bash
-sudo su - postgres
-
 # 1) выполните команду удаления, если использовали короткие команды :T, :B, :TB
+sudo su - postgres
 psql -v pro=0 -q -f ~/psqlrc/commands/UNINSTALL.psql
 
 # 2) удалите папку "psqlrc" и символическую ссылку

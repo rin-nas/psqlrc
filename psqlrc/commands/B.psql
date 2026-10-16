@@ -29,7 +29,7 @@ select E'biha.error_details()\n(curent node)', json_strip_nulls(to_json(e))::tex
 WITH resolve_hosts as (
     select distinct
            t.addr,
-           split_part(t.host, '.', 1) as host -- abc1.host.ru -> abc1
+           split_part(t.host, '.', 1) as host -- sub.domain.com -> sub
     from pro.resolve_hosts() as t
 )
 SELECT

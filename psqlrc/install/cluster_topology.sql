@@ -170,7 +170,7 @@ m as (
 , h as (
     select distinct
            t.addr,
-           split_part(t.host, '.', 1) as host -- abc1.host.ru -> abc1
+           split_part(t.host, '.', 1) as host -- sub.domain.com -> sub
     from pro.resolve_hosts() as t
 )
 select
