@@ -22,7 +22,7 @@
 \set orange    '\033[38;5;208m'
 \set cyan      '\033[38;5;6m'
 \set magenta   '\033[38;5;13m'
-\set gray      '\033[38;5;7m'
+\set gray      '\033[38;5;246m'
 \set white     '\033[38;5;15m'
 
 -- стили
