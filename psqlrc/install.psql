@@ -55,6 +55,10 @@ CREATE SCHEMA pro;
 \include ~/psqlrc/install/ping.sql
 \include ~/psqlrc/install/cluster_topology.sql
 
+\if `test ':DBNAME' = 'biha_db' && echo 1 || echo 0`
+    \include ~/psqlrc/install/biha.status_changed_log.sql
+\endif
+
 ------------------------------------------------------------------------------------------------------------------------
 \echo :head'Set owner to database objects':reset
 
