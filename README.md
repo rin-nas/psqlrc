@@ -567,23 +567,23 @@ postgres@dprs-ent-2:~$ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_repl
 └────────────────┴─────────────────────────────────┘
 
                                                                                BiHA cluster state and config
-┌──────┬──────┬────────────┬──────────────┬─────────────┬─────────┬────────────────┬──────────────┬──────────┬───────────┬────────────┬───────────────────┬───────────────┬────────────────────┐
-│ id ↓ │ term │    host    │  biha_state  │  pg_state   │ last_hb │ hb_send_period │  pref_roles  │ priority │  nquorum  │  minnodes  │ sync_standbys_min │ can_be_leader │ no_wal_on_follower │
-│      │      │    name    │  last_known  │ conn_state  │ online  │  hb_max_lost   │ max_replicas │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │  deny_wal_sources  │
-├──────┼──────┼────────────┼──────────────┼─────────────┼─────────┼────────────────┼──────────────┼──────────┼───────────┼────────────┼───────────────────┼───────────────┼────────────────────┤
-│  1   │   34 │ dprs-ent-1 │ 🟢 FOLLOWER  │ 🟢 Recovery │ 820ms   │ 1000 ms        │ L            │ 100 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │              │ 🟢 ACTIVE   │ t       │ 10             │            2 │          │           │            │                   │ t             │                    │
-│      │      │            │              │             │         │                │              │          │           │            │                   │               │                    │
-│  2   │   34 │ dprs-ent-2 │ 🟢 LEADER_RW │             │ 820ms   │ 1000 ms        │ L            │ 300 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │              │             │ t       │ 10             │              │          │           │            │                   │ t             │                    │
-│      │      │            │              │             │         │                │              │          │           │            │                   │               │                    │
-│  3   │   34 │ dprs-ent-3 │ 🟢 FOLLOWER  │ 🟢 Recovery │ 820ms   │ 1000 ms        │ L            │ 200 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │              │ 🟢 ACTIVE   │ t       │ 10             │              │          │           │            │                   │ t             │                    │
-│      │      │            │              │             │         │                │              │          │           │            │                   │               │                    │
-│  4   │   34 │ dprs-ent-4 │ 🟢 FOLLOWER  │ 🟢 Recovery │ 820ms   │ 1000 ms        │ FL           │ 400 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
-│      │      │            │              │ 🟢 ACTIVE   │ t       │ 10             │              │          │           │            │                   │ t             │                    │
-│      │      │            │              │             │         │                │              │          │           │            │                   │               │                    │
-└──────┴──────┴────────────┴──────────────┴─────────────┴─────────┴────────────────┴──────────────┴──────────┴───────────┴────────────┴───────────────────┴───────────────┴────────────────────┘
+┌──────┬──────┬────────────┬──────────────┬─────────────┬─────────┬────────────────┬─────────────────┬──────────┬───────────┬────────────┬───────────────────┬───────────────┬────────────────────┐
+│ id ↓ │ term │    host    │  biha_state  │  pg_state   │ last_hb │ hb_send_period │ repl_pref_roles │ priority │  nquorum  │  minnodes  │ sync_standbys_min │ can_be_leader │ no_wal_on_follower │
+│      │      │    name    │  last_known  │ conn_state  │ online  │  hb_max_lost   │  max_replicas   │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │  deny_wal_sources  │
+├──────┼──────┼────────────┼──────────────┼─────────────┼─────────┼────────────────┼─────────────────┼──────────┼───────────┼────────────┼───────────────────┼───────────────┼────────────────────┤
+│  1   │   34 │ dprs-ent-1 │ 🟢 FOLLOWER  │ 🟢 Recovery │ 820ms   │ 1000 ms        │ L               │ 100 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │ 🟢 ACTIVE   │ t       │ 10             │               2 │          │           │            │                   │ t             │                    │
+│      │      │            │              │             │         │                │                 │          │           │            │                   │               │                    │
+│  2   │   34 │ dprs-ent-2 │ 🟢 LEADER_RW │             │ 820ms   │ 1000 ms        │ L               │ 300 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │             │ t       │ 10             │                 │          │           │            │                   │ t             │                    │
+│      │      │            │              │             │         │                │                 │          │           │            │                   │               │                    │
+│  3   │   34 │ dprs-ent-3 │ 🟢 FOLLOWER  │ 🟢 Recovery │ 820ms   │ 1000 ms        │ L               │ 200 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │ 🟢 ACTIVE   │ t       │ 10             │                 │          │           │            │                   │ t             │                    │
+│      │      │            │              │             │         │                │                 │          │           │            │                   │               │                    │
+│  4   │   34 │ dprs-ent-4 │ 🟢 FOLLOWER  │ 🟢 Recovery │ 820ms   │ 1000 ms        │ FL              │ 400 ms   │         2 │          2 │                -1 │ t             │ 500000 ms          │
+│      │      │            │              │ 🟢 ACTIVE   │ t       │ 10             │                 │          │           │            │                   │ t             │                    │
+│      │      │            │              │             │         │                │                 │          │           │            │                   │               │                    │
+└──────┴──────┴────────────┴──────────────┴─────────────┴─────────┴────────────────┴─────────────────┴──────────┴───────────┴────────────┴───────────────────┴───────────────┴────────────────────┘
 ```
 Если для BiHA настроены функции обратного вызова (callbacks), то под таблицей будет показана соответствующая таблица.
 
@@ -602,20 +602,20 @@ BiHA cluster state and config (at 2026-10-08 23:36:00+03)
 
 Time: 1.524 ms
                                                                           BiHA cluster state and config (at 2026-10-08 23:36:00+03)
-┌──────┬──────┬─────────────┬─────────────────────┬───────────────────┬─────────┬────────────────┬──────────────┬──────────┬───────────┬────────────┬───────────────────┬───────────────┬────────────────────┐
-│ id ↓ │ term │    host     │     biha_state      │     pg_state      │ last_hb │ hb_send_period │  pref_roles  │ priority │  nquorum  │  minnodes  │ sync_standbys_min │ can_be_leader │ no_wal_on_follower │
-│      │      │    name     │     last_known      │    conn_state     │ online  │  hb_max_lost   │ max_replicas │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │  deny_wal_sources  │
-├──────┼──────┼─────────────┼─────────────────────┼───────────────────┼─────────┼────────────────┼──────────────┼──────────┼───────────┼────────────┼───────────────────┼───────────────┼────────────────────┤
-│  1   │    1 │ sdm18-1     │ 🟢 LEADER_RW        │                   │ 220ms   │ 1000 ms        │ L            │ 10 s     │         2 │          2 │                 1 │ t             │ 20000 ms           │
-│      │      │ biha_node_1 │                     │                   │ t       │ 10             │            ∞ │          │           │            │                   │ t             │                    │
-│      │      │             │                     │                   │         │                │              │          │           │            │                   │               │                    │
-│  2   │    1 │ sdm18-4     │ 🟢 FOLLOWER         │ 🟢 Recovery       │ 220ms   │ 1000 ms        │ L            │ -1 s     │         2 │          2 │                 1 │ t             │ 20000 ms           │
-│      │      │ biha_node_2 │                     │ 🟢 ACTIVE         │ t       │ 10             │            ∞ │          │           │            │                   │ t             │                    │
-│      │      │             │                     │                   │         │                │              │          │           │            │                   │               │                    │
-│  3   │    1 │ sdm1        │ 🔵 REFEREE (no WAL) │ 🔵 Recovery pause │ 220ms   │ 1000 ms        │ L            │ -1 s     │         2 │          2 │                 1 │ t             │ 20000 ms           │
-│      │      │ biha_node_3 │                     │ 🟢 ACTIVE         │ t       │ 10             │            ∞ │          │           │            │                   │ t             │                    │
-│      │      │             │                     │                   │         │                │              │          │           │            │                   │               │                    │
-└──────┴──────┴─────────────┴─────────────────────┴───────────────────┴─────────┴────────────────┴──────────────┴──────────┴───────────┴────────────┴───────────────────┴───────────────┴────────────────────┘
+┌──────┬──────┬─────────────┬─────────────────────┬───────────────────┬─────────┬────────────────┬─────────────────┬──────────┬───────────┬────────────┬───────────────────┬───────────────┬────────────────────┐
+│ id ↓ │ term │    host     │     biha_state      │     pg_state      │ last_hb │ hb_send_period │ repl_pref_roles │ priority │  nquorum  │  minnodes  │ sync_standbys_min │ can_be_leader │ no_wal_on_follower │
+│      │      │    name     │     last_known      │    conn_state     │ online  │  hb_max_lost   │  max_replicas   │ (delay)  │ (on fail) │ (for L rw) │  (for L commit)   │   can_vote    │  deny_wal_sources  │
+├──────┼──────┼─────────────┼─────────────────────┼───────────────────┼─────────┼────────────────┼─────────────────┼──────────┼───────────┼────────────┼───────────────────┼───────────────┼────────────────────┤
+│  1   │    1 │ sdm18-1     │ 🟢 LEADER_RW        │                   │ 220ms   │ 1000 ms        │ L               │ 10 s     │         2 │          2 │                 1 │ t             │ 20000 ms           │
+│      │      │ biha_node_1 │                     │                   │ t       │ 10             │               ∞ │          │           │            │                   │ t             │                    │
+│      │      │             │                     │                   │         │                │                 │          │           │            │                   │               │                    │
+│  2   │    1 │ sdm18-4     │ 🟢 FOLLOWER         │ 🟢 Recovery       │ 220ms   │ 1000 ms        │ L               │ -1 s     │         2 │          2 │                 1 │ t             │ 20000 ms           │
+│      │      │ biha_node_2 │                     │ 🟢 ACTIVE         │ t       │ 10             │               ∞ │          │           │            │                   │ t             │                    │
+│      │      │             │                     │                   │         │                │                 │          │           │            │                   │               │                    │
+│  3   │    1 │ sdm1        │ 🔵 REFEREE (no WAL) │ 🔵 Recovery pause │ 220ms   │ 1000 ms        │ L               │ -1 s     │         2 │          2 │                 1 │ t             │ 20000 ms           │
+│      │      │ biha_node_3 │                     │ 🟢 ACTIVE         │ t       │ 10             │               ∞ │          │           │            │                   │ t             │                    │
+│      │      │             │                     │                   │         │                │                 │          │           │            │                   │               │                    │
+└──────┴──────┴─────────────┴─────────────────────┴───────────────────┴─────────┴────────────────┴─────────────────┴──────────┴───────────┴────────────┴───────────────────┴───────────────┴────────────────────┘
 (3 rows)
 
 Time: 3.314 ms
@@ -661,7 +661,7 @@ Time: 0.225 ms
 postgres@dprs-ent-2:~$ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db
                                                    BiHA topology, cluster state, config
 ┌──────────────────┬──────┬─────────────┬────────┬─────────────┬──────────────┬──────────────────┬───────────────┬───────────────────────────────┐
-│     parent_id    │ id ↓ │    state    │  mode  │    ping     │   priority   │    pref_roles    │ can_be_leader │           lag_size            │
+│     parent_id    │ id ↓ │    state    │  mode  │    ping     │   priority   │ repl_pref_roles  │ can_be_leader │           lag_size            │
 │ deny_wal_sources │      │             │        │  time_diff  │ max_replicas │ nquorum minnodes │   can_vote    │ send+write+flush+replay=total │
 ├──────────────────┼──────┼─────────────┼────────┼─────────────┼──────────────┼──────────────────┼───────────────┼───────────────────────────────┤
 │ 2                │    1 │ ✓ FOLLOWER  │ quorum │ ✓ 1ms ✓ 0   │  -1 s     ∞  │ L     2    2     │ t    t        │ 0 + 0 + 0 + 8 B = 8 B         │

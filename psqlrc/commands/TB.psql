@@ -50,7 +50,7 @@ select
         rpad(c.repl_pref_roles, 2, ' '),
         c.nquorum,
         c.minnodes
-    ) as U&"pref_roles\000Anquorum minnodes",
+    ) as U&"repl_pref_roles\000Anquorum minnodes",
 
     concat_ws('    ',
         c.can_be_leader,
