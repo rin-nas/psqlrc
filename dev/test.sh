@@ -16,4 +16,4 @@ psql -v pro=0 -q -f ~/psqlrc/commands/T.psql -U psqlrc_user psqlrc_db | sed -E -
 psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user biha_db | sed -E -f ~/psqlrc/replaces.sed
 psql -v pro=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user biha_db | sed -E -f ~/psqlrc/replaces.sed
 psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user biha_db | sed -E -f ~/psqlrc/replaces.sed
-psql -v pro=0 -q -f ~/psqlrc/commands/BB.psql -U biha_replication_user biha_db | sed -E -f ~/psqlrc/replaces.sed
+
