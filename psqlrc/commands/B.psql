@@ -40,18 +40,20 @@ SELECT
     s.term,
 
     \if `echo ':biha_config_columns' | grep -qx 'biha_listen_addresses' && echo 1 || echo 0`
-        concat_ws(E'\n',
+        concat(
             c.biha_listen_addresses,
+            E'\n',
             nullif(c.name, c.biha_listen_addresses)
         ) as U&"host\000Aname",
     \else
-        concat_ws(E'\n',
+        concat(
             z.host,
+            E'\n',
             nullif(c.name, z.host)
         ) as U&"host\000Aname",
     \endif
 
-    concat_ws(E'\n',
+    concat(
         concat_ws(' ',
             e1.state_symbol,
             s.state,
@@ -59,29 +61,34 @@ SELECT
                         when 'referee_with_wal' then '(with WAL)'
             end
         ),
+        E'\n',
         nullif(s.last_known_state, s.state)
     ) as U&"biha_state\000Alast_known",
 
-    concat_ws(E'\n',
+    concat(
         concat_ws(' ',
             e2.pg_state_symbol || ' ' || m.pg_state,
             m.startup_progress || '%' -- показывает прогресс запуска в процентах, когда значение pg_state — Startup.
         ),
+        E'\n',
         e3.state_symbol || ' ' || n.state
     ) as U&"pg_state\000Aconn_state",
 
-    concat_ws(E'\n',
+    concat(
         pro.interval_pretty(s.since_last_hb),
+        E'\n',
         s.online
     ) AS U&"last_hb\000Aonline",
 
-    concat_ws(E'\n',
+    concat(
         c.heartbeat_send_period::text || ' ms',
+        E'\n',
         c.heartbeat_max_lost
     ) as U&"hb_send_period\000Ahb_max_lost",
 
-    concat_ws(E'\n',
+    concat(
         c.repl_pref_roles,
+        E'\n',
         lpad(case when c.max_replicas = 2147483647 then '∞' else c.max_replicas::text end, 12, ' ')
     ) as U&"repl_pref_roles\000Amax_replicas",
 
@@ -95,15 +102,17 @@ SELECT
     -- т.е. минимальное число синхронных резервных узлов, которые должны быть доступны, чтобы лидер продолжал подтверждать транзакции
     c.sync_standbys_min as U&"sync_standbys_min\000A(for L commit)",
 
-    concat_ws(E'\n',
+    concat(
         c.can_be_leader,
+        E'\n',
         c.can_vote
     ) as U&"can_be_leader\000Acan_vote",
 
     -- Postgres Pro (enterprise) 18.4.1 2a1f89e2632  ERROR:  column "deny_wal_sources" does not exist
     \if `echo ':biha_config_columns' | grep -qx 'deny_wal_sources' && echo 1 || echo 0`
-        concat_ws(E'\n',
+        concat(
             c.no_wal_on_follower::text || ' ms',
+            E'\n',
             c.deny_wal_sources
         ) as U&"no_wal_on_follower\000Adeny_wal_sources"
     \else
