@@ -23,18 +23,18 @@
 select
     \if `echo ':biha_config_columns' | grep -qx 'deny_wal_sources' && echo 1 || echo 0`
         concat_ws('     ',
-            case when not coalesce(t.is_primary, false) then coalesce(pn.id::text, :'symbol_red') else '  ' end,
+            coalesce(pn.id::text, case when t.is_primary or s.state = 'REFEREE' then '' else :'symbol_red' end),
             c.deny_wal_sources
         ) as U&"parent_id\000Adeny_wal_sources",
     \else
-        case when not t.is_primary then coalesce(pn.id::text, :'symbol_red') end as parent_id,
+        coalesce(pn.id::text, case when t.is_primary or s.state = 'REFEREE' then '' else :'symbol_red' end) as parent_id,
     \endif
 
     n.id as "id ↓",
 
     state_symbol || ' ' || s.state as state,
 
-    sync_state as mode,
+    coalesce(sync_state, '') as mode,
 
     concat_ws(' ',
         ping_latency_pretty,
