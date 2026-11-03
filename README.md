@@ -436,37 +436,38 @@ Postgres Pro (shardman) 18.3.3 fbc0896965c  postgres@[local]:5432/postgres
 <summary>:W (показать/скрыть)</summary>
 
 ```
-2026-08-18 11:51:52+00  postgres@dprs-ent-2[192.168.20.152] /home/postgres
-Postgres Pro (enterprise) 18.4.1 2a1f89e2632  postgres@[local]:5432/biha_db
+2026-11-03 14:13:42+00  postgres@dprs-ent-1[192.168.22.104] /home/postgres
+Postgres Pro (enterprise) 18.6.2 23d8f3b  postgres@127.0.0.1:5432/postgres
 =# :W
-                                                  Who am I (at 2026-08-18 11:54:05+00)
-┌────┬───────────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  # │         name          │                                                  value                                                  │
-├────┼───────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│  1 │ now()                 │ 2026-08-18 11:54:06+00                                                                                  │
-│  2 │ pg_backend_pid()      │ 2117045                                                                                                 │
-│  3 │ is_superuser          │ true                                                                                                    │
-│  4 │ CURRENT_USER          │ postgres                                                                                                │
-│  5 │ SESSION_USER          │ postgres                                                                                                │
-│  6 │ current_database()    │ biha_db                                                                                                 │
-│  7 │ current_schema()      │ public                                                                                                  │
-│  8 │ current_schemas(true) │ {pg_catalog,public}                                                                                     │
-│  9 │ current_xact_id       │ ∅                                                                                                       │
-│ 10 │ current_xact_status   │ ∅                                                                                                       │
-│ 11 │ pg_current_logfile()  │ ∅                                                                                                       │
-│ 12 │ inet_client_addr()    │ ∅                                                                                                       │
-│ 13 │ inet_client_port()    │ ∅                                                                                                       │
-│ 14 │ inet_server_addr()    │ ∅                                                                                                       │
-│ 15 │ inet_server_port()    │ ∅                                                                                                       │
-│ 16 │ pg_jit_available()    │ false                                                                                                   │
-│ 17 │ pg_numa_available()   │ true                                                                                                    │
-│ 18 │ version()             │ PostgreSQL 18.4 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0, 64-bit │
-│ 19 │ unicode_version()     │ 16.0                                                                                                    │
-│ 20 │ icu_unicode_version() │ 14.0                                                                                                    │
-└────┴───────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-(20 rows)
+                                                          Who am I (at 2026-11-03 14:13:59+00)
+┌────┬───────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  # │         name          │                                                     value (not null)                                                     │
+├────┼───────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  1 │ now()                 │ 2026-11-03 14:13:59+00                                                                                                   │
+│  2 │ pg_backend_pid()      │ 588000                                                                                                                   │
+│  3 │ version()             │ PostgreSQL 18.6 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0, 64-bit                  │
+│  4 │ pgpro_version         │ Postgres Pro (enterprise) 18.6.2 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0, 64-bit │
+│  5 │ pgpro_build           │ 23d8f3b                                                                                                                  │
+│  6 │ is_superuser          │ true                                                                                                                     │
+│  7 │ CURRENT_USER          │ postgres                                                                                                                 │
+│  8 │ SESSION_USER          │ postgres                                                                                                                 │
+│  9 │ current_database()    │ postgres                                                                                                                 │
+│ 10 │ pg_extensions         │ pg_buffercache 1.6, pg_proaudit 2.1, pg_query_state 1.2, pg_wait_sampling 1.1, pgpro_stats 1.10, plpgsql 1.0.1           │
+│ 11 │ current_schema()      │ public                                                                                                                   │
+│ 12 │ current_schemas(true) │ {pg_catalog,public}                                                                                                      │
+│ 13 │ pg_current_logfile()  │ log/postgresql-2026-11-03.csv                                                                                            │
+│ 14 │ inet_client_addr()    │ 127.0.0.1                                                                                                                │
+│ 15 │ inet_client_port()    │ 55756                                                                                                                    │
+│ 16 │ inet_server_addr()    │ 127.0.0.1                                                                                                                │
+│ 17 │ inet_server_port()    │ 5432                                                                                                                     │
+│ 18 │ pg_jit_available()    │ false                                                                                                                    │
+│ 19 │ pg_numa_available()   │ true                                                                                                                     │
+│ 20 │ unicode_version()     │ 16.0                                                                                                                     │
+│ 21 │ icu_unicode_version() │ 14.0                                                                                                                     │
+└────┴───────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+(21 rows)
 
-Time: 0.900 ms
+Time: 4.442 ms
 ```
 
 </details>
