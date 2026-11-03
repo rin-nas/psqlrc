@@ -1,0 +1,22 @@
+-- Протокол работы сервера, последние 1000 строк из файла.
+\if :{?hint}
+\else
+    \echo 'Файл "~postgres/.psqlrc" не загружен или не хватило прав доступа. Пройдите все шаги инсталляции с начала!'
+    \quit
+\endif
+
+\include ~/psqlrc/connect_psqlrc_db.psql
+\if :{?QUIT}
+    \unset QUIT
+    \quit
+\endif
+
+\set title 'Postgres server log, last 1000 lines'
+\include ~/psqlrc/title.psql
+
+table pro.log_0;
+
+\unset title
+\include ~/psqlrc/title.psql
+
+\include ~/psqlrc/connect_restore.psql
