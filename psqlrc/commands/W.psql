@@ -23,16 +23,18 @@ with t as (
            pg_jit_available()    as "pg_jit_available()",
            pg_numa_available()   as "pg_numa_available()",
            version()             as "version()",
+           (select nullif(trim(setting), '') from pg_settings where name = 'pgpro_version' limit 1) as pgpro_version,
+           (select nullif(trim(setting), '') from pg_settings where name = 'pgpro_build'   limit 1) as pgpro_build,
            unicode_version()     as "unicode_version()",
            icu_unicode_version() as "icu_unicode_version()",
            (select string_agg(concat(extname, ' ', extversion), ', ' order by extname) from pg_extension) as pg_extensions
 )
 select
     row_number() over () as " #",
-    j.key as name,
-    j.value
+    j.key                as "name",
+    j.value              as "value (not null)"
 from t
-cross join json_each_text(row_to_json(t)) as j;
+join json_each_text(row_to_json(t)) as j on j.value is not null;
 
 \unset title
 \include ~/psqlrc/title.psql
