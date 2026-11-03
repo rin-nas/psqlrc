@@ -49,11 +49,11 @@ GRANT psqlrc_role TO psqlrc_user;
 \endif
 
 CREATE SCHEMA pro;
-\include ~/psqlrc/install/interval_pretty.sql
-\include ~/psqlrc/install/size_pretty.sql
-\include ~/psqlrc/install/resolve_hosts.sql
-\include ~/psqlrc/install/ping.sql
-\include ~/psqlrc/install/cluster_topology.sql
+\include ~/psqlrc/install/pro.interval_pretty.sql
+\include ~/psqlrc/install/pro.size_pretty.sql
+\include ~/psqlrc/install/pro.resolve_hosts.sql
+\include ~/psqlrc/install/pro.ping.sql
+\include ~/psqlrc/install/pro.cluster_topology.sql
 
 \if `test ':DBNAME' = 'biha_db' && echo 1 || echo 0`
     \include ~/psqlrc/install/biha.status_changed_log.sql
