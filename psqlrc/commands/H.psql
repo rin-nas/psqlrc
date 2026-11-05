@@ -1,7 +1,13 @@
 \echo :head'Short commands:':reset
+\if :is_csvlog
+    \echo ':LOG — Postgres server log, last 1000 lines. To get full and detail log, run "select * from pro.log_N", where N is file ordinal number.'
+\else
+    \echo ':LOG — Postgres server log, last 1000 lines.'
+\endif
 \echo ':W — Who am I.'
 \echo ':A — Stat activity groups counts.'
 \echo ':T — Cluster topology. Returns servers: primary and dependent replicas, including cascaded ones.'
 \echo ':B — BiHA cluster state and config, see https://postgrespro.ru/docs/enterprise/current/biha-reference'
+\echo ':TB — BiHA cluster tolopogy, state and config.'
 \echo
 \echo ':INSTALL, :REINSTALL, :UNINSTALL — for current database, it (re/un)install in "pro" schema some objects (required to run some short commands)'

@@ -305,7 +305,7 @@ Cache hit ratio:       0%
 Installed extensions:  btree_gist 1.8.1, cube 1.5, earthdistance 1.2, pg_buffercache 1.6, plpgsql 1.0.1, ptrack 2.5
 
 # SHORT COMMANDS
-:H — Help and full list short commands
+:H — Help and full list of short commands
 
 psql (18.3, server 17.9)
 Type "help" for help.
@@ -368,7 +368,7 @@ Cache hit ratio:       0%
 Installed extensions:  pg_buffercache 1.6, pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
 
 # SHORT COMMANDS
-:H — Help and full list short commands
+:H — Help and full list of short commands
 
 psql (18.3)
 Type "help" for help.
@@ -418,7 +418,7 @@ Cache hit ratio:       0%
 Installed extensions:  pg_stat_statements 1.12, pgstattuple 1.5, plpgsql 1.0.1, shardman 0.2.106
 
 # SHORT COMMANDS
-:H — Help and full list short commands
+:H — Help and full list of short commands
 
 psql (18.3)
 Type "help" for help.
