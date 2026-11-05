@@ -1,9 +1,8 @@
 # SED colorize rules
 # Extended Regular Expressions (ERE) syntax (use flag -E)
 
-s/↵/ /g
+#s/↵/ /g
 s/([¤∅↓↑∞]) /\x1b[38;5;7m\1\x1b[0m /g # gray
-s/ (\([^(),\r\n│]+\)) / \x1b[38;5;7m\1\x1b[0m /g # gray (text in parentheses)
 s/(✕) /\x1b[38;5;196m\1\x1b[0m /g   # red
 s/(✓) /\x1b[38;5;10m\x1b[1m\1\x1b[0m /g  # green bold
 s/(▲) /\x1b[38;5;220m\1\x1b[0m /g   # yellow

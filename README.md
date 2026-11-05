@@ -72,8 +72,8 @@ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="
 psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db
 ```
 Для привлечения внимания в таблицах некоторые символы и слова могут выделяться цветом, особенно с опцией `-v emoji=0`.
-Но пейджер `pspg` удаляет цветовую раскраску, а `less` сохраняет.
-Если в ОС инсталлирован `pspg`, для цветного подкрашивания символов можно добавить в конец командной строки `| sed -E -f ~/psqlrc/replaces.sed`.
+`less` умеет корректно отображать данные с цветовой раскраской, а `pspg` нет.
+Если в ОС инсталлирован `pspg`, для цветного подкрашивания символов можно добавить в конец командной строки `| sed -E -f ~/psqlrc/colorize.sed`.
 
 ### Замечания по безопасности
 
