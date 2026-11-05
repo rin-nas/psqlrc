@@ -11,23 +11,24 @@ SCRIPT_DIR=$(dirname "$SCRIPT_FILE")
 bash -n "$SCRIPT_FILE" || exit # check syntax this file
 
 # colors
-Red='\e[1;31m'
-Green='\e[0;32m'
-Yellow='\e[38;5;220m'
-Blue='\e[38;5;39m'
-Orange='\e[38;5;214m'
-Magenta='\e[0;35m'
-Cyan='\e[0;36m'
-Gray='\e[0;37m'
-White='\e[1;37m'
-Reset='\e[0m'
+red='\e[1;31m'
+green='\e[0;32m'
+yellow='\e[38;5;220m'
+blue='\e[38;5;39m'
+orange='\e[38;5;214m'
+magenta='\e[0;35m'
+cyan='\e[0;36m'
+gray='\e[0;37m'
+white='\e[1;37m'
+reset='\e[0m'
 
 # colored messages
-echoerr()  { echo -e "${Red}$@${Reset}"    1>&2; } # ошибки
-echowarn() { echo -e "${Yellow}$@${Reset}" 1>&2; } # предупреждения
-echohead() { echo -e "${Blue}$@${Reset}" ; } # заголовок или этап
-echoinfo() { echo -e "${White}$@${Reset}" ; } # важные сообщения
-echosucc() { echo -e "${Green}$@${Reset}" ; } # сообщения об успехе
+echoerr()  { echo -e "${red}ERROR: $@${reset}"      1>&2; } # ошибки
+echowarn() { echo -e "${orange}WARNING: $@${reset}" 1>&2; } # предупреждения
+echohint() { echo -e "${yellow}HINT: $@${reset}"    1>&2; } # подсказки
+echohead() { echo -e "${blue}$@${reset}"  ; } # заголовок или этап
+echoinfo() { echo -e "${white}$@${reset}" ; } # важные сообщения
+echosucc() { echo -e "${green}$@${reset}" ; } # сообщения об успехе
 
 #------------------------------------------------------------------
 if test "$#" -ne 1; then
@@ -44,33 +45,49 @@ elif ! (echo "$1" | grep -qP '^\d+$'); then
     exit 2
 fi
 
-LOG_DIR=$(cat current_logfiles | grep csvlog | cut -d' ' -f2 | xargs dirname)
-test ! -d "$LOG_DIR" && exit 0 # exit if directory does not exist
+CUR_DIR=$(pwd)
+CUR_LOG_FILES="$CUR_DIR/current_logfiles"
+if test ! -f "$CUR_LOG_FILES"; then
+    echoerr "file '$CUR_LOG_FILES' does not exist!"
+    echohint "is current directory '$CUR_DIR' PGDATA?"
+    exit 1
+fi
 
-if test "$1" -le 1; then
-    FILE=$(cat current_logfiles | grep csvlog | cut -d' ' -f2 | xargs basename)
-else
+LOG_FILE=$(cat "$CUR_LOG_FILES" | grep csvlog | cut -d' ' -f2)
+if test -z "$LOG_FILE"; then
+    echoerr "file '$CUR_LOG_FILES': string 'csvlog' does not exist!"
+    echohint "check PostgreSQL params logging_collector = 'on', log_destination = 'csvlog'"
+    exit 1
+elif test ! -f "$LOG_FILE"; then
+    echoerr "file '$LOG_FILE' does not exist!"
+    echohint "just repeat it, file may be rotated to next one"
+    exit 1
+fi
+
+if test "$1" -gt 1; then
+    LOG_DIR=$(dirname "$LOG_FILE")
     # https://stackoverflow.com/questions/6022384/bash-tool-to-get-nth-line-from-a-file
     FILE=$(ls -1 -U "$LOG_DIR" | grep -P '^postgres.*\.csv(\.[^.]+)?$' | sort -r | tail -n+$1 | head -1)
+    test -z "$FILE" && exit 0 # exit if file does not exist
+    LOG_FILE="$LOG_DIR/$FILE"
+    test ! -f "$LOG_FILE" && exit 0 # exit if file does not exist
 fi
-test ! -f "$LOG_DIR/$FILE" && exit 0 # exit if file does not exist
 
-FILE_EXT=$(echo "$FILE" | grep -oP '\.\K[^.]+$')
-
+LOG_FILE_EXT=$(echo "$LOG_FILE" | grep -oP '\.\K[^.]+$')
 # compare [de]compression speed and ratio - https://github.com/rin-nas/postgresql-patterns-library/blob/master/pg_archive_log/README.md
-case "$FILE_EXT" in
+case "$LOG_FILE_EXT" in
     csv)
-        test "$1" = 0 && tail -n 1000 "$LOG_DIR/$FILE" || cat "$LOG_DIR/$FILE"; exit ;;
+        test "$1" = 0 && tail -n 1000 "$LOG_FILE" || cat "$LOG_FILE"; exit ;;
     zst)
-        zstdcat "$LOG_DIR/$FILE"; exit ;;
+        zstdcat "$LOG_FILE"; exit ;;
     lz4)
-        lz4cat  "$LOG_DIR/$FILE"; exit ;;
+        lz4cat  "$LOG_FILE"; exit ;;
     xz)
-        xzcat   "$LOG_DIR/$FILE"; exit ;;
+        xzcat   "$LOG_FILE"; exit ;;
     bz3)
-        bz3cat  "$LOG_DIR/$FILE"; exit ;;
+        bz3cat  "$LOG_FILE"; exit ;;
     gz)
-        zcat    "$LOG_DIR/$FILE"; exit ;;
+        zcat    "$LOG_FILE"; exit ;;
     *)
-        echoerr "Error: file '$LOG_DIR/$FILE': file extension '$FILE_EXT' does not support"; exit 1 ;;
+        echoerr "file '$LOG_FILE': file extension '$LOG_FILE_EXT' does not support"; exit 1 ;;
 esac
