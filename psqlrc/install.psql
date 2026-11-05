@@ -74,7 +74,7 @@ ALTER FUNCTION pro.resolve_hosts() OWNER TO postgres;
 ALTER FUNCTION pro.ping(connection_str text) OWNER TO postgres;
 ALTER VIEW pro.cluster_topology OWNER TO postgres;
 ALTER FUNCTION pro.cluster_topology() OWNER TO postgres;
-ALTER FOREIGN TABLE pro.log_all OWNER TO postgres;
+ALTER FOREIGN TABLE pro.csvlog_all OWNER TO postgres;
 
 ------------------------------------------------------------------------------------------------------------------------
 \echo :head'Revoke privileges from database objects':reset

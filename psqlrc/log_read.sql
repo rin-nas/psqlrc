@@ -35,7 +35,7 @@ CREATE FOREIGN TABLE pro.csvlog_all (
 SERVER file_srv
 OPTIONS (program 'true', format 'csv');
 
-CREATE FOREIGN TABLE pro.csvlog_0 ()
+CREATE FOREIGN TABLE pro.csvlog0 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 0 csv', format 'csv');
@@ -45,76 +45,76 @@ INHERITS (pro.csvlog_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 1 csv', format 'csv');
 
-CREATE FOREIGN TABLE pro.csvlog_1 ()
+CREATE FOREIGN TABLE pro.csvlog1 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 1 csv', format 'csv');
 
-CREATE FOREIGN TABLE pro.csvlog_2 ()
+CREATE FOREIGN TABLE pro.csvlog2 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 2 csv', format 'csv');
 
-CREATE FOREIGN TABLE pro.csvlog_3 ()
+CREATE FOREIGN TABLE pro.csvlog3 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 3 csv', format 'csv');
 
-CREATE FOREIGN TABLE pro.csvlog_4 ()
+CREATE FOREIGN TABLE pro.csvlog4 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 4 csv', format 'csv');
 
-CREATE FOREIGN TABLE pro.csvlog_5 ()
+CREATE FOREIGN TABLE pro.csvlog5 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 5 csv', format 'csv');
 
-CREATE FOREIGN TABLE pro.csvlog_6 ()
+CREATE FOREIGN TABLE pro.csvlog6 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 6 csv', format 'csv');
 
-CREATE FOREIGN TABLE pro.csvlog_7 ()
+CREATE FOREIGN TABLE pro.csvlog7 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh csv 7', format 'csv');
+OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 7 csv', format 'csv');
 
 ------------------------------------------------------------------------------------------------------------------------
 
-CREATE FOREIGN TABLE pro.log_0 ()
+CREATE FOREIGN TABLE pro.log0 (line text)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 0 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log ()
+CREATE FOREIGN TABLE pro.log (line text)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 1 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log_1 ()
+CREATE FOREIGN TABLE pro.log1 (line text)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 1 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log_2 ()
+CREATE FOREIGN TABLE pro.log2 (line text)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 2 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log_3 ()
+CREATE FOREIGN TABLE pro.log3 (line text)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 3 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log_4 ()
+CREATE FOREIGN TABLE pro.log4 (line text)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 4 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log_5 ()
+CREATE FOREIGN TABLE pro.log5 (line text)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 5 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log_6 ()
+CREATE FOREIGN TABLE pro.log6 (line text)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 6 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log_7 ()
+CREATE FOREIGN TABLE pro.log7 (line text)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 7 log', format 'text');
 
@@ -125,5 +125,5 @@ OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 7 log', format 'text');
 TABLE pro.csvlog_all LIMIT 10; -- выборка данных будет из всех наследуемых таблиц!
 SELECT count(*) FROM pro.csvlog_all;
 TABLE pro.csvlog LIMIT 10;
-TABLE pro.csvlog_2 LIMIT 10;
+TABLE pro.csvlog2 LIMIT 10;
 */

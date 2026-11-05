@@ -14,7 +14,11 @@
 \set title 'Postgres server log, last 1000 lines'
 \include ~/psqlrc/title.psql
 
-table pro.log_0;
+\if :is_csvlog
+    table pro.csvlog0;
+\else
+    table pro.log0;
+\endif
 
 \unset title
 \include ~/psqlrc/title.psql
