@@ -54,7 +54,7 @@ CREATE SCHEMA pro;
 \include ~/psqlrc/install/pro.resolve_hosts.sql
 \include ~/psqlrc/install/pro.ping.sql
 \include ~/psqlrc/install/pro.cluster_topology.sql
-\include ~/psqlrc/csvlog_read.sql
+\include ~/psqlrc/log_read.sql
 
 \if `test ':DBNAME' = 'biha_db' && echo 1 || echo 0`
     \include ~/psqlrc/install/biha.status_changed_log.sql
