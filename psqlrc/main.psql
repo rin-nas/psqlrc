@@ -141,14 +141,14 @@
 \set replace_command ''
 \if :pspg_installed
     \if :sed_installed
-        \set replace_command 'sed "s/↵/ /g" | '
+        \set replace_command 'sed -E "s/↵/ /g" | '
     \endif
     -- pspg-5.8.6 некорректно отображает таблицы с цветными данными, хотя в pspg-5.5.3 это ещё работало (TODO - создать задачу на автора pspg, см. `pspg --info`)
     \setenv PSQL_PAGER       :replace_command'pspg --quit-if-one-screen --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound'
     \setenv PSQL_WATCH_PAGER :replace_command'pspg --quit-if-one-screen --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound --stream'
 \elif :less_installed
     \if :sed_installed
-        \set replace_command :replace_command'sed -E -f ~/psqlrc/colorize.sed | '
+        \set replace_command 'sed -E -f ~/psqlrc/colorize.sed | '
     \endif
     \setenv PSQL_PAGER :replace_command'less -iMFXSx4R'
 \endif

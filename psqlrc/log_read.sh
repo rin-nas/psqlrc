@@ -31,43 +31,6 @@ echoinfo() { echo -e "${white}$@${reset}" ; } # важные сообщения
 echosucc() { echo -e "${green}$@${reset}" ; } # сообщения об успехе
 
 #------------------------------------------------------------------
-escape_text_format() {
-    PREV_LINE=''
-    FIRST_CHAR=''
-    # читаем STDIN (входящий поток данных) построчно в переменную $LINE
-    while IFS= read -r LINE; do
-        # последовательно меняем символы в текущей строке
-
-        # примеры:
-        # LINE="${LINE//-/_}"         # символьный
-        # LINE="${LINE//$'\x2d'/_}"   # шестнадцатеричный (Hex)
-        # LINE="${LINE//$'\055'/_}"   # восьмеричный (Octal)
-        # LINE="${LINE//$'\u002d'/_}" # юникод (UTF-8)
-
-        FIRST_CHAR="${LINE:0:1}"
-
-        # https://postgrespro.ru/docs/postgresql/18/sql-copy?lang=en
-        LINE="${LINE//\\/$'\x01'}"   # Slash to temp symbol
-        LINE="${LINE//$'\b'/\\b}"    # Backspace (ASCII 8)
-        LINE="${LINE//$'\f'/\\f}"    # Form feed (ASCII 12)
-        LINE="${LINE//$'\n'/\\n}"    # Newline (ASCII 10)
-        LINE="${LINE//$'\r'/\\r}"    # Carriage return (ASCII 13)
-        LINE="${LINE//$'\t'/\\t}"    # Tab (ASCII 9)
-        LINE="${LINE//$'\v'/\\v}"    # Vertical tab (ASCII 11)
-        LINE="${LINE//$'\x01'/\\\\}" # Temp symbol to double slash
-
-        # для SQL запроса (и для всех многострочных сообщений?) PostgreSQL добавляет символ табуляции на каждой строке
-        if test ! -z "$PREV_LINE"; then
-            test "$FIRST_CHAR" = $'\t' && echo -n "$PREV_LINE"'\n' || echo "$PREV_LINE"
-        fi
-        PREV_LINE="$LINE"
-    done
-    if test ! -z "$PREV_LINE"; then
-        test "$FIRST_CHAR" = $'\t' && echo -n "$PREV_LINE"'\n' || echo "$PREV_LINE"
-    fi
-}
-
-#------------------------------------------------------------------
 if test "$#" -ne 2; then
     echo "Reads current/previous PostgreSQL log file to standard output." >&2
     echo "If log file does not exist, no error throw, just empty output." >&2
@@ -138,7 +101,9 @@ case "$LOG_FILE_EXT" in
 esac
 
 if test "$2" = 'log'; then
-    $COMMAND "$LOG_FILE" | escape_text_format
+    $COMMAND "$LOG_FILE" | sed -E -f "$SCRIPT_DIR/log_read.sed"
+elif command -v sed > /dev/null 2>&1; then
+    $COMMAND "$LOG_FILE" | sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g' # Removes ANSI escape sequences, include colors
 else
     $COMMAND "$LOG_FILE"
 fi

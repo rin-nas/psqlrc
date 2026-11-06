@@ -81,40 +81,52 @@ SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 7 csv', format 'csv');
 
 ------------------------------------------------------------------------------------------------------------------------
+CREATE FOREIGN TABLE pro.log_all (line text)
+SERVER file_srv
+OPTIONS (program 'true', format 'text');
 
-CREATE FOREIGN TABLE pro.log0 (line text)
+CREATE FOREIGN TABLE pro.log0 ()
+INHERITS (pro.log_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 0 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log (line text)
+CREATE FOREIGN TABLE pro.log ()
+INHERITS (pro.log_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 1 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log1 (line text)
+CREATE FOREIGN TABLE pro.log1 ()
+INHERITS (pro.log_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 1 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log2 (line text)
+CREATE FOREIGN TABLE pro.log2 ()
+INHERITS (pro.log_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 2 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log3 (line text)
+CREATE FOREIGN TABLE pro.log3 ()
+INHERITS (pro.log_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 3 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log4 (line text)
+CREATE FOREIGN TABLE pro.log4 ()
+INHERITS (pro.log_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 4 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log5 (line text)
+CREATE FOREIGN TABLE pro.log5 ()
+INHERITS (pro.log_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 5 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log6 (line text)
+CREATE FOREIGN TABLE pro.log6 ()
+INHERITS (pro.log_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 6 log', format 'text');
 
-CREATE FOREIGN TABLE pro.log7 (line text)
+CREATE FOREIGN TABLE pro.log7 ()
+INHERITS (pro.log_all)
 SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 7 log', format 'text');
 
@@ -122,8 +134,18 @@ OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 7 log', format 'text');
 
 /*
 -- Тестирование:
+
+-- CSV
 TABLE pro.csvlog_all LIMIT 10; -- выборка данных будет из всех наследуемых таблиц!
 SELECT count(*) FROM pro.csvlog_all;
-TABLE pro.csvlog LIMIT 10;
+TABLE pro.csvlog0 LIMIT 10;
+TABLE pro.csvlog1 LIMIT 10;
 TABLE pro.csvlog2 LIMIT 10;
+
+-- LOG
+TABLE pro.log_all LIMIT 10; -- выборка данных будет из всех наследуемых таблиц!
+SELECT count(*) FROM pro.log_all;
+TABLE pro.log0 LIMIT 10;
+TABLE pro.log1 LIMIT 10;
+TABLE pro.log2 LIMIT 10;
 */
