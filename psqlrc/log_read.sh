@@ -31,6 +31,30 @@ echoinfo() { echo -e "${white}$@${reset}" ; } # важные сообщения
 echosucc() { echo -e "${green}$@${reset}" ; } # сообщения об успехе
 
 #------------------------------------------------------------------
+escape_text_format() {
+    while IFS= read -r LINE; do
+        # последовательно меняем символы в текущей строке
+
+        # примеры:
+        # LINE="${LINE//-/_}"         # символьный
+        # LINE="${LINE//$'\x2d'/_}"   # шестнадцатеричный (Hex)
+        # LINE="${LINE//$'\055'/_}"   # восьмеричный (Octal)
+        # LINE="${LINE//$'\u002d'/_}" # юникод (UTF-8)
+
+        # https://postgrespro.ru/docs/postgresql/18/sql-copy?lang=en
+        LINE="${LINE//\\/$'\x01'}"   # Slash to temp symbol
+        LINE="${LINE//$'\b'/\\b}"    # Backspace (ASCII 8)
+        LINE="${LINE//$'\f'/\\f}"    # Form feed (ASCII 12)
+        LINE="${LINE//$'\n'/\\n}"    # Newline (ASCII 10)
+        LINE="${LINE//$'\r'/\\r}"    # Carriage return (ASCII 13)
+        LINE="${LINE//$'\t'/\\t}"    # Tab (ASCII 9)
+        LINE="${LINE//$'\v'/\\v}"    # Vertical tab (ASCII 11)
+        LINE="${LINE//$'\x01'/\\\\}" # Temp symbol to double slash
+        echo "$LINE"
+    done
+}
+
+#------------------------------------------------------------------
 if test "$#" -ne 2; then
     echo "Reads current/previous PostgreSQL log file to standard output." >&2
     echo "If log file does not exist, no error throw, just empty output." >&2
@@ -88,20 +112,16 @@ if test "$1" -gt 1; then
 fi
 
 LOG_FILE_EXT=$(echo "$LOG_FILE" | grep -oP '\.\K[^.]+$')
-# compare [de]compression speed and ratio - https://github.com/rin-nas/postgresql-patterns-library/blob/master/pg_archive_log/README.md
+COMMAND=''
 case "$LOG_FILE_EXT" in
-    log|csv)
-        test "$1" = 0 && tail -n 1000 "$LOG_FILE" || cat "$LOG_FILE"; exit ;;
-    zst)
-        zstdcat "$LOG_FILE"; exit ;;
-    lz4)
-        lz4cat  "$LOG_FILE"; exit ;;
-    xz)
-        xzcat   "$LOG_FILE"; exit ;;
-    bz3)
-        bz3cat  "$LOG_FILE"; exit ;;
-    gz)
-        zcat    "$LOG_FILE"; exit ;;
-    *)
-        echoerr "file '$LOG_FILE': file extension '$LOG_FILE_EXT' does not support"; exit 1 ;;
+    log|csv) test "$1" = 0 && COMMAND='tail -n 1000' || COMMAND='cat' ;;
+    # compare [de]compression speed and ratio - https://github.com/rin-nas/postgresql-patterns-library/blob/master/pg_archive_log/README.md
+    zst) COMMAND='zstdcat' ;;
+    lz4) COMMAND='lz4cat'  ;;
+    xz)  COMMAND='xzcat'   ;;
+    bz3) COMMAND='bz3cat'  ;;
+    gz)  COMMAND='zcat'    ;;
+    *)   echoerr "file '$LOG_FILE': file extension '$LOG_FILE_EXT' does not support"; exit 1 ;;
 esac
+
+$COMMAND "$LOG_FILE" | escape_text_format
