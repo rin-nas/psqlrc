@@ -138,8 +138,11 @@
 \set pspg_installed `command -v pspg > /dev/null 2>&1 && echo 1 || echo 0`
 \set less_installed `command -v less > /dev/null 2>&1 && echo 1 || echo 0`
 \set sed_installed  `command -v sed  > /dev/null 2>&1 && echo 1 || echo 0`
-\set replace_command 'bash ~/psqlrc/replaces.sh | '
+\set replace_command ''
 \if :pspg_installed
+    \if :sed_installed
+        \set replace_command 'sed "s/↵/ /g" | '
+    \endif
     -- pspg-5.8.6 некорректно отображает таблицы с цветными данными, хотя в pspg-5.5.3 это ещё работало (TODO - создать задачу на автора pspg, см. `pspg --info`)
     \setenv PSQL_PAGER       :replace_command'pspg --quit-if-one-screen --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound'
     \setenv PSQL_WATCH_PAGER :replace_command'pspg --quit-if-one-screen --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound --stream'

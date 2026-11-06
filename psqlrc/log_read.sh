@@ -32,6 +32,9 @@ echosucc() { echo -e "${green}$@${reset}" ; } # сообщения об успе
 
 #------------------------------------------------------------------
 escape_text_format() {
+    PREV_LINE=''
+    FIRST_CHAR=''
+    # читаем STDIN (входящий поток данных) построчно в переменную $LINE
     while IFS= read -r LINE; do
         # последовательно меняем символы в текущей строке
 
@@ -40,6 +43,8 @@ escape_text_format() {
         # LINE="${LINE//$'\x2d'/_}"   # шестнадцатеричный (Hex)
         # LINE="${LINE//$'\055'/_}"   # восьмеричный (Octal)
         # LINE="${LINE//$'\u002d'/_}" # юникод (UTF-8)
+
+        FIRST_CHAR="${LINE:0:1}"
 
         # https://postgrespro.ru/docs/postgresql/18/sql-copy?lang=en
         LINE="${LINE//\\/$'\x01'}"   # Slash to temp symbol
@@ -50,8 +55,16 @@ escape_text_format() {
         LINE="${LINE//$'\t'/\\t}"    # Tab (ASCII 9)
         LINE="${LINE//$'\v'/\\v}"    # Vertical tab (ASCII 11)
         LINE="${LINE//$'\x01'/\\\\}" # Temp symbol to double slash
-        echo "$LINE"
+
+        # для SQL запроса (и для всех многострочных сообщений?) PostgreSQL добавляет символ табуляции на каждой строке
+        if test ! -z "$PREV_LINE"; then
+            test "$FIRST_CHAR" = $'\t' && echo -n "$PREV_LINE"'\n' || echo "$PREV_LINE"
+        fi
+        PREV_LINE="$LINE"
     done
+    if test ! -z "$PREV_LINE"; then
+        test "$FIRST_CHAR" = $'\t' && echo -n "$PREV_LINE"'\n' || echo "$PREV_LINE"
+    fi
 }
 
 #------------------------------------------------------------------
@@ -124,4 +137,8 @@ case "$LOG_FILE_EXT" in
     *)   echoerr "file '$LOG_FILE': file extension '$LOG_FILE_EXT' does not support"; exit 1 ;;
 esac
 
-$COMMAND "$LOG_FILE" | escape_text_format
+if test "$2" = 'log'; then
+    $COMMAND "$LOG_FILE" | escape_text_format
+else
+    $COMMAND "$LOG_FILE"
+fi
