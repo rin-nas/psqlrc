@@ -72,8 +72,7 @@ psql -v pro=0 -q -f ~/psqlrc/commands/B.psql -U biha_replication_user -P title="
 psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_user -P title="BiHA topology, cluster state, config" biha_db
 ```
 Для привлечения внимания в таблицах некоторые символы и слова могут выделяться цветом, особенно с опцией `-v emoji=0`.
-`less` умеет корректно отображать данные с цветовой раскраской, а `pspg` нет.
-Если в ОС инсталлирован `pspg`, для цветного подкрашивания символов можно добавить в конец командной строки `| sed -E -f ~/psqlrc/colorize.sed`.
+`less` умеет корректно отображать данные с цветовой раскраской, а `pspg` — нет.
 
 ### Замечания по безопасности
 
@@ -98,6 +97,7 @@ psql -v pro=0 -v emoji=0 -q -f ~/psqlrc/commands/TB.psql -U biha_replication_use
   Запускать лучше на мастере, но это не обязательно.
 * `:B` — [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference): состояние и конфигурация узлов кластера.
 * `:TB` — [BiHA](https://postgrespro.ru/docs/enterprise/current/biha-reference): топология, состояние, конфигурация узлов кластера.
+* `:LOG` — Postgres server log, last 1000 lines.
 
 Для выполнения команды просто введите её в приглашении `psql` и нажмите клавишу `Enter`.
 
