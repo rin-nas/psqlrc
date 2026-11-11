@@ -15,9 +15,9 @@
 \include ~/psqlrc/title.psql
 
 \if :is_csvlog
-    table pro.csvlog0;
+    select row_number() over () as " #", * from pro.csvlog0;
 \else
-    table pro.log0;
+    select row_number() over () as " #", * from pro.log0;
 \endif
 
 \unset title
