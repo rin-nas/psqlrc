@@ -81,6 +81,8 @@ SERVER file_srv
 OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 7 csv', format 'csv');
 
 ------------------------------------------------------------------------------------------------------------------------
+-- DROP FOREIGN TABLE /*IF EXISTS*/ pro.log_all CASCADE; -- для тестов
+
 CREATE FOREIGN TABLE pro.log_all (line text)
 SERVER file_srv
 OPTIONS (program 'true', format 'text');
@@ -136,14 +138,14 @@ OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 7 log', format 'text');
 -- Тестирование:
 
 -- CSV
-TABLE pro.csvlog_all LIMIT 10; -- выборка данных будет из всех наследуемых таблиц!
+TABLE pro.csvlog_all LIMIT 10; -- выборка данных будет из всех наследуемых таблиц, использовать не рекомендуется!
 SELECT count(*) FROM pro.csvlog_all;
 TABLE pro.csvlog0 LIMIT 10;
 TABLE pro.csvlog1 LIMIT 10;
 TABLE pro.csvlog2 LIMIT 10;
 
 -- LOG
-TABLE pro.log_all LIMIT 10; -- выборка данных будет из всех наследуемых таблиц!
+TABLE pro.log_all LIMIT 10; -- выборка данных будет из всех наследуемых таблиц, использовать не рекомендуется!
 SELECT count(*) FROM pro.log_all;
 TABLE pro.log0 LIMIT 10;
 TABLE pro.log1 LIMIT 10;
