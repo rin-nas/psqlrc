@@ -66,7 +66,8 @@ if test ! -f "$CUR_LOG_FILES"; then
     exit 1
 fi
 
-LOG_FILE_REGEXP="(^|/)postgres[^/]*\.$2(\.[^./]+)?$"
+# регулярка учитывает возможные значения Postgres параметра log_filename и добавляемые суффиксы Linux утилиты logrotate
+LOG_FILE_REGEXP="(^|/)postgres[^/]*\.$2([-_.][^/]+)?(\.[^./]+)?$"
 LOG_FILE=$(cat "$CUR_LOG_FILES" | grep -P "$LOG_FILE_REGEXP" | cut -d' ' -f2 || true)
 if test -z "$LOG_FILE"; then
     echoerr "file '$CUR_LOG_FILES': regexp '$LOG_FILE_REGEXP' no matches found!"
