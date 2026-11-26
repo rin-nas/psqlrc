@@ -26,7 +26,7 @@ select 'pg_extensions', (select string_agg(concat(extname, ' ', extversion), ', 
 union all
 select 'biha.get_ssn()', biha.get_ssn()
 union all
-select E'biha.error_details()\n(curent node)', json_strip_nulls(to_json(e))::text from biha.error_details() as e where e.type != 'NO_ERROR';
+select E'biha.error_details()\n(current node)', json_strip_nulls(to_json(e))::text from biha.error_details() as e where e.type != 'NO_ERROR';
 
 WITH resolve_hosts as (
     select distinct

@@ -334,7 +334,7 @@ select
     \if `test ':pro' = 1 && echo 1 || echo 0`
         \if :is_local_connection
             \echo :head'\n# OS ':reset
-            \echo `top -bn2 | head -5`
+            \echo `top -bn1 | head -5`
         \endif
     \endif
 
