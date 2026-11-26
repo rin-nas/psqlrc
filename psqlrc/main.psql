@@ -150,8 +150,8 @@
     \if :sed_installed
         \set replace_command 'sed -E -f ~/psqlrc/colorize.sed | '
     \endif
-    \setenv PSQL_PAGER       :replace_command'less -iMFXSx4RB -b 6400'
-    \setenv PSQL_WATCH_PAGER :replace_command'less -iMFXSx4RB -b 6400 +F'
+    \setenv PSQL_PAGER       :replace_command'less -iMFXSx4RB'
+    \setenv PSQL_WATCH_PAGER :replace_command'less -iMFXSx4RB +F'
 \endif
 
 ------------------------------------------------------------------------------------------------------------------------
