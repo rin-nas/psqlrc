@@ -100,6 +100,14 @@ cross join coalesce(
 ) as state_symbol
 order by n.id;
 
+\if :biha_referee_need
+    \echo :hint'HINT: BiHA total nodes = 2, so а referee need':reset
+\elif :biha_nquorum_error
+    \echo :warn'WARNING: BiHA split-brain prevent: node_id=':biha_node_id', current nquorum = ':biha_nquorum', expected nquorum = ':biha_nquorum'':reset
+\elif :biha_minnodes_error
+    \echo :warn'WARNING: BiHA split-brain prevent: node_id=':biha_node_id', current minnodes = ':biha_minnodes', expected minnodes = ':biha_minnodes'':reset
+\endif
+
 \unset title
 \include ~/psqlrc/title.psql
 

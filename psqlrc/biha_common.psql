@@ -1,5 +1,6 @@
 \include ~/psqlrc/quiet_in.psql
 
+    -- Запрос для проверки нахождения BiHA в сервисном режиме
     -- https://postgrespro.ru/docs/enterprise/current/biha-administration#BIHA-SERVICE-MODE
     select exists (
         select
@@ -8,12 +9,47 @@
     ) as biha_service_mode
     \gset
 
+    -- Запрос для проверки наличия колонок в biha.config()
     select string_agg(j.key, E'\n' order by j.key) as biha_config_columns
     from (select * from biha.config() limit 1) as c
     cross join json_each_text(row_to_json(c)) as j
     \gset
 
-    select count(*) > 0 as table_callbacks_filled from biha.callbacks
+    select count(*) > 0 as biha_table_callbacks_filled from biha.callbacks
     \gset
+
+    /*
+    Запрос для проверки корректности параметров biha.minnodes и biha.nquorum, чтобы избежать ситуации split-brain.
+
+    По умолчанию для `biha.minnodes` берется значение `biha.nquorum`.
+    Чтобы избежать ситуации split-brain, оба параметра рекомендуется задать как (общее число узлов + 1) / 2, округленное в большую сторону.
+    Тогда при разделении сети лидер, оказавшись в меньшинстве, перестанет принимать запросы на запись, а большинство узлов выберет нового лидера.
+    Однако при четном числе узлов имеет смысл задать biha.minnodes как ровно половину от общего числа узлов,
+    чтобы разделение на две равные части не повлияло на работу лидера.
+    */
+    with t as (
+        select
+            n.id as node_id,
+            c.nquorum,
+            c.minnodes,
+            count(*) over()           as total_nodes,
+            (count(*) over() + 1) / 2 as nquorum_expected,
+            (count(*) over() + 1) / 2 as minnodes_expected
+        from biha.config() as c
+        join biha.nodes() as n on n.id = c.id
+    )
+    , s as (
+        select
+            *,
+            nquorum  != nquorum_expected  as nquorum_error,
+            minnodes != minnodes_expected as minnodes_error,
+            total_nodes = 2               as referee_need
+        from t
+    )
+    select *
+    from s
+    order by referee_need desc, nquorum_error desc, minnodes_error desc
+    limit 1
+    \gset biha_
 
 \include ~/psqlrc/quiet_out.psql
