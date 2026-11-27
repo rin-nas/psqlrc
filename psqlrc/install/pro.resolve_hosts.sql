@@ -20,7 +20,7 @@ create function pro.resolve_hosts()
         host         text,
         is_canonical boolean
     )
-    immutable
+    volatile -- !!!
     strict -- returns null if any parameter is null
     parallel safe
     SECURITY DEFINER
