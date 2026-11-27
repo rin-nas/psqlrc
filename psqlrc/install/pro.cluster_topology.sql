@@ -14,11 +14,11 @@ m as (
            p.port,
            0 as level,
            array[concat_ws(':', a.addr, p.port)] as path
-    from nullif(trim(current_setting('primary_conninfo')), '')       as t(primary_conninfo),
+    from nullif(trim(current_setting('primary_conninfo')), '')      as t(primary_conninfo),
          coalesce(regexp_replace(t.primary_conninfo, '\m(user|application_name|connect_timeout)=\S*', '', 'g')
                   || ' user=psqlrc_user application_name=cluster_topology_step1 connect_timeout=3') as q(conninfo),
-         coalesce(inet_server_addr(), '127.0.0.1'::inet)             as a(addr),
-         coalesce(inet_server_port(), current_setting('port')::int)  as p(port)
+         coalesce(inet_server_addr(), '127.0.0.1'::inet)            as a(addr),
+         coalesce(inet_server_port(), current_setting('port')::int) as p(port)
     union all
     select d.*,
            m.level - 1 as level,
@@ -80,7 +80,7 @@ m as (
            array_append(r.path, hp.host_port) as path
     from r,
          pro.dblink(
-            format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=cluster_topology_step2 connect_timeout=3', r.addr, r.port),
+            format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=cluster_topology_step2.%s connect_timeout=3', r.addr, r.port, r.level),
             $sql$
                 select w.last_lsn,
                        pg_sr,
@@ -108,7 +108,7 @@ m as (
     select r.*, d.*
     from r
     left join pro.dblink(
-           format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=cluster_topology_step3 connect_timeout=3', r.addr, r.port),
+           format('user=psqlrc_user host=%s port=%s dbname=psqlrc_db application_name=cluster_topology_step3.%s connect_timeout=3', r.addr, r.port, r.level),
            $sql$
                with guc as (
                    select
