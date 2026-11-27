@@ -114,7 +114,7 @@ select
     -- database specific only
     db.datname as db_name,
     pg_size_pretty(pg_database_size(db.datname)) as db_size,
-    db.blks_hit / nullif(db.blks_hit + db.blks_read, 0) as db_cache_hit_ratio
+    round(100.0 * db.blks_hit / nullif(db.blks_hit + db.blks_read, 0)) as db_cache_hit_ratio
 
 from pg_stat_database as db, s
 where datname = current_database()
