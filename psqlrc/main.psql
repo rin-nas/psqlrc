@@ -260,7 +260,9 @@ select
         \set is_primary `test ':pg_is_in_recovery' = f && echo 1 || echo 0`
     \endif
 
-    \set wal_directory :data_directory'/pg_wal'
+    \if :{?data_directory}
+        \set wal_directory :data_directory'/pg_wal'
+    \endif
 
     \if :{?logging_collector}
         \if :logging_collector

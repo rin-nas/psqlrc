@@ -1,5 +1,74 @@
 # Идеи для доработок
 
+## BiHA 
+
+### Параметры конфигурации кластера
+biha.config ()
+
+proxima_enabled (boolean) #                   biha.enable_proxima() и biha.disable_proxima()
+service_mode (boolean) #                      biha.service_mode()
+ssl_certificate (text) #                      biha.set_ssl_certificate()
+ssl_mode (text) #                             biha.set_ssl_mode()
+ssl_private_key (text) #                      biha.set_ssl_private_key()
+synchronous_standby_names.count (integer) #   biha.set_sync_standbys()
+synchronous_standby_names.min (integer) #     biha.set_sync_standbys_min()
+synchronous_standby_names.names (integer) #   biha.set_ssn()  biha.add_to_ssn() или biha.get_ssn()
+use_ssl (boolean) #                           biha.set_use_ssl()
+user_biha_cert (text) #                       biha.set_user_cert()
+user_biha_key (text) #                        biha.set_user_key()
+
+### Параметры конфигурации сегмента
+
+heartbeat_max_lost (integer) #                biha.set_heartbeat_max_lost()
+heartbeat_send_period (integer) #             biha.set_heartbeat_send_period()
+minnodes (integer) #                          biha.set_minnodes()
+no_wal_on_follower (integer) #                biha.set_no_wal_on_follower()        
+nquorum (integer) #                           biha.set_nquorum()
+
+### Параметры конфигурации узла
+
+asyncaction_timeout (integer) #               biha.set_asyncaction_timeout()
+biha_hosts (string) #                         biha.set_biha_hosts()
+biha_listen_addresses (string) #              bihactl
+biha_port (integer) #                         bihactl, biha.set_biha_hosts(), biha_listen_addresses (string),  biha.set_replication_hosts()
+callbacks_timeout (integer) #                 biha.set_callbacks_timeout()
+config_send_period (integer) #                biha.set_config_send_period()
+deny_wal_sources (string) #                   biha.set_deny_wal_sources()
+flw_ro (boolean) #                            biha.set_flw_ro()
+leader_timeout (integer) #                    biha.set_leader_timeout()
+manage_slots_xmin (boolean) #                 biha.set_manage_slots_xmin()
+max_replicas (integer) #                      biha.set_max_replicas()
+pg_port (integer) #                           bihactl
+replication_hosts (string) #                  biha.set_replication_hosts()
+sql_hosts (string) #                          bihactl, biha.set_sql_hosts()
+watchdog_timeout (integer) #                  biha.set_watchdog_timeout()
+
+### Параметры конфигурации, общие для узлов и сегментов
+
+can_be_leader (boolean) #                     biha.set_can_be_leader()
+can_vote (boolean) #                          biha.set_can_vote()
+mode (text) #                                 bihactl
+name (text) #                                 bihactl
+priority (integer) #                          biha.set_priority()
+repl_pref_roles (text) #                      biha.set_pref_roles()
+
+### Необязательные параметры конфигурации
+Значения этих параметров на узлах кластера могут отличаться
+
+biha.autorewind (boolean) #                   ALTER SYSTEM SET biha.autorewind = true;
+biha.autowaltrim (boolean) #                  ALTER SYSTEM SET biha.autowaltrim = true;
+biha.wal_validation (boolean) #               ALTER SYSTEM SET biha.wal_validation = true;
+
+------------------------------------------------------------------------------------------------------------------------
+## BiHA minnodes 
+
+Если после отключения узла кол-во работающих узлов будет >= значения minnodes, то лидер останется в статусе RW.
+
+## Добавить leader_timeout
+
+`select leader_timeout from biha.config();`
+
+## Сравнивать на серверах тип и версии ОС
 
 ## Считать размер папок через функции СУБД, потому что сейчас это работает только локально
 
@@ -46,7 +115,6 @@ https://habr.com/ru/companies/postgrespro/articles/992426/#commit_b3ce55f41
 ## Прочее
 
 * Документация: It is recommended to --- добавить причину performance/reliability reason
-* :BB - добавить колонку "works on leader only"?
 * BiHA - Показать уведомление, когда для двух узлов без рефери есть риск split-brain?
 * https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don't_use_trust_authentication_over_TCP/IP_(host,_hostssl)
 * https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don't_use_psql_-W_or_--password
@@ -151,3 +219,48 @@ Unicode Character U+FE0F is Variation Selector-16 (VS16), a special hidden code 
 1. https://misc.flogisoft.com/bash/tip_colors_and_formatting (see `256-colors.sh`)
 1. https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
 1. https://postgres.ai/docs/postgres-howtos/development-tools/psql/how-to-format-text-output-in-psql-scripts
+
+
+rabisx@ont-fpk-11:/opt/app/mcoi/menu$ ./manage.sh -bihatag 11 11
+
+select biha.set_leader(11);
+select biha.set_minnodes(2);
+select biha.set_nquorum(2);
+select biha.set_sync_standbys(1);
+select biha.set_sync_standbys_min(-1);
+select biha.set_ssn(11,21,31,41);
+
+select biha.set_deny_wal_sources(11,'{}'::int[]);
+select biha.set_deny_wal_sources(21,'{}'::int[]);
+select biha.set_deny_wal_sources(31,'{}'::int[]);
+select biha.set_deny_wal_sources(41,'{11,21}'::int[]);
+
+select biha.set_max_replicas(11, 2);
+select biha.set_max_replicas(21, 2);
+select biha.set_max_replicas(31, 2);
+select biha.set_max_replicas(41, 2);
+
+select biha.set_pref_roles(11, 'L');
+select biha.set_pref_roles(21, 'L');
+select biha.set_pref_roles(31, 'FL');
+select biha.set_pref_roles(41, 'FL');
+
+select biha.set_priority(11, 0);
+select biha.set_priority(21, 0);
+select biha.set_priority(31, 0);
+select biha.set_priority(41, 0);
+
+select biha.set_can_be_leader(11,true);
+select biha.set_can_be_leader(21,true);
+select biha.set_can_be_leader(31,false);
+select biha.set_can_be_leader(41,false);
+
+select biha.set_can_vote(11, true);
+select biha.set_can_vote(21, true);
+select biha.set_can_vote(31, true);
+select biha.set_can_vote(41, false);
+
+# pg_replication_slots.wal_status = 'extended'
+Статус extended в столбце wal_status представления pg_replication_slots PostgreSQL означает, 
+что объём удерживаемых журналов предзаписи (WAL) превысил лимит max_wal_size, 
+но нужные сегменты WAL пока сохраняются на диске благодаря слоту репликации или параметру wal_keep_size
