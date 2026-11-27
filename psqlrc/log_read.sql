@@ -38,47 +38,47 @@ OPTIONS (program 'true', format 'csv');
 CREATE FOREIGN TABLE pro.csvlog0 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 0 csv', format 'csv');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 0 csv', format 'csv');
 
 CREATE FOREIGN TABLE pro.csvlog ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 1 csv', format 'csv');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 1 csv', format 'csv');
 
 CREATE FOREIGN TABLE pro.csvlog1 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 1 csv', format 'csv');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 1 csv', format 'csv');
 
 CREATE FOREIGN TABLE pro.csvlog2 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 2 csv', format 'csv');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 2 csv', format 'csv');
 
 CREATE FOREIGN TABLE pro.csvlog3 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 3 csv', format 'csv');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 3 csv', format 'csv');
 
 CREATE FOREIGN TABLE pro.csvlog4 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 4 csv', format 'csv');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 4 csv', format 'csv');
 
 CREATE FOREIGN TABLE pro.csvlog5 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 5 csv', format 'csv');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 5 csv', format 'csv');
 
 CREATE FOREIGN TABLE pro.csvlog6 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 6 csv', format 'csv');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 6 csv', format 'csv');
 
 CREATE FOREIGN TABLE pro.csvlog7 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 7 csv', format 'csv');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 7 csv', format 'csv');
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DROP FOREIGN TABLE /*IF EXISTS*/ pro.log_all CASCADE; -- для тестов
@@ -90,47 +90,47 @@ OPTIONS (program 'true', format 'text');
 CREATE FOREIGN TABLE pro.log0 ()
 INHERITS (pro.log_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 0 log', format 'text');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 0 log', format 'text');
 
 CREATE FOREIGN TABLE pro.log ()
 INHERITS (pro.log_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 1 log', format 'text');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 1 log', format 'text');
 
 CREATE FOREIGN TABLE pro.log1 ()
 INHERITS (pro.log_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 1 log', format 'text');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 1 log', format 'text');
 
 CREATE FOREIGN TABLE pro.log2 ()
 INHERITS (pro.log_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 2 log', format 'text');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 2 log', format 'text');
 
 CREATE FOREIGN TABLE pro.log3 ()
 INHERITS (pro.log_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 3 log', format 'text');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 3 log', format 'text');
 
 CREATE FOREIGN TABLE pro.log4 ()
 INHERITS (pro.log_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 4 log', format 'text');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 4 log', format 'text');
 
 CREATE FOREIGN TABLE pro.log5 ()
 INHERITS (pro.log_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 5 log', format 'text');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 5 log', format 'text');
 
 CREATE FOREIGN TABLE pro.log6 ()
 INHERITS (pro.log_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 6 log', format 'text');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 6 log', format 'text');
 
 CREATE FOREIGN TABLE pro.log7 ()
 INHERITS (pro.log_all)
 SERVER file_srv
-OPTIONS (program 'bash ~postgres/psqlrc/log_read.sh 7 log', format 'text');
+OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 7 log', format 'text');
 
 ------------------------------------------------------------------------------------------------------------------------
 

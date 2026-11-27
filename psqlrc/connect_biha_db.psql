@@ -1,6 +1,6 @@
-\include ~/psqlrc/quiet_in.psql
+\include :script_dir/quiet_in.psql
     select exists (select from pg_database where datname = 'biha_db') as biha_db_exists \gset
-\include ~/psqlrc/quiet_out.psql
+\include :script_dir/quiet_out.psql
 
 \if :biha_db_exists
 \else
@@ -13,21 +13,21 @@
 \set DBNAME_ORIGINAL :DBNAME
 
 \if `test ':DBNAME' != 'biha_db' && echo 1 || echo 0`
-    \include ~/psqlrc/quiet_in.psql
+    \include :script_dir/quiet_in.psql
         \connect biha_db
-    \include ~/psqlrc/quiet_out.psql
+    \include :script_dir/quiet_out.psql
 \endif
 
 ------------------------------------------------------------------------------------------------------------------------
-\include ~/psqlrc/quiet_in.psql
+\include :script_dir/quiet_in.psql
     select exists (select from pg_namespace where nspname = 'pro') as schema_pro_exists \gset
-\include ~/psqlrc/quiet_out.psql
+\include :script_dir/quiet_out.psql
 
 \if :schema_pro_exists
 \else
     \echo :error'schema "pro" does not exist':reset
     \echo :hint'HINT: type ":INSTALL"':reset
-    \include ~/psqlrc/connect_restore.psql
+    \include :script_dir/connect_restore.psql
     -- при использовании \quit в скрипте прекращается только выполнение этого скрипта, поэтому делаем выход ещё из родительского скрипта
     \set QUIT 1
     \quit

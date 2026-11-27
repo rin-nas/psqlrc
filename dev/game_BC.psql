@@ -4,13 +4,13 @@
 \else
     \echo :head'Игра «быки и коровы»':reset
 
-    \include ~/psqlrc/quiet_in.psql
+    \include :script_dir/quiet_in.psql
         SELECT
             LEFT(string_agg(digit::text, '' ORDER BY random()), 4) AS secret,
             0 as attempt
         FROM generate_series(0, 9) AS g(digit)
         \gset bc_
-    \include ~/psqlrc/quiet_out.psql
+    \include :script_dir/quiet_out.psql
 
     -- \echo :bc_secret
 \endif
@@ -23,7 +23,7 @@
     \quit
 \endif
 
-\include ~/psqlrc/quiet_in.psql
+\include :script_dir/quiet_in.psql
 
     with t as (
         select
@@ -56,7 +56,7 @@
     coalesce(:'bc_guess'  !~ r.regexp or (select count(distinct t.g_char) != s.len from t)) as v2(guess_error)
     \gset bc_
 
-\include ~/psqlrc/quiet_out.psql
+\include :script_dir/quiet_out.psql
 
 \if :bc_secret_error
     \echo :error'Ошибка в секрете':reset
@@ -75,7 +75,7 @@
     \echo :hint'Попытайтесь ещё раз, подсказка: ':bc_hint:reset
 \endif
 
-\include ~/psqlrc/game_BC.psql
+\include :script_dir/game_BC.psql
 
 /*
 Кол-во размещений без повторений (комбинаторика):

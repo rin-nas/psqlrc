@@ -5,20 +5,20 @@
     \quit
 \endif
 
-\include ~/psqlrc/connect_biha_db.psql
+\include :script_dir/connect_biha_db.psql
 \if :{?QUIT}
     \unset QUIT
     \quit
 \endif
 
-\include ~/psqlrc/biha_common.psql
+\include :script_dir/biha_common.psql
 
 \if :biha_service_mode
     \echo :warn'WARNING: BiHA service mode ON (in all nodes)!':reset
 \endif
 
 \set title 'BiHA cluster tolopogy, state and config'
-\include ~/psqlrc/title.psql
+\include :script_dir/title.psql
 
 select
     \if `echo ':biha_config_columns' | grep -qx 'deny_wal_sources' && echo 1 || echo 0`
@@ -109,6 +109,6 @@ order by n.id;
 \endif
 
 \unset title
-\include ~/psqlrc/title.psql
+\include :script_dir/title.psql
 
-\include ~/psqlrc/connect_restore.psql
+\include :script_dir/connect_restore.psql

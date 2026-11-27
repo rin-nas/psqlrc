@@ -1,8 +1,8 @@
-\include ~/psqlrc/quiet_in.psql
+\include :script_dir/quiet_in.psql
     SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = 'psqlrc_role') AS psqlrc_role_exists \gset
     SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = 'psqlrc_user') AS psqlrc_user_exists \gset
     select exists (select from pg_namespace where nspname = 'pro') as schema_pro_exists \gset
-\include ~/psqlrc/quiet_out.psql
+\include :script_dir/quiet_out.psql
 
 ------------------------------------------------------------------------------------------------------------------------
 \echo :head'Create global objects':reset
@@ -49,15 +49,15 @@ GRANT psqlrc_role TO psqlrc_user;
 \endif
 
 CREATE SCHEMA pro;
-\include ~/psqlrc/install/pro.interval_pretty.sql
-\include ~/psqlrc/install/pro.size_pretty.sql
-\include ~/psqlrc/install/pro.resolve_hosts.sql
-\include ~/psqlrc/install/pro.ping.sql
-\include ~/psqlrc/install/pro.cluster_topology.sql
-\include ~/psqlrc/log_read.sql
+\include :script_dir/install/pro.interval_pretty.sql
+\include :script_dir/install/pro.size_pretty.sql
+\include :script_dir/install/pro.resolve_hosts.sql
+\include :script_dir/install/pro.ping.sql
+\include :script_dir/install/pro.cluster_topology.sql
+\include :script_dir/log_read.sql
 
 \if `test ':DBNAME' = 'biha_db' && echo 1 || echo 0`
-    \include ~/psqlrc/install/biha.status_changed_log.sql
+    \include :script_dir/install/biha.status_changed_log.sql
 \endif
 
 ------------------------------------------------------------------------------------------------------------------------

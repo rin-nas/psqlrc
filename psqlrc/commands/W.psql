@@ -2,7 +2,7 @@
 -- https://postgrespro.ru/docs/postgresql/current/functions-info
 
 \set title 'Who am I'
-\include ~/psqlrc/title.psql
+\include :script_dir/title.psql
 
 with t as (
     select now()::timestamptz(0)::text as "now()",
@@ -37,4 +37,4 @@ from t
 join json_each_text(row_to_json(t)) as j on j.value is not null;
 
 \unset title
-\include ~/psqlrc/title.psql
+\include :script_dir/title.psql

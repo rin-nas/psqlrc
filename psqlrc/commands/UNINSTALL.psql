@@ -17,9 +17,9 @@
     \quit
 \endif
 
-\include ~/psqlrc/quiet_in.psql
+\include :script_dir/quiet_in.psql
     select exists (select from pg_database where datname = 'biha_db') as biha_db_exists \gset
-\include ~/psqlrc/quiet_out.psql
+\include :script_dir/quiet_out.psql
 
 \set DBNAME_ORIGINAL :DBNAME
 

@@ -48,6 +48,10 @@
 -- ограничение длительности выполнения "тяжёлых" команд типа `du -sh`
 \set os_command_timeout '20s'
 
+-- файл скрипта (argv[0]), чтобы использовать или тестировать одновременно несколько версий psqlrc в разных папках
+\set script_file `readlink -f ~/.psqlrc`
+\set script_dir  `dirname :script_file`
+
 ------------------------------------------------------------------------------------------------------------------------
 -- настройки psql общие
 
@@ -148,7 +152,7 @@
     \setenv PSQL_WATCH_PAGER :replace_command'pspg --quit-if-one-screen --freezecols=4 --reprint-on-exit --blackwhite --on-sigint-exit --no-sound --stream'
 \elif :less_installed
     \if :sed_installed
-        \set replace_command 'sed -E -f ~/psqlrc/colorize.sed | '
+        \set replace_command 'sed -E -f ':script_dir'/colorize.sed | '
     \endif
     \setenv PSQL_PAGER       :replace_command'less -iMFXSx4RB'
     \setenv PSQL_WATCH_PAGER :replace_command'less -iMFXSx4RB +F'
@@ -202,7 +206,7 @@ select
 ------------------------------------------------------------------------------------------------------------------------
 
 -- короткие команды для DBA
-\include ~/psqlrc/commands.psql
+\include :script_dir/commands.psql
 
 ------------------------------------------------------------------------------------------------------------------------
 \if :QUIET_ORIGINAL
@@ -215,9 +219,9 @@ select
     \pset footer off
 \else
 
-    \echo '~/.psqlrc version: '`cat $(find ~/psqlrc/ -type f | sort) | cksum | grep -oP '^\S+' | xargs printf '%x'`'  https://github.com/rin-nas/psqlrc'
+    \echo '~/.psqlrc -> ':script_file'  version: '`cat $(find :script_dir -type f | sort) | cksum | grep -oP '^\S+' | xargs printf '%x'`
 
-    \include ~/psqlrc/info.psql
+    \include :script_dir/info.psql
 
     \if :pg_buffercache_installed
         SELECT
@@ -542,7 +546,7 @@ select
     --------------------------------------------------------------------------------------------------------------------
     \if :is_superuser
         -- проверяем наличие ошибок в конфигурационных файлах
-        \include ~/psqlrc/validate.psql
+        \include :script_dir/validate.psql
     \endif
 
     -- отображаем длительность выполнения запроса

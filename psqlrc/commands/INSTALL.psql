@@ -17,10 +17,10 @@
     \quit
 \endif
 
-\include ~/psqlrc/quiet_in.psql
+\include :script_dir/quiet_in.psql
     select exists (select from pg_database where datname = 'psqlrc_db') as psqlrc_db_exists \gset
     select exists (select from pg_database where datname = 'biha_db') as biha_db_exists \gset
-\include ~/psqlrc/quiet_out.psql
+\include :script_dir/quiet_out.psql
 
 \set DBNAME_ORIGINAL :DBNAME
 
@@ -38,7 +38,7 @@
 \echo
 \echo :head'Database "':DBNAME'"':reset
 START TRANSACTION;
-    \include ~/psqlrc/install.psql
+    \include :script_dir/install.psql
 COMMIT;
 
 \if :biha_db_exists
@@ -46,7 +46,7 @@ COMMIT;
     \echo
     \echo :head'Database "':DBNAME'"':reset
     START TRANSACTION;
-        \include ~/psqlrc/install.psql
+        \include :script_dir/install.psql
     COMMIT;
 \endif
 

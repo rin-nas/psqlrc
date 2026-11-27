@@ -5,14 +5,14 @@
     \quit
 \endif
 
-\include ~/psqlrc/connect_psqlrc_db.psql
+\include :script_dir/connect_psqlrc_db.psql
 \if :{?QUIT}
     \unset QUIT
     \quit
 \endif
 
 \set title 'Postgres server log, last 1000 lines'
-\include ~/psqlrc/title.psql
+\include :script_dir/title.psql
 
 \if :is_csvlog
     select row_number() over () as " #", * from pro.csvlog0;
@@ -21,6 +21,6 @@
 \endif
 
 \unset title
-\include ~/psqlrc/title.psql
+\include :script_dir/title.psql
 
-\include ~/psqlrc/connect_restore.psql
+\include :script_dir/connect_restore.psql

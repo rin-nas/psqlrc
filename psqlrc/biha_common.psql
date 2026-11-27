@@ -1,4 +1,4 @@
-\include ~/psqlrc/quiet_in.psql
+\include :script_dir/quiet_in.psql
 
     -- Запрос для проверки нахождения BiHA в сервисном режиме
     -- https://postgrespro.ru/docs/enterprise/current/biha-administration#BIHA-SERVICE-MODE
@@ -52,4 +52,4 @@
     limit 1
     \gset biha_
 
-\include ~/psqlrc/quiet_out.psql
+\include :script_dir/quiet_out.psql
