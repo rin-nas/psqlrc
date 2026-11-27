@@ -2,7 +2,7 @@
 with s as (
     select *, round((used_connections * 100.0) / max_connections) as used_connections_percent
     from (select (nullif(trim(setting), ''))::int from pg_settings where name = 'max_connections' limit 1) as s1(max_connections),
-         (select count(*) as used_connections from pg_stat_activity) as t1(used_connections)
+         (select count(*) as used_connections from pg_stat_activity where backend_type = 'client backend') as t1(used_connections)
 )
 select
     s.*,
