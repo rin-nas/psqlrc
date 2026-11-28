@@ -13,7 +13,8 @@ AS $$
                 s.*
             from biha.status_v as s
         ) as t
-    ) TO PROGRAM '(cat && echo) >> pg_biha/biha.status_changed.$(hostname).$(date +%Y-%m-%d).log';
+        -- сохраняем результат в файл, удаляем старые файлы по маске, оставив 100 самых свежих
+    ) TO PROGRAM '(cat && echo) >> pg_biha/biha.status_changed.$(hostname).$(date +%Y-%m-%d).log && ls -t pg_biha/biha.status_changed.*.log | tail -n +101 | xargs -r rm -f --';
 $$;
 --end;
 
