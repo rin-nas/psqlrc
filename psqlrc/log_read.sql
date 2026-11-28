@@ -40,11 +40,6 @@ INHERITS (pro.csvlog_all)
 SERVER file_srv
 OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 0 csv', format 'csv');
 
-CREATE FOREIGN TABLE pro.csvlog ()
-INHERITS (pro.csvlog_all)
-SERVER file_srv
-OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 1 csv', format 'csv');
-
 CREATE FOREIGN TABLE pro.csvlog1 ()
 INHERITS (pro.csvlog_all)
 SERVER file_srv
@@ -91,11 +86,6 @@ CREATE FOREIGN TABLE pro.log0 ()
 INHERITS (pro.log_all)
 SERVER file_srv
 OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 0 log', format 'text');
-
-CREATE FOREIGN TABLE pro.log ()
-INHERITS (pro.log_all)
-SERVER file_srv
-OPTIONS (program 'bash $(dirname $(readlink -f ~/.psqlrc))/log_read.sh 1 log', format 'text');
 
 CREATE FOREIGN TABLE pro.log1 ()
 INHERITS (pro.log_all)

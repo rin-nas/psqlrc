@@ -1,0 +1,4 @@
+\set log_num 7
+\set log_title 'Postgres previous (':log_num') server log'
+
+\include_relative LOG.psql

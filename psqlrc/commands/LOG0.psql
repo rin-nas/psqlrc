@@ -1,0 +1,4 @@
+\set log_num 0
+\set log_title 'Postgres current server log, last 1000 lines'
+
+\include_relative LOG.psql

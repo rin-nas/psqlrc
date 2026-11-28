@@ -1,4 +1,4 @@
--- Протокол работы сервера, последние 1000 строк из файла.
+-- Протокол работы сервера.
 \if :{?hint}
 \else
     \echo 'Файл "~postgres/.psqlrc" не загружен или не хватило прав доступа. Пройдите все шаги инсталляции с начала!'
@@ -11,14 +11,18 @@
     \quit
 \endif
 
-\set title 'Postgres server log, last 1000 lines'
+\set title :log_title
 \include :script_dir/title.psql
 
 \if :is_csvlog
-    select row_number() over () as " #", * from pro.csvlog0;
+    \set table 'pro.csvlog':log_num
 \else
-    select row_number() over () as " #", * from pro.log0;
+    \set table 'pro.log':log_num
 \endif
+
+\set sql 'select row_number() over () as " #", * from ':table';'
+:sql
+\echo :sql
 
 \unset title
 \include :script_dir/title.psql

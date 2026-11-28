@@ -6,7 +6,16 @@
 \set T   '\\include :script_dir/commands/T.psql'
 \set B   '\\include :script_dir/commands/B.psql'
 \set TB  '\\include :script_dir/commands/TB.psql'
-\set LOG '\\include :script_dir/commands/LOG.psql'
+
+-- протоколы работы СУБД
+\set LOG0 '\\include :script_dir/commands/LOG0.psql'
+\set LOG1 '\\include :script_dir/commands/LOG1.psql'
+\set LOG2 '\\include :script_dir/commands/LOG2.psql'
+\set LOG3 '\\include :script_dir/commands/LOG3.psql'
+\set LOG4 '\\include :script_dir/commands/LOG4.psql'
+\set LOG5 '\\include :script_dir/commands/LOG5.psql'
+\set LOG6 '\\include :script_dir/commands/LOG6.psql'
+\set LOG7 '\\include :script_dir/commands/LOG7.psql'
 
 \set INSTALL   '\\include :script_dir/commands/INSTALL.psql'
 \set REINSTALL '\\include :script_dir/commands/REINSTALL.psql'
